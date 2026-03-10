@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export const useSignUp = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     tenantId: '',
     email: '',
@@ -74,7 +76,9 @@ export const useSignUp = () => {
       });
 
       // Nếu bạn dùng react-router-dom, bạn có thể chuyển hướng sang trang đăng nhập:
-      // navigate('/login');
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
 
     } catch (err) {
       console.error("Registration failed:", err);

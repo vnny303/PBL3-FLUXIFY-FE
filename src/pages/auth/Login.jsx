@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { useLogin } from '../../hooks/useLogin';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const { formData, isLoading, error, isSuccess, handleChange, handleSubmit } = useLogin();
 
   return (
     <div className="flex h-screen w-full font-display bg-[#f6f6f8] text-slate-900 antialiased overflow-hidden">
@@ -55,6 +57,18 @@ export default function Login() {
             </div>
           </div>
 
+          {/* Hiển thị thông báo trạng thái */}
+          {error && (
+            <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-medium border border-red-100">
+              {error}
+            </div>
+          )}
+          {isSuccess && (
+            <div className="p-3 rounded-lg bg-green-50 text-green-600 text-sm font-medium border border-green-100">
+              Login successful! Redirecting...
+            </div>
+          )}
+
           {/* OAuth Section */}
           <div className="mt-8">
             <button className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-200 rounded-lg bg-white text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
@@ -78,7 +92,7 @@ export default function Login() {
           </div>
 
           {/* Form Section */}
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="email">
                 Email
@@ -86,6 +100,9 @@ export default function Login() {
               <input
                 className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 focus:border-[#1754cf] focus:ring-[#1754cf] text-sm p-3 border"
                 id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 placeholder="name@company.com"
                 type="email"
               />
@@ -99,6 +116,9 @@ export default function Login() {
                 <input
                   className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 focus:border-[#1754cf] focus:ring-[#1754cf] text-sm p-3 pr-10 border"
                   id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   placeholder="••••••••"
                   type={showPassword ? "text" : "password"}
                 />
@@ -115,12 +135,14 @@ export default function Login() {
             <div className="flex items-center justify-between py-1">
               <div className="flex items-center">
                 <input
-                  className="h-4 w-4 rounded border-slate-300 text-[#1754cf] focus:ring-[#1754cf]"
-                  id="remember-me"
-                  name="remember-me"
+                  className="h-4 w-4 rounded border-slate-300 text-[#1754cf] focus:ring-[#1754cf] cursor-pointer"
+                  id="rememberMe"
+                  name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
                   type="checkbox"
                 />
-                <label className="ml-2 block text-sm text-slate-700" htmlFor="remember-me">
+                <label className="ml-2 block text-sm text-slate-700 cursor-pointer" htmlFor="rememberMe">
                   Remember me
                 </label>
               </div>
@@ -133,10 +155,25 @@ export default function Login() {
             </div>
 
             <button
-              className="w-full bg-[#1754cf] hover:bg-[#1754cf]/90 text-white font-bold py-3.5 rounded-lg transition-all duration-200 shadow-lg shadow-[#1754cf]/20"
-              type="button"
+              className={`w-full bg-[#1754cf] text-white font-bold py-3.5 rounded-lg transition-all duration-200 shadow-lg shadow-[#1754cf]/20 ${
+                isLoading 
+                  ? 'opacity-70 cursor-not-allowed' 
+                  : 'hover:bg-[#1754cf]/90'
+              }`}
+              type="submit"
+              disabled={isLoading}
             >
-              Log In
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Logging in...
+                </span>
+              ) : (
+                'Log In'
+              )}
             </button>
           </form>
 
