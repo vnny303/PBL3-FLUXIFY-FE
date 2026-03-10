@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../services/authService';
 
 export const useSignUp = () => {
   const navigate = useNavigate();
@@ -51,20 +51,10 @@ export const useSignUp = () => {
         // CreatedAt: Thường Backend sẽ tự tạo (hoặc bạn có thể truyền new Date().toISOString() nếu BE bắt buộc)
       };
 
-      // TẠM THỜI MÔ PHỎNG GỌI API (Do chưa có Backend)
-      // Khi nào có Backend, bạn mở comment đoạn fetch bên dưới và xóa đoạn Promise này đi
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      /* ĐOẠN GỌI API THẬT BẰNG AXIOS (Đã comment lại)
-      const response = await axios.post('/api/simpleauth/customer/register', payload);
-      // Khi dùng api thật thì bạn dùng biến này thay cho mockData phía dưới
-      // const responseData = response.data;
-      */
+      // Gọi API qua Service 
+      const mockData = await authService.registerCustomer(payload);
 
-      // Mô phỏng data trả về thành công
-      const mockData = { message: "Account created successfully", ...payload };
-
-      console.log("Registration successful (Mock):", mockData);
+      console.log("Registration successful:", mockData);
       setIsSuccess(true);
       
       // Xóa form sau khi thành công

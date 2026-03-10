@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../services/authService';
 
 export const useLogin = () => {
   const navigate = useNavigate();
@@ -46,22 +46,10 @@ export const useLogin = () => {
         PasswordHash: formData.password
       };
 
-      // TẠM THỜI MÔ PHỎNG GỌI API BẰNG SETTIMEOUT
-      // Xóa đoạn Promise này đi khi có Backend nha
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      /* ĐOẠN GỌI API THẬT BẰNG AXIOS (Đã comment lại)
-      const response = await axios.post('/api/simpleauth/customer/login', payload);
-      // const responseData = response.data;
-      */
+      // Gọi API qua service
+      const mockData = await authService.loginCustomer(payload);
 
-      const mockData = { 
-        message: "Login successful", 
-        token: "fake-jwt-token-123xyz...", // API thường hay trả token
-        user: { email: payload.Email } 
-      };
-
-      console.log("Login successful (Mock):", mockData);
+      console.log("Login successful:", mockData);
       setIsSuccess(true);
       
       // Cleanup password on success (optional)
