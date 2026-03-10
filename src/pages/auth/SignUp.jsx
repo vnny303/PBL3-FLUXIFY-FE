@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { useSignUp } from '../../hooks/useSignUp';
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
+  const { formData, isLoading, error, isSuccess, handleChange, handleSubmit } = useSignUp();
 
   return (
     <div className="flex h-screen w-full font-display bg-[#f6f6f8] text-slate-900 antialiased overflow-hidden">
@@ -80,6 +82,18 @@ export default function SignUp() {
             <p className="text-slate-500">Join the Fluxify community today.</p>
           </div>
 
+          {/* Hiển thị thông báo trạng thái */}
+          {error && (
+            <div className="p-3 rounded-xl bg-red-50 text-red-600 text-sm font-medium border border-red-100">
+              {error}
+            </div>
+          )}
+          {isSuccess && (
+            <div className="p-3 rounded-xl bg-green-50 text-green-600 text-sm font-medium border border-green-100">
+              Account created successfully! Redirecting...
+            </div>
+          )}
+
           <div className="flex flex-col gap-4">
             <button className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white py-3 px-4 text-slate-700 font-semibold hover:bg-slate-50 transition-colors duration-200">
               <svg height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
@@ -99,15 +113,19 @@ export default function SignUp() {
               <div className="flex-grow border-t border-slate-200"></div>
             </div>
 
-            <form className="flex flex-col gap-5">
+            <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700" htmlFor="name">
-                  Full Name
+                {/* Vì API Customer bạn đưa có TenantId thay vì Fullname nên mình tạm map vào đây */}
+                <label className="text-sm font-semibold text-slate-700" htmlFor="tenantId">
+                  Tenant ID (Workspace Name)
                 </label>
                 <input
                   className="w-full rounded-xl border border-slate-200 bg-[#f6f6f8] px-4 py-3 focus:border-[#1754cf] focus:ring-1 focus:ring-[#1754cf] outline-none transition-all"
-                  id="name"
-                  placeholder="John Doe"
+                  id="tenantId"
+                  name="tenantId"
+                  value={formData.tenantId}
+                  onChange={handleChange}
+                  placeholder="my-workspace"
                   type="text"
                 />
               </div>
@@ -119,6 +137,9 @@ export default function SignUp() {
                 <input
                   className="w-full rounded-xl border border-slate-200 bg-[#f6f6f8] px-4 py-3 focus:border-[#1754cf] focus:ring-1 focus:ring-[#1754cf] outline-none transition-all"
                   id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="john@example.com"
                   type="email"
                 />
@@ -130,8 +151,11 @@ export default function SignUp() {
                 </label>
                 <div className="relative">
                   <input
-                    className="w-full rounded-xl border border-slate-200 bg-[#f6f6f8] px-4 py-3 focus:border-[#1754cf] focus:ring-1 focus:ring-[#1754cf] outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-200 bg-[#f6f6f8] px-4 py-3 focus:border-[#1754cf] focus:ring-1 focus:ring-[#1754cf] outline-none transition-all pr-12"
                     id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
                     placeholder="••••••••"
                     type={showPassword ? "text" : "password"}
                   />
@@ -147,8 +171,11 @@ export default function SignUp() {
 
               <div className="flex items-start gap-3 mt-1">
                 <input
-                  className="mt-1 rounded border-slate-300 text-[#1754cf] focus:ring-[#1754cf]"
+                  className="mt-1 rounded border-slate-300 text-[#1754cf] focus:ring-[#1754cf] cursor-pointer"
                   id="terms"
+                  name="acceptTerms"
+                  checked={formData.acceptTerms}
+                  onChange={(e) => handleChange({ target: { name: 'acceptTerms', value: e.target.checked } })}
                   type="checkbox"
                 />
                 <label className="text-sm text-slate-500" htmlFor="terms">
@@ -165,10 +192,25 @@ export default function SignUp() {
               </div>
 
               <button
-                className="w-full bg-[#1754cf] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#1754cf]/20 hover:bg-[#1754cf]/90 hover:shadow-[#1754cf]/30 transform active:scale-[0.98] transition-all duration-200"
-                type="button"
+                className={`w-full bg-[#1754cf] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#1754cf]/20 transition-all duration-200 ${
+                  isLoading 
+                    ? 'opacity-70 cursor-not-allowed' 
+                    : 'hover:bg-[#1754cf]/90 hover:shadow-[#1754cf]/30 transform active:scale-[0.98]'
+                }`}
+                type="submit"
+                disabled={isLoading}
               >
-                Create Account
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating...
+                  </span>
+                ) : (
+                  'Create Account'
+                )}
               </button>
             </form>
           </div>
