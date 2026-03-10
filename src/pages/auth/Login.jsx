@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
 import { useLogin } from '../../hooks/useLogin';
+import Input from '../../components/Input';
+import PasswordInput from '../../components/PasswordInput';
+import Checkbox from '../../components/Checkbox';
+import Button from '../../components/Button';
 
 export default function Login() {
-  const [showPassword, setShowPassword] = useState(false);
   const { formData, isLoading, error, isSuccess, handleChange, handleSubmit } = useLogin();
 
   return (
@@ -93,59 +94,33 @@ export default function Login() {
 
           {/* Form Section */}
           <form className="space-y-5" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="email">
-                Email
-              </label>
-              <input
-                className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 focus:border-[#1754cf] focus:ring-[#1754cf] text-sm p-3 border"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="name@company.com"
-                type="email"
-              />
-            </div>
+            <Input
+              label="Email"
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="name@company.com"
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="password">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 focus:border-[#1754cf] focus:ring-[#1754cf] text-sm p-3 pr-10 border"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  type={showPassword ? "text" : "password"}
-                />
-                <button
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
+            <PasswordInput
+              label="Password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+            />
 
             <div className="flex items-center justify-between py-1">
-              <div className="flex items-center">
-                <input
-                  className="h-4 w-4 rounded border-slate-300 text-[#1754cf] focus:ring-[#1754cf] cursor-pointer"
-                  id="rememberMe"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                  type="checkbox"
-                />
-                <label className="ml-2 block text-sm text-slate-700 cursor-pointer" htmlFor="rememberMe">
-                  Remember me
-                </label>
-              </div>
+              <Checkbox
+                id="rememberMe"
+                name="rememberMe"
+                checked={formData.rememberMe}
+                onChange={handleChange}
+                label="Remember me"
+              />
 
               <div className="text-sm">
                 <a className="font-medium text-[#1754cf] hover:underline" href="#">
@@ -154,27 +129,14 @@ export default function Login() {
               </div>
             </div>
 
-            <button
-              className={`w-full bg-[#1754cf] text-white font-bold py-3.5 rounded-lg transition-all duration-200 shadow-lg shadow-[#1754cf]/20 ${
-                isLoading 
-                  ? 'opacity-70 cursor-not-allowed' 
-                  : 'hover:bg-[#1754cf]/90'
-              }`}
+            <Button
               type="submit"
-              disabled={isLoading}
+              isLoading={isLoading}
+              loadingText="Logging in..."
+              className="py-3.5"
             >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Logging in...
-                </span>
-              ) : (
-                'Log In'
-              )}
-            </button>
+              Log In
+            </Button>
           </form>
 
           {/* Footer */}

@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
 import { useSignUp } from '../../hooks/useSignUp';
+import Input from '../../components/Input';
+import PasswordInput from '../../components/PasswordInput';
+import Checkbox from '../../components/Checkbox';
+import Button from '../../components/Button';
 
 export default function SignUp() {
-  const [showPassword, setShowPassword] = useState(false);
   const { formData, isLoading, error, isSuccess, handleChange, handleSubmit } = useSignUp();
 
   return (
@@ -114,104 +115,63 @@ export default function SignUp() {
             </div>
 
             <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-              <div className="flex flex-col gap-1.5">
-                {/* Vì API Customer bạn đưa có TenantId thay vì Fullname nên mình tạm map vào đây */}
-                <label className="text-sm font-semibold text-slate-700" htmlFor="tenantId">
-                  Tenant ID (Workspace Name)
-                </label>
-                <input
-                  className="w-full rounded-xl border border-slate-200 bg-[#f6f6f8] px-4 py-3 focus:border-[#1754cf] focus:ring-1 focus:ring-[#1754cf] outline-none transition-all"
-                  id="tenantId"
-                  name="tenantId"
-                  value={formData.tenantId}
-                  onChange={handleChange}
-                  placeholder="my-workspace"
-                  type="text"
-                />
-              </div>
+              <Input
+                label="Tenant ID (Workspace Name)"
+                id="tenantId"
+                name="tenantId"
+                value={formData.tenantId}
+                onChange={handleChange}
+                placeholder="my-workspace"
+              />
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700" htmlFor="email">
-                  Email Address
-                </label>
-                <input
-                  className="w-full rounded-xl border border-slate-200 bg-[#f6f6f8] px-4 py-3 focus:border-[#1754cf] focus:ring-1 focus:ring-[#1754cf] outline-none transition-all"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="john@example.com"
-                  type="email"
-                />
-              </div>
+              <Input
+                label="Email Address"
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="john@example.com"
+              />
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700" htmlFor="password">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    className="w-full rounded-xl border border-slate-200 bg-[#f6f6f8] px-4 py-3 focus:border-[#1754cf] focus:ring-1 focus:ring-[#1754cf] outline-none transition-all pr-12"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="••••••••"
-                    type={showPassword ? "text" : "password"}
-                  />
-                  <button
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#1754cf] transition-colors"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-              </div>
+              <PasswordInput
+                label="Password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+              />
 
-              <div className="flex items-start gap-3 mt-1">
-                <input
-                  className="mt-1 rounded border-slate-300 text-[#1754cf] focus:ring-[#1754cf] cursor-pointer"
+              <div className="mt-1">
+                <Checkbox
                   id="terms"
                   name="acceptTerms"
                   checked={formData.acceptTerms}
                   onChange={(e) => handleChange({ target: { name: 'acceptTerms', value: e.target.checked } })}
-                  type="checkbox"
-                />
-                <label className="text-sm text-slate-500" htmlFor="terms">
-                  I agree to the{' '}
-                  <a className="text-[#1754cf] font-medium hover:underline" href="#">
-                    Terms of Service
-                  </a>{' '}
-                  and{' '}
-                  <a className="text-[#1754cf] font-medium hover:underline" href="#">
-                    Privacy Policy
-                  </a>
-                  .
-                </label>
+                >
+                  <span className="text-sm text-slate-500 ml-2">
+                    I agree to the{' '}
+                    <a className="text-[#1754cf] font-medium hover:underline" href="#">
+                      Terms of Service
+                    </a>{' '}
+                    and{' '}
+                    <a className="text-[#1754cf] font-medium hover:underline" href="#">
+                      Privacy Policy
+                    </a>
+                    .
+                  </span>
+                </Checkbox>
               </div>
 
-              <button
-                className={`w-full bg-[#1754cf] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#1754cf]/20 transition-all duration-200 ${
-                  isLoading 
-                    ? 'opacity-70 cursor-not-allowed' 
-                    : 'hover:bg-[#1754cf]/90 hover:shadow-[#1754cf]/30 transform active:scale-[0.98]'
-                }`}
+              <Button
                 type="submit"
-                disabled={isLoading}
+                isLoading={isLoading}
+                loadingText="Creating..."
+                className="py-4"
               >
-                {isLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Creating...
-                  </span>
-                ) : (
-                  'Create Account'
-                )}
-              </button>
+                Create Account
+              </Button>
             </form>
           </div>
 
