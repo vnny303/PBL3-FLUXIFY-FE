@@ -1,8 +1,11 @@
 import React from 'react';
-import { useAppContext } from './AppContext';
+import { ArrowRight, ShoppingCart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAppContext } from '../contexts/AppContext';
 
 export default function Home() {
-  const { setCurrentView, setShowModal } = useAppContext();
+  const { setShowModal } = useAppContext();
+  const navigate = useNavigate();
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <section className="relative overflow-hidden rounded-xl bg-slate-900 mb-16">
@@ -17,7 +20,7 @@ export default function Home() {
             Experience high-end e-commerce with our minimal, SaaS-grade storefront solution. Curated for those who appreciate design.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button onClick={() => setCurrentView('shop')} className="bg-primary hover:opacity-90 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-primary/30 transition-all transform hover:scale-105">
+            <button onClick={() => navigate('/shop')} className="bg-primary hover:opacity-90 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-primary/30 transition-all transform hover:scale-105">
               Shop Now
             </button>
             <button className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/20 px-8 py-3 rounded-xl font-bold text-lg transition-all">
@@ -33,8 +36,8 @@ export default function Home() {
             <h2 className="text-3xl font-bold text-slate-900">Featured Products</h2>
             <p className="text-slate-500 mt-2">The latest arrivals and community favorites.</p>
           </div>
-          <button onClick={() => setCurrentView('shop')} className="text-primary font-semibold hover:underline flex items-center gap-1">
-            View all <span className="material-symbols-outlined text-sm">arrow_forward</span>
+          <button onClick={() => navigate('/shop')} className="text-primary font-semibold hover:underline flex items-center gap-1">
+            View all <ArrowRight className=" text-sm" />
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -57,7 +60,7 @@ export default function Home() {
                 <div className="flex items-center justify-between mt-4">
                   <span className="text-xl font-bold text-primary">{item.price}</span>
                   <button onClick={() => setShowModal(true)} className="bg-slate-900 text-white p-2 rounded-lg hover:bg-primary transition-colors flex items-center justify-center">
-                    <span className="material-symbols-outlined">add_shopping_cart</span>
+                    <ShoppingCart />
                   </button>
                 </div>
               </div>

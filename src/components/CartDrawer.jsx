@@ -1,5 +1,6 @@
 import React from 'react';
-import { useAppContext } from './AppContext';
+import { X, Trash2, Minus, Plus, ArrowRight } from 'lucide-react';
+import { useAppContext } from '../contexts/AppContext';
 
 export default function CartDrawer() {
   const { showCart, setShowCart, cartItems, removeFromCart, updateQuantity, cartTotal, cartCount } = useAppContext();
@@ -24,7 +25,7 @@ export default function CartDrawer() {
             onClick={() => setShowCart(false)}
             className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
           >
-            <span className="material-symbols-outlined text-xl">close</span>
+            <X className=" text-xl" />
           </button>
         </div>
 
@@ -41,17 +42,17 @@ export default function CartDrawer() {
                   <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">SIZE: M | COLOR: BLACK</p>
                 </div>
                 <button className="text-slate-400 hover:text-red-500 transition-colors">
-                  <span className="material-symbols-outlined text-lg">delete</span>
+                  <Trash2 className=" text-lg" />
                 </button>
               </div>
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
                   <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <span className="material-symbols-outlined text-sm">remove</span>
+                    <Minus className=" text-sm" />
                   </button>
                   <span className="w-8 text-center text-sm font-bold text-slate-900">1</span>
                   <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <span className="material-symbols-outlined text-sm">add</span>
+                    <Plus className=" text-sm" />
                   </button>
                 </div>
                 <span className="text-sm font-bold text-blue-600">$45.00</span>
@@ -71,17 +72,17 @@ export default function CartDrawer() {
                   <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">SIZE: 32 | COLOR: INDIGO</p>
                 </div>
                 <button className="text-slate-400 hover:text-red-500 transition-colors">
-                  <span className="material-symbols-outlined text-lg">delete</span>
+                  <Trash2 className=" text-lg" />
                 </button>
               </div>
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
                   <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <span className="material-symbols-outlined text-sm">remove</span>
+                    <Minus className=" text-sm" />
                   </button>
                   <span className="w-8 text-center text-sm font-bold text-slate-900">1</span>
                   <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <span className="material-symbols-outlined text-sm">add</span>
+                    <Plus className=" text-sm" />
                   </button>
                 </div>
                 <span className="text-sm font-bold text-blue-600">$120.00</span>
@@ -101,17 +102,17 @@ export default function CartDrawer() {
                   <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">SIZE: L | COLOR: SAND</p>
                 </div>
                 <button className="text-slate-400 hover:text-red-500 transition-colors">
-                  <span className="material-symbols-outlined text-lg">delete</span>
+                  <Trash2 className=" text-lg" />
                 </button>
               </div>
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
                   <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <span className="material-symbols-outlined text-sm">remove</span>
+                    <Minus className=" text-sm" />
                   </button>
                   <span className="w-8 text-center text-sm font-bold text-slate-900">1</span>
                   <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <span className="material-symbols-outlined text-sm">add</span>
+                    <Plus className=" text-sm" />
                   </button>
                 </div>
                 <span className="text-sm font-bold text-blue-600">$210.00</span>
@@ -132,7 +133,7 @@ export default function CartDrawer() {
           
           <button className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 mb-4 shadow-lg shadow-blue-600/20">
             Checkout Now
-            <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            <ArrowRight className=" text-sm" />
           </button>
           
           <button 

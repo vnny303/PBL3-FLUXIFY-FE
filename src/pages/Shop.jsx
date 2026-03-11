@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAppContext } from './AppContext';
-import { products } from './data';
+import { ChevronDown, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAppContext } from '../contexts/AppContext';
+import { products } from '../utils/data';
 
 export default function Shop() {
-  const { setShowModal, setCurrentView, addToCart, setSelectedProduct } = useAppContext();
+  const { setShowModal, addToCart, setSelectedProduct } = useAppContext();
+  const navigate = useNavigate();
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [sortBy, setSortBy] = useState('Newest Arrivals');
   const sortDropdownRef = useRef(null);
@@ -99,7 +102,7 @@ export default function Shop() {
                   className="flex items-center justify-between w-[200px] bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 >
                   {sortBy}
-                  <span className="material-symbols-outlined text-slate-400 text-lg ml-2">expand_more</span>
+                  <ChevronDown className=" text-slate-400 text-lg ml-2" />
                 </button>
                 
                 {showSortDropdown && (
@@ -130,7 +133,7 @@ export default function Shop() {
             {products.map((item, i) => (
               <div key={i} className="group bg-white rounded-xl border border-primary/10 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 cursor-pointer" onClick={() => {
                 setSelectedProduct(item);
-                setCurrentView('product');
+                navigate(`/product/${item.id || i}`); // Assumes items will get IDs, fallback to index
               }}>
                 <div className="relative aspect-square overflow-hidden bg-slate-100">
                   <img alt={item.name} src={item.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
@@ -147,7 +150,7 @@ export default function Shop() {
                       e.stopPropagation(); 
                       addToCart(item);
                     }} className="bg-slate-900 text-white p-2 rounded-lg hover:bg-primary transition-colors flex items-center justify-center">
-                      <span className="material-symbols-outlined">add_shopping_cart</span>
+                      <ShoppingCart />
                     </button>
                   </div>
                 </div>
@@ -158,7 +161,7 @@ export default function Shop() {
           <section className="mt-12 flex justify-center">
             <nav className="flex items-center gap-2">
               <button className="px-3 py-2 text-sm font-medium text-slate-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-all flex items-center gap-1 group">
-                <span className="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">chevron_left</span>
+                <ChevronLeft className=" text-sm transition-transform group-hover:-translate-x-1" />
                 Previous
               </button>
               <div className="flex items-center gap-1">
@@ -170,7 +173,7 @@ export default function Shop() {
               </div>
               <button className="px-3 py-2 text-sm font-medium text-slate-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-all flex items-center gap-1 group">
                 Next
-                <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">chevron_right</span>
+                <ChevronRight className=" text-sm transition-transform group-hover:translate-x-1" />
               </button>
             </nav>
           </section>

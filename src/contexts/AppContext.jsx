@@ -3,7 +3,6 @@ import React, { createContext, useState, useContext } from 'react';
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  const [currentView, setCurrentView] = useState('home');
   const [showModal, setShowModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showCart, setShowCart] = useState(false);
@@ -48,7 +47,6 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      currentView, setCurrentView,
       showModal, setShowModal,
       isLoggedIn, setIsLoggedIn,
       showCart, setShowCart,

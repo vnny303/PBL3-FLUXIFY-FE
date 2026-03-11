@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAppContext } from './AppContext';
+import { Heart, Star, StarHalf, Minus, Plus, ShoppingBag, Truck, ShieldCheck, Activity, Sliders, Package, CheckCircle2, Target, Ear, Plug, Cable, Ruler, Scale, CircleDot, Waves, Zap, Pen, ChevronDown, BadgeCheck, User } from 'lucide-react';
+import { useAppContext } from '../contexts/AppContext';
 
 export default function ProductDetail() {
   const { addToCart, selectedProduct } = useAppContext();
@@ -38,7 +39,7 @@ export default function ProductDetail() {
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 mb-4">
             <img src={selectedProduct?.img || "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000"} alt={selectedProduct?.name || "Studio Microphone Pro"} className="w-full h-full object-cover" />
             <button className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-slate-50 transition-colors">
-              <span className="material-symbols-outlined text-slate-400">favorite</span>
+              <Heart className=" text-slate-400" />
             </button>
           </div>
           <div className="grid grid-cols-4 gap-4">
@@ -65,11 +66,11 @@ export default function ProductDetail() {
           <div className="flex items-center gap-3 mb-4">
             <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full uppercase tracking-wider">IN STOCK</span>
             <div className="flex items-center text-amber-400 text-sm">
-              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star_half</span>
+              <Star className=" text-sm" fill="currentColor" />
+              <Star className=" text-sm" fill="currentColor" />
+              <Star className=" text-sm" fill="currentColor" />
+              <Star className=" text-sm" fill="currentColor" />
+              <StarHalf className=" text-sm" fill="currentColor" />
               <span className="text-slate-500 text-xs ml-2">(128 reviews)</span>
             </div>
           </div>
@@ -130,17 +131,17 @@ export default function ProductDetail() {
           <div className="flex gap-4 mb-8">
             <div className="flex items-center border border-slate-200 rounded-full bg-white">
               <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors">
-                <span className="material-symbols-outlined text-sm">remove</span>
+                <Minus className=" text-sm" />
               </button>
               <span className="w-8 text-center font-bold text-slate-900">{quantity}</span>
               <button onClick={() => setQuantity(quantity + 1)} className="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors">
-                <span className="material-symbols-outlined text-sm">add</span>
+                <Plus className=" text-sm" />
               </button>
             </div>
             <button onClick={() => {
               addToCart(selectedProduct || { id: 999, name: "Studio Microphone Pro", price: "$299.00", img: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000" }, quantity, selectedColor, selectedSize);
             }} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-600/20">
-              <span className="material-symbols-outlined text-sm">shopping_bag</span>
+              <ShoppingBag className=" text-sm" />
               Add to Cart
             </button>
           </div>
@@ -148,14 +149,14 @@ export default function ProductDetail() {
           {/* Features */}
           <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-100">
             <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-blue-600 mt-0.5">local_shipping</span>
+              <Truck className=" text-blue-600 mt-0.5" />
               <div>
                 <p className="text-xs font-bold text-slate-900">FREE DELIVERY</p>
                 <p className="text-xs text-slate-500">Orders over $150</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-blue-600 mt-0.5">verified_user</span>
+              <ShieldCheck className=" text-blue-600 mt-0.5" />
               <div>
                 <p className="text-xs font-bold text-slate-900">2 YEAR WARRANTY</p>
                 <p className="text-xs text-slate-500">Full replacement</p>
@@ -196,12 +197,12 @@ export default function ProductDetail() {
 
               <div className="grid sm:grid-cols-2 gap-6 mb-8">
                 <div className="p-6 rounded-2xl border border-slate-200 bg-white">
-                  <span className="material-symbols-outlined text-blue-600 text-3xl mb-4">graphic_eq</span>
+                  <Activity className=" text-blue-600 text-3xl mb-4" />
                   <h3 className="text-lg font-bold text-slate-900 mb-2">Cardioid Pattern</h3>
                   <p className="text-sm text-slate-500">Focuses on your voice while minimizing background noise from the sides and rear.</p>
                 </div>
                 <div className="p-6 rounded-2xl border border-slate-200 bg-white">
-                  <span className="material-symbols-outlined text-blue-600 text-3xl mb-4">tune</span>
+                  <Sliders className=" text-blue-600 text-3xl mb-4" />
                   <h3 className="text-lg font-bold text-slate-900 mb-2">Internal Shock Mount</h3>
                   <p className="text-sm text-slate-500">Decouples the capsule from the mic body to prevent handling noise and vibration interference.</p>
                 </div>
@@ -217,7 +218,7 @@ export default function ProductDetail() {
             <div className="w-full lg:w-1/3">
               <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100">
                 <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 mb-6">
-                  <span className="material-symbols-outlined text-blue-600">inventory_2</span>
+                  <Package className=" text-blue-600" />
                   What's in the box?
                 </h3>
                 <ul className="space-y-4">
@@ -229,7 +230,7 @@ export default function ProductDetail() {
                     'Desktop Boom Stand'
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <span className="material-symbols-outlined text-emerald-500 text-sm mt-0.5">check_circle</span>
+                      <CheckCircle2 className=" text-emerald-500 text-sm mt-0.5" />
                       <span className="text-sm text-slate-600">{item}</span>
                     </li>
                   ))}
@@ -244,20 +245,20 @@ export default function ProductDetail() {
             <div className="w-full lg:w-1/2 space-y-8">
               <div>
                 <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 mb-4">
-                  <span className="material-symbols-outlined text-blue-600">tune</span>
+                  <Sliders className=" text-blue-600" />
                   Acoustic Characteristics
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between py-3 border-b border-slate-100">
-                    <span className="text-sm text-slate-500 flex items-center gap-2"><span className="material-symbols-outlined text-sm">graphic_eq</span> Frequency Response</span>
+                    <span className="text-sm text-slate-500 flex items-center gap-2"><Activity className=" text-sm" /> Frequency Response</span>
                     <span className="text-sm font-bold text-slate-900">20Hz - 20kHz</span>
                   </div>
                   <div className="flex justify-between py-3 border-b border-slate-100">
-                    <span className="text-sm text-slate-500 flex items-center gap-2"><span className="material-symbols-outlined text-sm">radar</span> Polar Pattern</span>
+                    <span className="text-sm text-slate-500 flex items-center gap-2"><Target className=" text-sm" /> Polar Pattern</span>
                     <span className="text-sm font-bold text-slate-900">Cardioid (Unidirectional)</span>
                   </div>
                   <div className="flex justify-between py-3 border-b border-slate-100">
-                    <span className="text-sm text-slate-500 flex items-center gap-2"><span className="material-symbols-outlined text-sm">hearing</span> Sensitivity</span>
+                    <span className="text-sm text-slate-500 flex items-center gap-2"><Ear className=" text-sm" /> Sensitivity</span>
                     <span className="text-sm font-bold text-slate-900">-32dB ± 2dB</span>
                   </div>
                 </div>
@@ -265,20 +266,20 @@ export default function ProductDetail() {
 
               <div>
                 <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 mb-4">
-                  <span className="material-symbols-outlined text-blue-600">settings_input_component</span>
+                  <Plug className=" text-blue-600" />
                   Hardware & Connectivity
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between py-3 border-b border-slate-100">
-                    <span className="text-sm text-slate-500 flex items-center gap-2"><span className="material-symbols-outlined text-sm">cable</span> Connectivity</span>
+                    <span className="text-sm text-slate-500 flex items-center gap-2"><Cable className=" text-sm" /> Connectivity</span>
                     <span className="text-sm font-bold text-slate-900">Gold-plated XLR 3-pin</span>
                   </div>
                   <div className="flex justify-between py-3 border-b border-slate-100">
-                    <span className="text-sm text-slate-500 flex items-center gap-2"><span className="material-symbols-outlined text-sm">straighten</span> Dimensions</span>
+                    <span className="text-sm text-slate-500 flex items-center gap-2"><Ruler className=" text-sm" /> Dimensions</span>
                     <span className="text-sm font-bold text-slate-900">52mm x 190mm</span>
                   </div>
                   <div className="flex justify-between py-3 border-b border-slate-100">
-                    <span className="text-sm text-slate-500 flex items-center gap-2"><span className="material-symbols-outlined text-sm">scale</span> Weight</span>
+                    <span className="text-sm text-slate-500 flex items-center gap-2"><Scale className=" text-sm" /> Weight</span>
                     <span className="text-sm font-bold text-slate-900">485g (Mic only)</span>
                   </div>
                 </div>
@@ -324,19 +325,19 @@ export default function ProductDetail() {
                     <div className="flex gap-6 mb-4">
                       <div className="flex flex-col items-center">
                         <div className="w-12 h-12 rounded-full bg-white/80 backdrop-blur flex items-center justify-center mb-2 shadow-sm">
-                          <span className="material-symbols-outlined text-blue-600">radio_button_checked</span>
+                          <CircleDot className=" text-blue-600" />
                         </div>
                         <span className="text-[10px] font-bold text-slate-700 uppercase">CAPSULE</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <div className="w-12 h-12 rounded-full bg-white/80 backdrop-blur flex items-center justify-center mb-2 shadow-sm">
-                          <span className="material-symbols-outlined text-blue-600">waves</span>
+                          <Waves className=" text-blue-600" />
                         </div>
                         <span className="text-[10px] font-bold text-slate-700 uppercase">DAMPING</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <div className="w-12 h-12 rounded-full bg-white/80 backdrop-blur flex items-center justify-center mb-2 shadow-sm">
-                          <span className="material-symbols-outlined text-blue-600">bolt</span>
+                          <Zap className=" text-blue-600" />
                         </div>
                         <span className="text-[10px] font-bold text-slate-700 uppercase">CIRCUITRY</span>
                       </div>
@@ -355,11 +356,11 @@ export default function ProductDetail() {
               <div className="sticky top-24">
                 <div className="text-6xl font-black text-slate-900 mb-2">4.8</div>
                 <div className="flex text-amber-400 mb-2">
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star_half</span>
+                  <Star fill="currentColor" />
+                  <Star fill="currentColor" />
+                  <Star fill="currentColor" />
+                  <Star fill="currentColor" />
+                  <StarHalf fill="currentColor" />
                 </div>
                 <p className="text-sm text-slate-500 mb-8">Based on 124 reviews</p>
 
@@ -382,7 +383,7 @@ export default function ProductDetail() {
                 </div>
 
                 <button className="w-full py-3 rounded-full border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-sm">edit</span>
+                  <Pen className=" text-sm" />
                   WRITE A REVIEW
                 </button>
               </div>
@@ -401,7 +402,7 @@ export default function ProductDetail() {
                     className="flex items-center gap-1 font-bold text-slate-900 hover:text-blue-600 transition-colors"
                   >
                     {reviewSortBy}
-                    <span className={`material-symbols-outlined text-sm transition-transform duration-300 ${showReviewSort ? 'rotate-180' : ''}`}>expand_more</span>
+                    <ChevronDown className={` text-sm transition-transform duration-300 ${showReviewSort ? 'rotate-180' : ''}`} />
                   </button>
 
                   {showReviewSort && (
@@ -439,15 +440,15 @@ export default function ProductDetail() {
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-900">Alex Johnson</span>
                           <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded uppercase">
-                            <span className="material-symbols-outlined text-[10px]">verified</span> Verified Purchase
+                            <BadgeCheck className=" text-[10px]" /> Verified Purchase
                           </span>
                         </div>
                         <div className="flex text-amber-400 text-sm mt-1">
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
                         </div>
                       </div>
                     </div>
@@ -471,21 +472,21 @@ export default function ProductDetail() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                        <span className="material-symbols-outlined">person</span>
+                        <User />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-900">Sarah M.</span>
                           <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded uppercase">
-                            <span className="material-symbols-outlined text-[10px]">verified</span> Verified Purchase
+                            <BadgeCheck className=" text-[10px]" /> Verified Purchase
                           </span>
                         </div>
                         <div className="flex text-amber-400 text-sm mt-1">
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs text-slate-200" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs text-slate-200" fill="currentColor" />
                         </div>
                       </div>
                     </div>
@@ -508,11 +509,11 @@ export default function ProductDetail() {
                           <span className="font-bold text-slate-900">Mark T.</span>
                         </div>
                         <div className="flex text-amber-400 text-sm mt-1">
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
+                          <Star className=" text-xs" fill="currentColor" />
                         </div>
                       </div>
                     </div>

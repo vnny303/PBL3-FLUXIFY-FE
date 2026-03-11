@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { useAppContext } from './AppContext';
+import { X, Check, ArrowRight } from 'lucide-react';
+import { useAppContext } from '../contexts/AppContext';
 
 export default function AddToCartPopup() {
   const { showAddToCartPopup, setShowAddToCartPopup, setShowCart, lastAddedItem, cartTotal } = useAppContext();
@@ -30,12 +31,12 @@ export default function AddToCartPopup() {
             onClick={() => setShowAddToCartPopup(false)}
             className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
           >
-            <span className="material-symbols-outlined text-xl">close</span>
+            <X className=" text-xl" />
           </button>
 
           <div className="flex items-center gap-4 mb-6">
             <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-emerald-600 font-bold">check</span>
+              <Check className=" text-emerald-600 font-bold" />
             </div>
             <div>
               <h2 className="text-xl font-black text-slate-900">Added to Cart</h2>
@@ -74,7 +75,7 @@ export default function AddToCartPopup() {
               className="flex-1 py-3 rounded-full bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
             >
               View Cart
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              <ArrowRight className=" text-sm" />
             </button>
           </div>
         </div>
