@@ -9,6 +9,7 @@ import Contact from './pages/Contact';
 import ProductDetail from './pages/ProductDetail';
 import SignUp from './pages/auth/SignUp';
 import Login from './pages/auth/Login';
+import AccountPage from './pages/account/AccountPage';
 import Modal from './components/Modal';
 import CartDrawer from './components/CartDrawer';
 import AddToCartPopup from './components/AddToCartPopup';
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="product/:id" element={<ProductDetail />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="account" element={<AccountPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

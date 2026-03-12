@@ -1,12 +1,20 @@
 import React from 'react';
 import { X, UserPlus } from 'lucide-react';
 import { useAppContext } from '../contexts/AppContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Modal() {
-  const { setShowModal, setIsLoggedIn } = useAppContext();
+  const { setShowModal } = useAppContext();
+  const navigate = useNavigate();
+
   const handleLogin = () => {
-    setIsLoggedIn(true);
     setShowModal(false);
+    navigate('/login');
+  };
+
+  const handleSignUp = () => {
+    setShowModal(false);
+    navigate('/signup');
   };
 
   return (
@@ -30,7 +38,7 @@ export default function Modal() {
             <button onClick={handleLogin} className="w-full flex items-center justify-center bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition-all shadow-sm">
               Sign In
             </button>
-            <button className="w-full flex items-center justify-center bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
+            <button onClick={handleSignUp} className="w-full flex items-center justify-center bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
               Create Account
             </button>
           </div>
