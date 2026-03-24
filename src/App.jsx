@@ -13,6 +13,7 @@ import AccountPage from './pages/account/AccountPage';
 import Modal from './components/Modal';
 import CartDrawer from './components/CartDrawer';
 import AddToCartPopup from './components/AddToCartPopup';
+import QuickAddModal from './components/QuickAddModal';
 import { useAppContext } from './contexts/AppContext';
 
 // This layout wraps the main store pages with Header, Footer, and global modals
@@ -37,6 +38,7 @@ const StoreLayout = () => {
       {showModal && <Modal />}
       <CartDrawer />
       <AddToCartPopup />
+      <QuickAddModal />
     </div>
   );
 };

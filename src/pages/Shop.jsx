@@ -148,7 +148,7 @@ export default function Shop() {
                     <span className="text-xl font-bold text-primary">{item.price}</span>
                     <button onClick={(e) => { 
                       e.stopPropagation(); 
-                      addToCart(item);
+                      handleQuickAdd(item);
                     }} className="bg-slate-900 text-white p-2 rounded-lg hover:bg-primary transition-colors flex items-center justify-center">
                       <ShoppingCart />
                     </button>

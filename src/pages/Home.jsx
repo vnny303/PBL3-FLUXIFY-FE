@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 
 export default function Home() {
-  const { setShowModal } = useAppContext();
+  const { setShowModal, handleQuickAdd } = useAppContext();
   const navigate = useNavigate();
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -42,8 +42,8 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { cat: 'Audio', name: 'Wireless Headphones', price: '$199.00', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDk8PcYjRqHZsivpvzkumwZJ-arFDQBjCPLtWd9fo-WLJEiE4B0r7H3qCSc1EBaYrjhX0jPRUvBZwllk6-3CO5qitpS3sTyrLHBbKQLSAlg3K05It7jf9DWH4x5o4yCz9gCPkuSzr-e5gcT-376qUbt0pBZJHdhrYOOXDz1JUWIeq4AcSzKTRY7hLlgnbIoNUUsYbOBjLiAWdIgZrANYqj796BDBuGd8KHaKxebozGBeejVHgfrRIGCGqsBuD_RZCUgoBrJGhd0jyc' },
-            { cat: 'Footwear', name: 'Leather Boots', price: '$120.00', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC7ZD7c-CEM3v_toRi-FNQGJjL6pxZ4uRQhoUJfrKQTbC3hdH-wuAPsDaEmjO-BzQMiYFZdjVN6q-D3PSd0KDcezDvcs5uOPSBwtyNwNIsqpTOHCJC8Co6UJAnWDbGJevGxiiel_1C_gCHJUDhp00dSKQZKO62Q2CNkWAFZa16jvyhneb1M9i2nWSq37ZvVNGV4vKXtCVrFyywjGhL-LOC38olB6K6ZrAU8lBKz-OZ-g6ToP-E25euo3p60Lw9LPxTLBjW4cZR79yY' },
+            { id: 101, cat: 'Audio', name: 'Wireless Headphones', price: '$199.00', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDk8PcYjRqHZsivpvzkumwZJ-arFDQBjCPLtWd9fo-WLJEiE4B0r7H3qCSc1EBaYrjhX0jPRUvBZwllk6-3CO5qitpS3sTyrLHBbKQLSAlg3K05It7jf9DWH4x5o4yCz9gCPkuSzr-e5gcT-376qUbt0pBZJHdhrYOOXDz1JUWIeq4AcSzKTRY7hLlgnbIoNUUsYbOBjLiAWdIgZrANYqj796BDBuGd8KHaKxebozGBeejVHgfrRIGCGqsBuD_RZCUgoBrJGhd0jyc', variants: { colors: ['Black', 'White'] } },
+            { id: 102, cat: 'Footwear', name: 'Leather Boots', price: '$120.00', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC7ZD7c-CEM3v_toRi-FNQGJjL6pxZ4uRQhoUJfrKQTbC3hdH-wuAPsDaEmjO-BzQMiYFZdjVN6q-D3PSd0KDcezDvcs5uOPSBwtyNwNIsqpTOHCJC8Co6UJAnWDbGJevGxiiel_1C_gCHJUDhp00dSKQZKO62Q2CNkWAFZa16jvyhneb1M9i2nWSq37ZvVNGV4vKXtCVrFyywjGhL-LOC38olB6K6ZrAU8lBKz-OZ-g6ToP-E25euo3p60Lw9LPxTLBjW4cZR79yY', variants: { sizes: ['39', '40', '41', '42'], colors: ['Brown', 'Black'] } },
             { cat: 'Accessories', name: 'Minimalist Watch', price: '$250.00', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBDBh78YIKmnUbhgV6bfMn1CCLAPvwTg8qdChlDXs-hXMdWAk62MCLK07aRjO-eihUgS1Dx6CEjStEcD7zC6LuY3LyMoXNjMxIAno9yIFr_NPNqYd1RZ33k4X3-a8uxjGOBrAKC-EkYbqJ15s1HfjpzTNhuL95VCw8gP6_otuUKMXyMF06iw6SY7jfMKzITHApXxP2UHROXpMpODmgWn183KFLXwT2Mzq5BY0HqvVeKKRgswlnzUoz2gunbg1Lk8VlcLXdLfTDNAVc' },
             { cat: 'Tech', name: 'Studio Microphone', price: '$175.00', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDrIeHdjuI6-2DcYWN68Vrdhdom0srfKhxyjWraAWmb4iHUXRCynpfZrzGhJB1INQnrEKKvtpWiPZ-ZawQBmi-bl9zrZKDqaDHjhShzCbsx4ioqyaLM-V-o_8bvOXQ-geH3ov1kY1ixRomTJ5gzTn4bR6IuO18MQVQkLZWe0OQ0cVFdH51sPBm0z0llWaQwU56iQaQ_6i0vqX0NNnBdR5NoESd-K41SpHurtUDXLpj1JKVjcFfxl5em_wxTUBRM4sF4IsO-DdqQYWA' }
           ].map((item, i) => (
@@ -59,7 +59,7 @@ export default function Home() {
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{item.name}</h3>
                 <div className="flex items-center justify-between mt-4">
                   <span className="text-xl font-bold text-primary">{item.price}</span>
-                  <button onClick={() => setShowModal(true)} className="bg-slate-900 text-white p-2 rounded-lg hover:bg-primary transition-colors flex items-center justify-center">
+                  <button onClick={() => handleQuickAdd(item)} className="bg-slate-900 text-white p-2 rounded-lg hover:bg-primary transition-colors flex items-center justify-center">
                     <ShoppingCart />
                   </button>
                 </div>

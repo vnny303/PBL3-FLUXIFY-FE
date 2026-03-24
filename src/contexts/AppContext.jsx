@@ -10,6 +10,15 @@ export function AppProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [lastAddedItem, setLastAddedItem] = useState(null);
+  const [quickAddProduct, setQuickAddProduct] = useState(null);
+
+  const handleQuickAdd = (product) => {
+    if (product.variants && (product.variants.sizes || product.variants.colors)) {
+      setQuickAddProduct(product);
+    } else {
+      addToCart(product);
+    }
+  };
 
   const addToCart = (product, quantity = 1, color = 'Default', size = 'Standard') => {
     if (!isLoggedIn) {
@@ -52,6 +61,7 @@ export function AppProvider({ children }) {
       showCart, setShowCart,
       showAddToCartPopup, setShowAddToCartPopup,
       cartItems, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount,
+      quickAddProduct, setQuickAddProduct, handleQuickAdd,
       selectedProduct, setSelectedProduct,
       lastAddedItem
     }}>
