@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Trash2, Minus, Plus, ArrowRight } from 'lucide-react';
+import { X, Trash2, Minus, Plus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useAppContext } from '../contexts/AppContext';
 
 export default function CartDrawer() {
@@ -30,95 +30,60 @@ export default function CartDrawer() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Cart Item 1 */}
-          <div className="flex gap-4">
-            <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0">
-              <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=200" alt="Premium Cotton Tee" className="w-full h-full object-cover" />
+          {cartItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-slate-500 space-y-4">
+              <ShoppingBag className="w-16 h-16 text-slate-300" />
+              <p>Your cart is empty.</p>
+              <button 
+                onClick={() => setShowCart(false)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition"
+              >
+                Shop Now
+              </button>
             </div>
-            <div className="flex-1 flex flex-col justify-between">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">Premium Cotton Tee</h3>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">SIZE: M | COLOR: BLACK</p>
+          ) : (
+            cartItems.map((item) => (
+              <div key={item.cartId} className="flex gap-4">
+                <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
+                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                 </div>
-                <button className="text-slate-400 hover:text-red-500 transition-colors">
-                  <Trash2 className=" text-lg" />
-                </button>
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
-                  <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <Minus className=" text-sm" />
-                  </button>
-                  <span className="w-8 text-center text-sm font-bold text-slate-900">1</span>
-                  <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <Plus className=" text-sm" />
-                  </button>
+                <div className="flex-1 flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900">{item.name}</h3>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">SIZE: {item.size} | COLOR: {item.color}</p>
+                    </div>
+                    <button 
+                      onClick={() => removeFromCart(item.cartId)}
+                      className="text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className=" text-lg" />
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
+                      <button 
+                        onClick={() => updateQuantity(item.cartId, item.quantity - 1)}
+                        className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all"
+                      >
+                        <Minus className=" text-sm" />
+                      </button>
+                      <span className="w-8 text-center text-sm font-bold text-slate-900">{item.quantity}</span>
+                      <button 
+                        onClick={() => updateQuantity(item.cartId, item.quantity + 1)}
+                        className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all"
+                      >
+                        <Plus className=" text-sm" />
+                      </button>
+                    </div>
+                    <span className="text-sm font-bold text-blue-600">
+                      ${item.price ? (parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2) : '0.00'}
+                    </span>
+                  </div>
                 </div>
-                <span className="text-sm font-bold text-blue-600">$45.00</span>
               </div>
-            </div>
-          </div>
-
-          {/* Cart Item 2 */}
-          <div className="flex gap-4">
-            <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0">
-              <img src="https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=200" alt="Raw Denim Jeans" className="w-full h-full object-cover" />
-            </div>
-            <div className="flex-1 flex flex-col justify-between">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">Raw Denim Jeans</h3>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">SIZE: 32 | COLOR: INDIGO</p>
-                </div>
-                <button className="text-slate-400 hover:text-red-500 transition-colors">
-                  <Trash2 className=" text-lg" />
-                </button>
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
-                  <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <Minus className=" text-sm" />
-                  </button>
-                  <span className="w-8 text-center text-sm font-bold text-slate-900">1</span>
-                  <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <Plus className=" text-sm" />
-                  </button>
-                </div>
-                <span className="text-sm font-bold text-blue-600">$120.00</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Cart Item 3 */}
-          <div className="flex gap-4">
-            <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0">
-              <img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=200" alt="Ethereal Trench" className="w-full h-full object-cover" />
-            </div>
-            <div className="flex-1 flex flex-col justify-between">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">Ethereal Trench</h3>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">SIZE: L | COLOR: SAND</p>
-                </div>
-                <button className="text-slate-400 hover:text-red-500 transition-colors">
-                  <Trash2 className=" text-lg" />
-                </button>
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
-                  <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <Minus className=" text-sm" />
-                  </button>
-                  <span className="w-8 text-center text-sm font-bold text-slate-900">1</span>
-                  <button className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all">
-                    <Plus className=" text-sm" />
-                  </button>
-                </div>
-                <span className="text-sm font-bold text-blue-600">$210.00</span>
-              </div>
-            </div>
-          </div>
+            ))
+          )}
         </div>
 
         <div className="p-6 bg-slate-50 border-t border-slate-100">
@@ -128,7 +93,7 @@ export default function CartDrawer() {
           </div>
           <div className="flex justify-between items-center mb-6">
             <span className="text-base font-bold text-slate-900">Subtotal</span>
-            <span className="text-xl font-black text-blue-600">$375.00</span>
+            <span className="text-xl font-black text-blue-600">${cartTotal.toFixed(2)}</span>
           </div>
           
           <button className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 mb-4 shadow-lg shadow-blue-600/20">
