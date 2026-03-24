@@ -4,7 +4,7 @@ const AppContext = createContext();
 
 export function AppProvider({ children }) {
   const [showModal, setShowModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('tenant_token'));
   const [showCart, setShowCart] = useState(false);
   const [showAddToCartPopup, setShowAddToCartPopup] = useState(false);
   const [cartItems, setCartItems] = useState([]);

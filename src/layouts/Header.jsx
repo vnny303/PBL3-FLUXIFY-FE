@@ -55,6 +55,9 @@ export default function Header() {
                 </button>
                 <button onClick={() => setShowCart(true)} className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                   <ShoppingBag />
+                  {cartCount > 0 && (
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">{cartCount}</span>
+                  )}
                 </button>
                 <div className="relative">
                   <button 
@@ -108,7 +111,7 @@ export default function Header() {
                 <button onClick={() => setShowModal(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                   <User />
                 </button>
-                <button onClick={() => setShowCart(true)} className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <button onClick={() => setShowModal(true)} className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                   <ShoppingCart />
                   {cartCount > 0 && (
                     <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">{cartCount}</span>

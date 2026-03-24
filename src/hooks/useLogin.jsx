@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { useAppContext } from '../contexts/AppContext';
 
 export const useLogin = () => {
   const navigate = useNavigate();
+  const { setIsLoggedIn } = useAppContext();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -46,6 +48,7 @@ export const useLogin = () => {
 
       console.log("Login successful:", mockData);
       setIsSuccess(true);
+      setIsLoggedIn(true);
       
       setFormData((prev) => ({ ...prev, password: '' }));
 
