@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Package, MapPin, Settings, LogOut } from 'lucide-react';
+import { Package, MapPin, Settings, LogOut, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAppContext } from '../contexts/AppContext';
@@ -13,6 +13,7 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
     { id: 'my-orders', label: 'My Orders', icon: Package },
     { id: 'saved-addresses', label: 'Saved Addresses', icon: MapPin },
     { id: 'profile-settings', label: 'Profile Settings', icon: Settings },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
   return (

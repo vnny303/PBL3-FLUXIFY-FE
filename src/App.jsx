@@ -14,6 +14,7 @@ import Login from './pages/auth/Login';
 import AccountPage from './pages/account/AccountPage';
 import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
+import Wishlist from './pages/Wishlist';
 import Modal from './components/Modal';
 import CartDrawer from './components/CartDrawer';
 import AddToCartPopup from './components/AddToCartPopup';
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
           <Route path="account" element={<AccountPage />} />
+          <Route path="wishlist" element={<Wishlist />} />
           <Route path="order-confirmation" element={<OrderConfirmation />} />
         </Route>
 

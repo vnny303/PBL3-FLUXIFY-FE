@@ -5,6 +5,7 @@ import MyOrders from './MyOrders';
 import SavedAddresses from './SavedAddresses';
 import ProfileSettings from './ProfileSettings';
 import OrderDetails from './OrderDetails';
+import Notifications from './Notifications';
 
 // Mock data for orders
 const mockOrders = [
@@ -84,6 +85,8 @@ export default function AccountPage() {
         return <ProfileSettings />;
       case 'order-details':
         return <OrderDetails setCurrentScreen={setCurrentScreen} order={mockOrders.find(o => o.id === selectedOrderId) || mockOrders[0]} />;
+      case 'notifications':
+        return <Notifications />;
       default:
         return <MyOrders setCurrentScreen={setCurrentScreen} setSelectedOrderId={setSelectedOrderId} orders={mockOrders} />;
     }

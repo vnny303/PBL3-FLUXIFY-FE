@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Heart, Star, StarHalf, Minus, Plus, ShoppingBag, Truck, ShieldCheck, Activity, Sliders, Package, CheckCircle2, Target, Ear, Plug, Cable, Ruler, Scale, CircleDot, Waves, Zap, Pen, ChevronDown, BadgeCheck, User } from 'lucide-react';
 import { useAppContext } from '../contexts/AppContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function ProductDetail() {
-  const { addToCart, selectedProduct } = useAppContext();
+  const { addToCart, selectedProduct, isLoggedIn, toggleWishlist, isWishlisted } = useAppContext();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState('Deep Black');
   const [selectedSize, setSelectedSize] = useState('STANDARD');
@@ -38,8 +41,22 @@ export default function ProductDetail() {
         <div className="w-full lg:w-1/2">
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 mb-4">
             <img src={selectedProduct?.img || "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000"} alt={selectedProduct?.name || "Studio Microphone Pro"} className="w-full h-full object-cover" />
-            <button className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-slate-50 transition-colors">
-              <Heart className=" text-slate-400" />
+            <button 
+              onClick={() => {
+                const product = selectedProduct || { id: 999, name: 'Studio Microphone Pro', price: '$299.00' };
+                if (!isLoggedIn) {
+                  navigate('/login', { state: { from: location } });
+                  return;
+                }
+                toggleWishlist(product);
+              }}
+              className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-slate-50 transition-all active:scale-95"
+            >
+              {isWishlisted(selectedProduct?.id) ? (
+                <Heart className="text-red-500" fill="currentColor" />
+              ) : (
+                <Heart className="text-slate-400" />
+              )}
             </button>
           </div>
           <div className="grid grid-cols-4 gap-4">

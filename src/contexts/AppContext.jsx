@@ -12,6 +12,22 @@ export function AppProvider({ children }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [lastAddedItem, setLastAddedItem] = useState(null);
   const [quickAddProduct, setQuickAddProduct] = useState(null);
+  const [wishlistItems, setWishlistItems] = useState([]);
+
+  const wishlistCount = wishlistItems.length;
+
+  const toggleWishlist = (product) => {
+    const exists = wishlistItems.some(item => item.id === product.id);
+    if (exists) {
+      setWishlistItems(prev => prev.filter(item => item.id !== product.id));
+      toast.info('Removed from wishlist.');
+    } else {
+      setWishlistItems(prev => [product, ...prev]);
+      toast.success('Added to wishlist! ❤️');
+    }
+  };
+
+  const isWishlisted = (productId) => wishlistItems.some(item => item.id === productId);
 
   const handleQuickAdd = (product) => {
     if (product.variants && (product.variants.sizes || product.variants.colors)) {
@@ -70,7 +86,8 @@ export function AppProvider({ children }) {
       cartItems, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount,
       quickAddProduct, setQuickAddProduct, handleQuickAdd,
       selectedProduct, setSelectedProduct,
-      lastAddedItem
+      lastAddedItem,
+      wishlistItems, wishlistCount, toggleWishlist, isWishlisted
     }}>
       {children}
     </AppContext.Provider>
