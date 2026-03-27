@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import MyOrders from './MyOrders';
 import SavedAddresses from './SavedAddresses';
@@ -63,8 +64,15 @@ const mockOrders = [
 ];
 
 export default function AccountPage() {
-  const [currentScreen, setCurrentScreen] = useState('my-orders');
+  const location = useLocation();
+  const [currentScreen, setCurrentScreen] = useState(location.state?.screen || 'my-orders');
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.screen) {
+      setCurrentScreen(location.state.screen);
+    }
+  }, [location.state]);
 
   const renderScreen = () => {
     switch (currentScreen) {

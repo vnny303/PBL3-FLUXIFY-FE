@@ -77,18 +77,33 @@ export default function Header() {
                         </div>
                       </div>
                       <div className="py-2">
-                        <button className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-3 transition-colors">
+                        <Link 
+                          to="/account" 
+                          state={{ screen: 'my-orders' }}
+                          onClick={() => setShowDropdown(false)}
+                          className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-3 transition-colors"
+                        >
                           <Package className=" text-slate-400 text-[20px]" />
                           My Orders
-                        </button>
-                        <button className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-3 transition-colors">
+                        </Link>
+                        <Link 
+                          to="/account" 
+                          state={{ screen: 'saved-addresses' }}
+                          onClick={() => setShowDropdown(false)}
+                          className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-3 transition-colors"
+                        >
                           <MapPin className=" text-slate-400 text-[20px]" />
                           Saved Addresses
-                        </button>
-                        <button className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-3 transition-colors">
+                        </Link>
+                        <Link 
+                          to="/account" 
+                          state={{ screen: 'profile-settings' }}
+                          onClick={() => setShowDropdown(false)}
+                          className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-3 transition-colors"
+                        >
                           <Settings className=" text-slate-400 text-[20px]" />
                           Profile Settings
-                        </button>
+                        </Link>
                       </div>
                       <div className="border-t border-slate-100 py-2">
                         <button 

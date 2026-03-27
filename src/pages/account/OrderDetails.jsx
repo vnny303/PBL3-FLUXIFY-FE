@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Package, Truck, CheckCircle, MapPin, CreditCard, Building, Clock, X, AlertCircle, ChevronDown, Loader2, Star } from 'lucide-react';
 import ReviewModal from '../../components/ReviewModal';
+import InvoicePrint from '../../components/InvoicePrint';
 
 export default function OrderDetails({ setCurrentScreen, order }) {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -97,7 +98,10 @@ export default function OrderDetails({ setCurrentScreen, order }) {
             <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Placed on {orderData.date} • {orderData.items.length} Items</p>
           </div>
           <div className="flex gap-3">
-            <button className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+            <button 
+              onClick={() => window.print()}
+              className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+            >
               Print Invoice
             </button>
             {orderStatus === 'Cancelled' ? (
@@ -366,6 +370,8 @@ export default function OrderDetails({ setCurrentScreen, order }) {
         onClose={() => setIsReviewModalOpen(false)} 
         product={selectedProduct}
       />
+      
+      <InvoicePrint order={orderData} />
 
       {/* Cancel Order Modal */}
       {isCancelModalOpen && (

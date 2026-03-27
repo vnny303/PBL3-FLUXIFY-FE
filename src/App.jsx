@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import Header from './layouts/Header';
 import Footer from './layouts/Footer';
+import CheckoutLayout from './layouts/CheckoutLayout';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
 import About from './pages/About';
@@ -10,6 +11,8 @@ import ProductDetail from './pages/ProductDetail';
 import SignUp from './pages/auth/SignUp';
 import Login from './pages/auth/Login';
 import AccountPage from './pages/account/AccountPage';
+import Checkout from './pages/Checkout';
+import OrderConfirmation from './pages/OrderConfirmation';
 import Modal from './components/Modal';
 import CartDrawer from './components/CartDrawer';
 import AddToCartPopup from './components/AddToCartPopup';
@@ -17,7 +20,7 @@ import QuickAddModal from './components/QuickAddModal';
 import { useAppContext } from './contexts/AppContext';
 
 // This layout wraps the main store pages with Header, Footer, and global modals
-const StoreLayout = () => {
+const MainLayout = () => {
   const { showModal } = useAppContext();
   
   return (
@@ -26,9 +29,8 @@ const StoreLayout = () => {
       
       {/* 
         The Outlet renders the child route's element. 
-        It effectively replaces the 'currentView' conditional rendering.
       */}
-      <div className="flex-grow">
+      <div className="grow">
         <Outlet /> 
       </div>
 
@@ -52,13 +54,19 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         
         {/* Store Routes (Wrapped with Header/Footer layout) */}
-        <Route path="/" element={<StoreLayout />}>
+        <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="shop" element={<Shop />} />
           <Route path="product/:id" element={<ProductDetail />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
           <Route path="account" element={<AccountPage />} />
+          <Route path="order-confirmation" element={<OrderConfirmation />} />
+        </Route>
+
+        {/* Minimal Layout Routes */}
+        <Route element={<CheckoutLayout />}>
+          <Route path="/checkout" element={<Checkout />} />
         </Route>
       </Routes>
     </BrowserRouter>

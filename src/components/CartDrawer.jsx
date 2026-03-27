@@ -1,9 +1,11 @@
 import React from 'react';
 import { X, Trash2, Minus, Plus, ArrowRight, ShoppingBag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 
 export default function CartDrawer() {
   const { showCart, setShowCart, cartItems, removeFromCart, updateQuantity, cartTotal, cartCount } = useAppContext();
+  const navigate = useNavigate();
   if (!showCart) return null;
 
   return (
@@ -96,7 +98,13 @@ export default function CartDrawer() {
             <span className="text-xl font-black text-blue-600">${cartTotal.toFixed(2)}</span>
           </div>
           
-          <button className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 mb-4 shadow-lg shadow-blue-600/20">
+          <button 
+            onClick={() => {
+              setShowCart(false);
+              navigate('/checkout');
+            }}
+            className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 mb-4 shadow-lg shadow-blue-600/20"
+          >
             Checkout Now
             <ArrowRight className=" text-sm" />
           </button>
