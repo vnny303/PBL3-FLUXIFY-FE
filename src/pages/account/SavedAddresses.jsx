@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash } from 'lucide-react';
+import { toast } from 'sonner';
 import AddressModal from '../../components/AddressModal';
 
 export default function SavedAddresses() {
@@ -49,6 +50,7 @@ export default function SavedAddresses() {
     if (addressToDelete) {
       setAddresses(addresses.filter(a => a.id !== addressToDelete));
       setAddressToDelete(null);
+      toast.success('Địa chỉ đã được xoá thành công!');
     }
   };
 
@@ -57,6 +59,7 @@ export default function SavedAddresses() {
       ...a,
       isDefault: a.id === id
     })));
+    toast.success('Đã đặt làm địa chỉ mặc định!');
   };
 
   const handleSave = (addressData) => {
@@ -68,6 +71,7 @@ export default function SavedAddresses() {
         if (addressData.isDefault && a.id !== addressData.id) return { ...a, isDefault: false };
         return a;
       }));
+      toast.success('Địa chỉ đã được cập nhật thành công!');
     } else {
       // Add new
       const newAddress = {
@@ -81,6 +85,7 @@ export default function SavedAddresses() {
       } else {
         setAddresses([...addresses, newAddress]);
       }
+      toast.success('Thêm địa chỉ mới thành công!');
     }
   };
 
@@ -168,7 +173,7 @@ export default function SavedAddresses() {
       />
 
       {addressToDelete && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div 
             className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}

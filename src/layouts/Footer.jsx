@@ -1,6 +1,18 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { toast } from 'sonner';
 
 export default function Footer() {
+  const emailRef = useRef(null);
+
+  const handleSubscribe = () => {
+    if (emailRef.current && emailRef.current.value) {
+      toast.success('Đăng ký nhận bản tin thành công!');
+      emailRef.current.value = '';
+    } else {
+      toast.error('Vui lòng nhập email của bạn!');
+    }
+  };
+
   return (
     <footer className="bg-white border-t border-slate-200 pt-16 pb-12 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,8 +68,8 @@ export default function Footer() {
             <p className="text-sm text-slate-500">Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.</p>
           </div>
           <div className="flex w-full md:w-auto gap-2">
-            <input type="email" placeholder="Enter your email" className="flex-grow md:w-64 px-4 py-2 text-sm bg-slate-100 border-none rounded-lg focus:ring-2 focus:ring-primary/20 outline-none" />
-            <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2 text-sm font-bold rounded-lg transition-colors">Subscribe</button>
+            <input ref={emailRef} type="email" placeholder="Enter your email" className="grow md:w-64 px-4 py-2 text-sm bg-slate-100 border-none rounded-lg focus:ring-2 focus:ring-primary/20 outline-none" />
+            <button onClick={handleSubscribe} className="bg-primary hover:bg-primary/90 text-white px-6 py-2 text-sm font-bold rounded-lg transition-colors">Subscribe</button>
           </div>
         </div>
         <div className="pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-400 uppercase tracking-widest">

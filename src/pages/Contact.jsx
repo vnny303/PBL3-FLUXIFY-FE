@@ -1,4 +1,5 @@
 import React from 'react';
+import { toast } from 'sonner';
 
 export default function Contact() {
   return (
@@ -9,7 +10,11 @@ export default function Contact() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 sm:p-10">
-        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-6" onSubmit={(e) => {
+          e.preventDefault();
+          toast.success('Gửi thông tin liên hệ thành công! Chúng tôi sẽ phản hồi sớm nhất.');
+          e.target.reset();
+        }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label htmlFor="firstName" className="block text-sm font-semibold text-slate-700 mb-2">First Name</label>

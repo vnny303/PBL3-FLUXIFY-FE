@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import { Package, MapPin, Settings, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { useAppContext } from '../contexts/AppContext';
 
 export default function Sidebar({ currentScreen, setCurrentScreen }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const navigate = useNavigate();
+  const { setIsLoggedIn } = useAppContext();
 
   const navItems = [
     { id: 'my-orders', label: 'My Orders', icon: Package },
@@ -75,7 +80,10 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
               <button 
                 onClick={() => {
                   setShowLogoutConfirm(false);
-                  window.location.reload();
+                  localStorage.removeItem('tenant_token');
+                  setIsLoggedIn(false);
+                  navigate('/');
+                  toast.success('Đã đăng xuất tài khoản!');
                 }}
                 className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-colors shadow-sm"
               >

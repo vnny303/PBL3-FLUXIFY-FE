@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext } from 'react';
+import { toast } from 'sonner';
 
 const AppContext = createContext();
 
@@ -20,7 +21,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  const addToCart = (product, quantity = 1, color = 'Default', size = 'Standard') => {
+  const addToCart = (product, quantity = 1, color = 'Default', size = 'Standard', showPopup = true) => {
     if (!isLoggedIn) {
       setShowModal(true);
       return;
@@ -31,15 +32,20 @@ export function AppProvider({ children }) {
       if (existing) {
         return prev.map(item => item === existing ? { ...item, quantity: item.quantity + quantity } : item);
       }
-      return [...prev, { ...product, quantity, color, size, cartId: Date.now() }];
+      return [{ ...product, quantity, color, size, cartId: Date.now() }, ...prev];
     });
     
     setLastAddedItem({ ...product, quantity, color, size });
-    setShowAddToCartPopup(true);
+    if (showPopup) {
+      setShowAddToCartPopup(true);
+    } else {
+      toast.success('Đã thêm vào giỏ hàng!');
+    }
   };
 
   const removeFromCart = (cartId) => {
     setCartItems(prev => prev.filter(item => item.cartId !== cartId));
+    toast.info('Đã xoá sản phẩm khỏi giỏ hàng');
   };
 
   const updateQuantity = (cartId, newQuantity) => {
@@ -48,8 +54,9 @@ export function AppProvider({ children }) {
   };
 
   const cartTotal = cartItems.reduce((sum, item) => {
-    const price = parseFloat(item.price.replace('$', ''));
-    return sum + price * item.quantity;
+    const priceStr = item.price || '$0.00';
+    const price = parseFloat(priceStr.replace('$', ''));
+    return sum + (isNaN(price) ? 0 : price) * item.quantity;
   }, 0);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);

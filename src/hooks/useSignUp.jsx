@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { authService } from '../services/authService';
 
 export const useSignUp = () => {
@@ -33,6 +34,17 @@ export const useSignUp = () => {
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
     if (!formData.acceptTerms) {
       setError("You must agree to the Terms of Service and Privacy Policy to continue.");
       return;
@@ -56,6 +68,7 @@ export const useSignUp = () => {
 
       console.log("Registration successful:", mockData);
       setIsSuccess(true);
+      toast.success('Đăng ký thành công!');
       
       // Xóa form sau khi thành công
       setFormData({ 
@@ -75,6 +88,7 @@ export const useSignUp = () => {
       // Lấy lỗi trực tiếp từ response API trả về thông qua axios
       const errorMessage = err.response?.data?.message || err.message || 'An error occurred. Please try again later.';
       setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -1,15 +1,16 @@
 import React from 'react';
 import { X, UserPlus } from 'lucide-react';
 import { useAppContext } from '../contexts/AppContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Modal() {
   const { setShowModal } = useAppContext();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogin = () => {
     setShowModal(false);
-    navigate('/login');
+    navigate('/login', { state: { from: location } });
   };
 
   const handleSignUp = () => {
@@ -18,7 +19,7 @@ export default function Modal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setShowModal(false)}></div>
       <div className="relative w-full max-w-[400px] bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100 opacity-100">
         <div className="absolute top-4 right-4 z-10">

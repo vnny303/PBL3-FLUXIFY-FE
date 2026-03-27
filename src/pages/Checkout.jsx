@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const CustomSelect = ({ options, placeholder, value, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -105,6 +106,7 @@ export default function Checkout() {
       setContactInfo({ ...editContactForm });
       setIsSavingContact(false);
       setIsEditingContact(false);
+      toast.success('Thông tin liên hệ đã được cập nhật!');
     }, 1000);
   };
 
@@ -128,6 +130,7 @@ export default function Checkout() {
       setCity('');
       setState('');
       setAddressErrors({});
+      toast.success('Thêm địa chỉ giao hàng thành công!');
     }
   };
 
@@ -174,6 +177,7 @@ export default function Checkout() {
         }
       };
       
+      toast.success('Đặt hàng thành công!');
       navigate('/order-confirmation', { state: { orderData } });
     }, 2000);
   };

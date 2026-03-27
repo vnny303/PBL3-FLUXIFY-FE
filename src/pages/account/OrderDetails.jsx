@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { ArrowLeft, Package, Truck, CheckCircle, MapPin, CreditCard, Building, Clock, X, AlertCircle, ChevronDown, Loader2, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Package, Truck, CheckCircle, MapPin, CreditCard, Building, Clock, X, AlertCircle, ChevronDown, Loader2, Star, Edit } from 'lucide-react';
+import { toast } from 'sonner';
 import ReviewModal from '../../components/ReviewModal';
 import InvoicePrint from '../../components/InvoicePrint';
+import { useAppContext } from '../../contexts/AppContext';
 
 export default function OrderDetails({ setCurrentScreen, order }) {
+  const { addToCart, setShowCart } = useAppContext();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -21,11 +24,20 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   };
 
   const [orderStatus, setOrderStatus] = useState(orderData.status || 'Pending');
+  const [reviewedItems, setReviewedItems] = useState({});
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [buyingItemIds, setBuyingItemIds] = useState({});
+  const [isBuyingWholeOrder, setIsBuyingWholeOrder] = useState(false);
+
+  useEffect(() => {
+    if (order?.status) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOrderStatus(order.status);
+    }
+  }, [order?.status]);
   const [cancelReason, setCancelReason] = useState('');
   const [isReasonDropdownOpen, setIsReasonDropdownOpen] = useState(false);
-  const [showToast, setShowToast] = useState(false);
 
   const cancellationReasons = [
     { id: 'changed_mind', label: 'Changed my mind' },
@@ -46,9 +58,51 @@ export default function OrderDetails({ setCurrentScreen, order }) {
       setIsCancelling(false);
       setIsCancelModalOpen(false);
       setOrderStatus('Cancelled');
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 5000);
+      toast.success('Đơn hàng đã được huỷ thành công!');
     }, 1500);
+  };
+
+  const getVariantDetails = (variant) => {
+    const parts = variant ? variant.split('•') : [];
+    return {
+      size: parts[0] ? parts[0].trim() : 'Standard',
+      color: parts[1] ? parts[1].trim() : 'Default'
+    };
+  };
+
+  const handleBuyItem = (item, idx) => {
+    setBuyingItemIds(prev => ({ ...prev, [idx]: true }));
+    setTimeout(() => {
+      const { size, color } = getVariantDetails(item.variant);
+      addToCart({ 
+        ...item, 
+        id: item.id || item.name || `product-${idx}`,
+        name: item.name || 'Product',
+        price: item.price || '$35.00',
+        image: item.image || `https://picsum.photos/seed/product${idx}/200/300`
+      }, 1, color, size, false);
+      setShowCart(true);
+      setBuyingItemIds(prev => ({ ...prev, [idx]: false }));
+    }, 500);
+  };
+
+  const handleBuyWholeOrder = () => {
+    setIsBuyingWholeOrder(true);
+    setTimeout(() => {
+      orderData.items.forEach((item, idx) => {
+        const { size, color } = getVariantDetails(item.variant);
+        addToCart({ 
+          ...item, 
+          id: item.id || item.name || `product-${idx}`,
+          name: item.name || 'Product',
+          price: item.price || '$35.00',
+          image: item.image || `https://picsum.photos/seed/product${idx}/200/300`
+        }, 1, color, size, false);
+      });
+      setShowCart(true);
+      setIsBuyingWholeOrder(false);
+      toast.success('Đã thêm lại toàn bộ đơn hàng vào giỏ!');
+    }, 500);
   };
 
   const statusList = ['Pending', 'Processing', 'Shipped', 'Delivered'];
@@ -57,24 +111,6 @@ export default function OrderDetails({ setCurrentScreen, order }) {
 
   return (
     <section className="flex-1 relative">
-      {/* Toast Notification */}
-      {showToast && (
-        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-5 fade-in duration-300">
-          <div className="bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-lg flex items-start gap-3 max-w-sm">
-            <div className="bg-white/20 rounded-full p-1 mt-0.5">
-              <CheckCircle className="w-4 h-4" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-bold text-sm">Order Cancelled</h4>
-              <p className="text-xs text-emerald-50 mt-0.5">Order {orderData.id} has been successfully cancelled.</p>
-            </div>
-            <button onClick={() => setShowToast(false)} className="text-white/70 hover:text-white transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="mb-6">
         <button 
           onClick={() => setCurrentScreen('my-orders')}
@@ -105,8 +141,19 @@ export default function OrderDetails({ setCurrentScreen, order }) {
               Print Invoice
             </button>
             {orderStatus === 'Cancelled' ? (
-              <button className="px-4 py-2 bg-blue-600 text-white font-semibold text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
-                Buy Again
+              <button 
+                onClick={handleBuyWholeOrder}
+                disabled={isBuyingWholeOrder}
+                className="px-4 py-2 bg-blue-600 text-white font-semibold text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+              >
+                {isBuyingWholeOrder ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Buy Again'
+                )}
               </button>
             ) : orderStatus === 'Pending' || orderStatus === 'Processing' ? (
               <button 
@@ -140,7 +187,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
                 
                 return (
                   <div key={idx} className="p-6 flex gap-4">
-                    <div className="w-20 h-24 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 flex-shrink-0">
+                    <div className="w-20 h-24 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shrink-0">
                       <img src={productImage} alt="Product" className="w-full h-full object-cover rounded-lg" />
                     </div>
                     <div className="flex-1 flex flex-col justify-between">
@@ -158,11 +205,31 @@ export default function OrderDetails({ setCurrentScreen, order }) {
                             onClick={() => handleWriteReview({ name: productName, variant: productVariant, image: productImage })}
                             className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 hover:underline transition-colors flex items-center gap-1"
                           >
-                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                            Write a Review
+                            {reviewedItems[productName] ? (
+                              <>
+                                <Edit className="w-3 h-3 text-blue-600 dark:text-blue-500" />
+                                Edit Review
+                              </>
+                            ) : (
+                              <>
+                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                Write a Review
+                              </>
+                            )}
                           </button>
-                          <button className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 hover:underline transition-colors">
-                            Buy again
+                          <button 
+                            onClick={() => handleBuyItem(item, idx)}
+                            disabled={buyingItemIds[idx]}
+                            className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 hover:underline transition-colors flex items-center justify-center gap-1"
+                          >
+                            {buyingItemIds[idx] ? (
+                              <>
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                Loading...
+                              </>
+                            ) : (
+                              'Buy again'
+                            )}
                           </button>
                         </div>
                       </div>
@@ -369,6 +436,11 @@ export default function OrderDetails({ setCurrentScreen, order }) {
         isOpen={isReviewModalOpen} 
         onClose={() => setIsReviewModalOpen(false)} 
         product={selectedProduct}
+        initialReview={selectedProduct ? reviewedItems[selectedProduct.name] : null}
+        onSubmitReview={(data) => {
+          setReviewedItems(prev => ({ ...prev, [selectedProduct.name]: data }));
+          toast.success("Review Submitted! Thank you for sharing your experience.");
+        }}
       />
       
       <InvoicePrint order={orderData} />

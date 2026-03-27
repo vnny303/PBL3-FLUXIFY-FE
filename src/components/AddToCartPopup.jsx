@@ -9,7 +9,7 @@ export default function AddToCartPopup() {
     if (showAddToCartPopup) {
       const timer = setTimeout(() => {
         setShowAddToCartPopup(false);
-      }, 3000); // Auto close after 3 seconds
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [showAddToCartPopup, setShowAddToCartPopup]);
@@ -20,12 +20,12 @@ export default function AddToCartPopup() {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] transition-opacity"
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-60 transition-opacity"
         onClick={() => setShowAddToCartPopup(false)}
       ></div>
 
       {/* Popup Modal */}
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl z-[70] overflow-hidden">
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl z-70 overflow-hidden">
         <div className="p-6 relative">
           <button 
             onClick={() => setShowAddToCartPopup(false)}

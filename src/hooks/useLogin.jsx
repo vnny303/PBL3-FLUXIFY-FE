@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 import { authService } from '../services/authService';
 import { useAppContext } from '../contexts/AppContext';
 
 export const useLogin = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setIsLoggedIn } = useAppContext();
   const [formData, setFormData] = useState({
     email: '',
@@ -34,6 +36,12 @@ export const useLogin = () => {
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setIsSuccess(false);
@@ -49,19 +57,22 @@ export const useLogin = () => {
       console.log("Login successful:", mockData);
       setIsSuccess(true);
       setIsLoggedIn(true);
+      toast.success('Đăng nhập thành công!');
       
       setFormData((prev) => ({ ...prev, password: '' }));
 
       localStorage.setItem('tenant_token', mockData.token);
       
       setTimeout(() => {
-        navigate('/'); 
+        const from = location.state?.from?.pathname || '/';
+        navigate(from, { replace: true }); 
       }, 1000);
 
     } catch (err) {
       console.error("Login failed:", err);
       const errorMessage = err.response?.data?.message || err.message || 'Invalid email or password. Please try again.';
       setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

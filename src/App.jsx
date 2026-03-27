@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import Header from './layouts/Header';
 import Footer from './layouts/Footer';
 import CheckoutLayout from './layouts/CheckoutLayout';
@@ -41,6 +42,7 @@ const MainLayout = () => {
       <CartDrawer />
       <AddToCartPopup />
       <QuickAddModal />
+      <Toaster position="top-right" richColors />
     </div>
   );
 };

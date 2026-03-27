@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Bell, ShoppingBag, Package, MapPin, Settings, LogOut, User, ShoppingCart, Menu } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAppContext } from '../contexts/AppContext';
 
 export default function Header() {
@@ -110,6 +111,8 @@ export default function Header() {
                           onClick={() => {
                             setIsLoggedIn(false);
                             setShowDropdown(false);
+                            localStorage.removeItem('tenant_token');
+                            toast.success('Đã đăng xuất tài khoản!');
                           }}
                           className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 flex items-center gap-3 transition-colors"
                         >

@@ -1,17 +1,24 @@
-import { useState, useRef } from 'react';
-import { X, Star, Camera, CheckCircle, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { X, Star, Camera, Loader2, AlertCircle } from 'lucide-react';
 
-export default function ReviewModal({ isOpen, onClose, product }) {
+export default function ReviewModal({ isOpen, onClose, product, initialReview, onSubmitReview }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
-  const [photos, setPhotos] = useState([
-    "https://picsum.photos/seed/photo1/200/200",
-    "https://picsum.photos/seed/photo2/200/200"
-  ]);
+  const [photos, setPhotos] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState('');
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setRating(initialReview?.rating || 0);
+      setHoverRating(0);
+      setReviewText(initialReview?.text || '');
+      setPhotos(initialReview?.photos || []);
+      setError('');
+    }
+  }, [isOpen, initialReview]);
 
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -27,30 +34,24 @@ export default function ReviewModal({ isOpen, onClose, product }) {
 
   const handleSubmit = () => {
     if (rating === 0) {
-      alert("Please provide a rating before submitting.");
+      setError("Please provide a rating before submitting.");
+      return;
+    }
+    if (reviewText.trim().length < 5) {
+      setError("Please write at least 5 characters in your review.");
       return;
     }
     
+    setError('');
     setIsSubmitting(true);
     
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-      
-      // Close modal and reset state after showing success message
-      setTimeout(() => {
-        onClose();
-        setTimeout(() => {
-          setIsSubmitted(false);
-          setRating(0);
-          setReviewText('');
-          setPhotos([
-            "https://picsum.photos/seed/photo1/200/200",
-            "https://picsum.photos/seed/photo2/200/200"
-          ]);
-        }, 300);
-      }, 2000);
+      if (onSubmitReview) {
+        onSubmitReview({ rating, text: reviewText, photos });
+      }
+      onClose();
     }, 1500);
   };
 
@@ -62,26 +63,25 @@ export default function ReviewModal({ isOpen, onClose, product }) {
         className="bg-white dark:bg-slate-900 w-full max-w-[480px] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {isSubmitted ? (
-          <div className="flex flex-col items-center justify-center p-10 text-center h-64">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Review Submitted!</h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">Thank you for sharing your experience.</p>
+        <>
+          {/* Header */}
+          <div className="flex items-center justify-between p-5 pb-4">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              {initialReview ? "Edit Review" : "Write a Review"}
+            </h2>
+            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+              <X className="w-5 h-5" />
+            </button>
           </div>
-        ) : (
-          <>
-            {/* Header */}
-            <div className="flex items-center justify-between p-5 pb-4">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Write a Review</h2>
-              <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Content */}
-            <div className="px-5 pb-2 overflow-y-auto flex-1 space-y-6">
+          {/* Content */}
+          <div className="px-5 pb-2 overflow-y-auto flex-1 space-y-6">
+            {error && (
+              <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
               {/* Product Info */}
               <div className="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                 <img 
@@ -190,9 +190,8 @@ export default function ReviewModal({ isOpen, onClose, product }) {
               >
                 Cancel
               </button>
-            </div>
-          </>
-        )}
+          </div>
+        </>
       </div>
     </div>
   );
