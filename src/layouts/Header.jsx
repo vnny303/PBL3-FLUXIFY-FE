@@ -1,17 +1,28 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, ShoppingBag, Package, MapPin, Settings, LogOut, User, ShoppingCart, Menu, Tag, Info, CheckCircle, Heart } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Search, Bell, ShoppingBag, Package, MapPin, Settings, LogOut, User, ShoppingCart, Menu, Tag, Info, CheckCircle, Heart, X } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAppContext } from '../contexts/AppContext';
+import { products } from '../utils/data';
 
 export default function Header() {
-  const { setShowModal, isLoggedIn, setIsLoggedIn, setShowCart, cartCount, wishlistCount } = useAppContext();
+  const { setShowModal, isLoggedIn, setIsLoggedIn, setShowCart, cartCount, wishlistCount, searchQuery, setSearchQuery } = useAppContext();
   const location = useLocation();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifRef = useRef(null);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const searchRef = useRef(null);
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return products
+      .filter(p => p.name.toLowerCase().includes(q) || (p.desc && p.desc.toLowerCase().includes(q)))
+      .slice(0, 6);
+  }, [searchQuery]);
 
   const initialNotifications = [
     { id: 1, title: 'Order Delivered', desc: 'Your order #FLX-9823 has been delivered successfully.', time: '2 mins ago', icon: Package, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', isRead: false, path: '/account', state: { screen: 'my-orders' } },
@@ -44,6 +55,9 @@ export default function Header() {
       if (notifRef.current && !notifRef.current.contains(event.target)) {
         setShowNotifDropdown(false);
       }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSearchDropdown(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -68,12 +82,79 @@ export default function Header() {
             <Link to="/about" className={`text-sm font-semibold transition-colors ${location.pathname.includes('/about') ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>About Us</Link>
             <Link to="/contact" className={`text-sm font-semibold transition-colors ${location.pathname.includes('/contact') ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>Contact</Link>
           </nav>
-          <div className="hidden md:flex flex-1 max-w-sm justify-end">
+          <div className="hidden md:flex flex-1 max-w-sm justify-end" ref={searchRef}>
             <div className="relative w-full max-w-xs">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                <Search className=" text-xl" />
+                <Search className="w-4 h-4" />
               </div>
-              <input className="block w-full rounded-xl border-none bg-slate-100 py-2 pl-10 pr-3 text-sm placeholder-slate-500 focus:ring-2 focus:ring-primary focus:bg-white transition-all" placeholder="Search products..." type="text" />
+              <input
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSearchDropdown(true);
+                  if (!location.pathname.includes('/shop')) {
+                    navigate('/shop');
+                  }
+                }}
+                onFocus={() => setShowSearchDropdown(true)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setShowSearchDropdown(false);
+                    setSearchQuery('');
+                  }
+                }}
+                className="block w-full rounded-xl border-none bg-slate-100 py-2 pl-10 pr-8 text-sm placeholder-slate-500 focus:ring-2 focus:ring-primary focus:bg-white transition-all"
+                placeholder="Search products..."
+                type="text"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => { setSearchQuery(''); setShowSearchDropdown(false); }}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+
+              {showSearchDropdown && searchQuery.trim() && (
+                <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 z-50 overflow-hidden">
+                  {searchResults.length > 0 ? (
+                    <>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 pt-3 pb-1">Products</p>
+                      {searchResults.map(product => (
+                        <button
+                          key={product.id}
+                          onClick={() => {
+                            setShowSearchDropdown(false);
+                            setSearchQuery(product.name);
+                            if (!location.pathname.includes('/shop')) navigate('/shop');
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors text-left"
+                        >
+                          <img src={product.img} alt={product.name} className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-slate-900 truncate">{product.name}</p>
+                            <p className="text-xs text-slate-400 truncate">{product.desc}</p>
+                          </div>
+                          <span className="shrink-0 text-sm font-bold text-primary ml-auto">${product.price.toFixed(2)}</span>
+                        </button>
+                      ))}
+                      <div className="border-t border-slate-100 p-2">
+                        <button
+                          onClick={() => setShowSearchDropdown(false)}
+                          className="w-full text-center text-xs font-bold text-primary py-2 hover:bg-primary/5 rounded-lg transition-colors"
+                        >
+                          See all {searchResults.length}+ results for "{searchQuery}"
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="px-4 py-6 text-center text-sm text-slate-400">
+                      No products found for "<span className="font-semibold text-slate-600">{searchQuery}</span>"
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4 relative">

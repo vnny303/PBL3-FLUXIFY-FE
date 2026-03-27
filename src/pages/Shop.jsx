@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ChevronDown, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ShoppingCart, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 import { products } from '../utils/data';
 
 export default function Shop() {
-  const { setShowModal, addToCart, setSelectedProduct, handleQuickAdd } = useAppContext();
+  const { setShowModal, addToCart, setSelectedProduct, handleQuickAdd, searchQuery, setSearchQuery } = useAppContext();
   const navigate = useNavigate();
+
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [sortBy, setSortBy] = useState('Newest Arrivals');
   const sortDropdownRef = useRef(null);
@@ -38,14 +39,16 @@ export default function Shop() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [priceRange, selectedBrands, selectedSizes, sortBy]);
+  }, [priceRange, selectedBrands, selectedSizes, sortBy, searchQuery]);
 
   const filteredProducts = useMemo(() => {
+    const q = searchQuery.toLowerCase();
     let result = products.filter(product => {
       const inPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
       const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brand);
       const matchesSize = selectedSizes.length === 0 || (product.sizes && product.sizes.some(s => selectedSizes.includes(s)));
-      return inPriceRange && matchesBrand && matchesSize;
+      const matchesSearch = !q || product.name.toLowerCase().includes(q) || (product.desc && product.desc.toLowerCase().includes(q));
+      return inPriceRange && matchesBrand && matchesSize && matchesSearch;
     });
 
     if (sortBy === 'Price: Low to High') {
@@ -58,7 +61,7 @@ export default function Shop() {
       result.sort((a, b) => a.id - b.id);
     }
     return result;
-  }, [priceRange, selectedBrands, selectedSizes, sortBy]);
+  }, [priceRange, selectedBrands, selectedSizes, sortBy, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
   const currentProducts = filteredProducts.slice(
@@ -244,9 +247,23 @@ export default function Shop() {
 
         <div className="flex-1" ref={gridTopRef}>
           <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
-            <p className="text-sm text-slate-500">
-              Showing <span className="text-slate-900 font-bold">{filteredProducts.length}</span> products
-            </p>
+            <div className="flex flex-col gap-1">
+              <p className="text-sm text-slate-500">
+                Showing <span className="text-slate-900 font-bold">{filteredProducts.length}</span> products
+              </p>
+              {searchQuery && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Search:</span>
+                  <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
+                    <Search className="w-3 h-3" />
+                    {searchQuery}
+                    <button onClick={() => setSearchQuery('')} className="ml-0.5 hover:text-red-500 transition-colors">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-3 relative" ref={sortDropdownRef}>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:block">Sort By</label>
               <div className="relative">

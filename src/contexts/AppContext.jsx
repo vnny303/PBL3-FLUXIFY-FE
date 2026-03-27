@@ -13,6 +13,7 @@ export function AppProvider({ children }) {
   const [lastAddedItem, setLastAddedItem] = useState(null);
   const [quickAddProduct, setQuickAddProduct] = useState(null);
   const [wishlistItems, setWishlistItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const wishlistCount = wishlistItems.length;
 
@@ -87,7 +88,8 @@ export function AppProvider({ children }) {
       quickAddProduct, setQuickAddProduct, handleQuickAdd,
       selectedProduct, setSelectedProduct,
       lastAddedItem,
-      wishlistItems, wishlistCount, toggleWishlist, isWishlisted
+      wishlistItems, wishlistCount, toggleWishlist, isWishlisted,
+      searchQuery, setSearchQuery
     }}>
       {children}
     </AppContext.Provider>
