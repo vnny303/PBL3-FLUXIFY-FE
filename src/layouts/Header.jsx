@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, ShoppingBag, Package, MapPin, Settings, LogOut, User, ShoppingCart, Menu } from 'lucide-react';
+import { Search, Bell, ShoppingBag, Package, MapPin, Settings, LogOut, User, ShoppingCart, Menu, Tag, Info, CheckCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAppContext } from '../contexts/AppContext';
@@ -9,16 +9,44 @@ export default function Header() {
   const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const notifRef = useRef(null);
+
+  const initialNotifications = [
+    { id: 1, title: 'Order Delivered', desc: 'Your order #FLX-9823 has been delivered successfully.', time: '2 mins ago', icon: Package, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', isRead: false, path: '/account', state: { screen: 'my-orders' } },
+    { id: 2, title: 'Flash Sale Alert', desc: 'Get up to 50% off on premium Developer Tools. Limited time only!', time: '2 hours ago', icon: Tag, iconBg: 'bg-blue-100', iconColor: 'text-blue-600', isRead: false, path: '/shop' },
+    { id: 3, title: 'Payment Confirmed', desc: 'We received your payment for the Nexus Core subscription.', time: '1 day ago', icon: CheckCircle, iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', isRead: true, path: '/account', state: { screen: 'my-orders' } },
+    { id: 4, title: 'Account Security', desc: 'New login detected from Chrome on Windows.', time: '2 days ago', icon: Info, iconBg: 'bg-amber-100', iconColor: 'text-amber-600', isRead: true, path: '/account', state: { screen: 'profile-settings' } }
+  ];
+
+  const [notifications, setNotifications] = useState(initialNotifications);
+  
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+  };
+
+  const handleNotificationClick = (notif) => {
+    setNotifications(notifications.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
+    setShowNotifDropdown(false);
+    if (notif.path) {
+      navigate(notif.path, { state: notif.state });
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setShowNotifDropdown(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dropdownRef]);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
@@ -47,20 +75,66 @@ export default function Header() {
               <input className="block w-full rounded-xl border-none bg-slate-100 py-2 pl-10 pr-3 text-sm placeholder-slate-500 focus:ring-2 focus:ring-primary focus:bg-white transition-all" placeholder="Search products..." type="text" />
             </div>
           </div>
-          <div className="flex items-center gap-2 md:gap-4 relative" ref={dropdownRef}>
+          <div className="flex items-center gap-2 md:gap-4 relative">
             {isLoggedIn ? (
               <>
-                <button className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-                  <Bell />
-                  <span className="absolute top-2 right-2 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-blue-500 border-2 border-white"></span>
-                </button>
+                <div className="relative" ref={notifRef}>
+                  <button 
+                    onClick={() => {
+                      setShowNotifDropdown(!showNotifDropdown);
+                      setShowDropdown(false);
+                    }}
+                    className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    <Bell />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white border-white">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {showNotifDropdown && (
+                    <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-50 transform origin-top-right transition-all overflow-hidden flex flex-col">
+                      <div className="px-5 py-3 border-b flex items-center justify-between border-slate-100">
+                        <span className="font-bold text-slate-900 text-sm">Notifications</span>
+                        <button onClick={markAllAsRead} className="text-xs font-semibold text-primary hover:underline">Mark all as read</button>
+                      </div>
+                      <div className="max-h-[350px] overflow-y-auto">
+                        {notifications.map(notif => (
+                          <div 
+                            key={notif.id} 
+                            onClick={() => handleNotificationClick(notif)}
+                            className={`p-4 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${!notif.isRead ? 'bg-blue-50/50' : ''}`}
+                          >
+                            <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${notif.iconBg}`}>
+                              <notif.icon className={`w-5 h-5 ${notif.iconColor}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-slate-900 truncate">{notif.title}</p>
+                              <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">{notif.desc}</p>
+                              <p className="text-[10px] font-semibold text-slate-400 mt-1.5">{notif.time}</p>
+                            </div>
+                            {!notif.isRead && (
+                              <div className="shrink-0 w-2 h-2 rounded-full bg-blue-500 mt-1"></div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="px-5 py-3 border-t border-slate-100 text-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => setShowNotifDropdown(false)}>
+                        <Link to="/account" state={{ screen: 'notifications' }} className="text-xs font-bold text-primary hover:underline block w-full h-full">
+                          View all notifications
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <button onClick={() => setShowCart(true)} className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                   <ShoppingBag />
                   {cartCount > 0 && (
                     <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">{cartCount}</span>
                   )}
                 </button>
-                <div className="relative">
+                <div className="relative" ref={dropdownRef}>
                   <button 
                     onClick={() => setShowDropdown(!showDropdown)}
                     className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-blue-100 overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
