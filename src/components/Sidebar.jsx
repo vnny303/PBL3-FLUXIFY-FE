@@ -17,7 +17,7 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
   ];
 
   return (
-    <aside className="w-full lg:w-64 flex-shrink-0">
+    <aside className="w-full lg:w-64 shrink-0">
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 sticky top-24">
         <div className="flex items-center gap-3 px-3 py-4 border-b border-slate-100 dark:border-slate-800 mb-4">
           <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white">

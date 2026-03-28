@@ -8,7 +8,7 @@ export default function Wishlist() {
 
   if (wishlistItems.length === 0) {
     return (
-      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col items-center justify-center text-center gap-6 min-h-[60vh]">
+      <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col items-center justify-center text-center gap-6 min-h-[60vh]">
         <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center">
           <Heart className="w-12 h-12 text-red-300" />
         </div>
@@ -28,7 +28,7 @@ export default function Wishlist() {
   }
 
   return (
-    <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-black text-slate-900">My Wishlist</h1>

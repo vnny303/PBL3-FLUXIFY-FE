@@ -1,99 +1,44 @@
-import React, { createContext, useState, useContext } from 'react';
-import { toast } from 'sonner';
+import React, { useContext } from 'react';
+import { AuthProvider, useAuthContext } from './AuthContext';
+import { CartProvider, useCartContext } from './CartContext';
+import { WishlistProvider, useWishlistContext } from './WishlistContext';
+import { SearchProvider, useSearchContext } from './SearchContext';
+import { UIProvider, useUIContext } from './UIContext';
 
-const AppContext = createContext();
-
+// Keep AppProvider as a single wrapper for main.jsx
 export function AppProvider({ children }) {
-  const [showModal, setShowModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('tenant_token'));
-  const [showCart, setShowCart] = useState(false);
-  const [showAddToCartPopup, setShowAddToCartPopup] = useState(false);
-  const [cartItems, setCartItems] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [lastAddedItem, setLastAddedItem] = useState(null);
-  const [quickAddProduct, setQuickAddProduct] = useState(null);
-  const [wishlistItems, setWishlistItems] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const wishlistCount = wishlistItems.length;
-
-  const toggleWishlist = (product) => {
-    const exists = wishlistItems.some(item => item.id === product.id);
-    if (exists) {
-      setWishlistItems(prev => prev.filter(item => item.id !== product.id));
-      toast.info('Removed from wishlist.');
-    } else {
-      setWishlistItems(prev => [product, ...prev]);
-      toast.success('Added to wishlist! ❤️');
-    }
-  };
-
-  const isWishlisted = (productId) => wishlistItems.some(item => item.id === productId);
-
-  const handleQuickAdd = (product) => {
-    if (product.variants && (product.variants.sizes || product.variants.colors)) {
-      setQuickAddProduct(product);
-    } else {
-      addToCart(product);
-    }
-  };
-
-  const addToCart = (product, quantity = 1, color = 'Default', size = 'Standard', showPopup = true) => {
-    if (!isLoggedIn) {
-      setShowModal(true);
-      return;
-    }
-    
-    setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id && item.color === color && item.size === size);
-      if (existing) {
-        return prev.map(item => item === existing ? { ...item, quantity: item.quantity + quantity } : item);
-      }
-      return [{ ...product, quantity, color, size, cartId: Date.now() }, ...prev];
-    });
-    
-    setLastAddedItem({ ...product, quantity, color, size });
-    if (showPopup) {
-      setShowAddToCartPopup(true);
-    } else {
-      toast.success('Đã thêm vào giỏ hàng!');
-    }
-  };
-
-  const removeFromCart = (cartId) => {
-    setCartItems(prev => prev.filter(item => item.cartId !== cartId));
-    toast.info('Đã xoá sản phẩm khỏi giỏ hàng');
-  };
-
-  const updateQuantity = (cartId, newQuantity) => {
-    if (newQuantity < 1) return;
-    setCartItems(prev => prev.map(item => item.cartId === cartId ? { ...item, quantity: newQuantity } : item));
-  };
-
-  const cartTotal = cartItems.reduce((sum, item) => {
-    const priceStr = item.price || '$0.00';
-    const price = parseFloat(priceStr.replace('$', ''));
-    return sum + (isNaN(price) ? 0 : price) * item.quantity;
-  }, 0);
-
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
   return (
-    <AppContext.Provider value={{
-      showModal, setShowModal,
-      isLoggedIn, setIsLoggedIn,
-      showCart, setShowCart,
-      showAddToCartPopup, setShowAddToCartPopup,
-      cartItems, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount,
-      quickAddProduct, setQuickAddProduct, handleQuickAdd,
-      selectedProduct, setSelectedProduct,
-      lastAddedItem,
-      wishlistItems, wishlistCount, toggleWishlist, isWishlisted,
-      searchQuery, setSearchQuery
-    }}>
-      {children}
-    </AppContext.Provider>
+    <AuthProvider>
+      <SearchProvider>
+        <WishlistProvider>
+          {/* CartProvider needs AuthProvider */}
+          <CartProvider>
+            {/* UIProvider needs CartProvider (for QuickAdd -> addToCart) */}
+            <UIProvider>
+              {children}
+            </UIProvider>
+          </CartProvider>
+        </WishlistProvider>
+      </SearchProvider>
+    </AuthProvider>
   );
 }
 
-export const useAppContext = () => useContext(AppContext);
+// Keep useAppContext for backward compatibility, but it now aggregates all contexts
+export const useAppContext = () => {
+  const auth = useAuthContext();
+  const cart = useCartContext();
+  const wishlist = useWishlistContext();
+  const search = useSearchContext();
+  const ui = useUIContext();
+
+  // If used outside providers, these might be null. 
+  // We assume AppProvider wraps the whole app.
+  return {
+    ...auth,
+    ...cart,
+    ...wishlist,
+    ...search,
+    ...ui
+  };
+};

@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, Bell, ShoppingBag, Package, MapPin, Settings, LogOut, User, ShoppingCart, Menu, Tag, Info, CheckCircle, Heart, X } from 'lucide-react';
+import { Search, Bell, ShoppingBag, MapPin, Settings, LogOut, User, Heart, X } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAppContext } from '../contexts/AppContext';
 import { products } from '../utils/data';
+import { useNotifications } from '../hooks/useNotifications';
+import { ROUTES, ACCOUNT_SCREENS } from '../utils/constants';
 
 export default function Header() {
   const { setShowModal, isLoggedIn, setIsLoggedIn, setShowCart, cartCount, wishlistCount, searchQuery, setSearchQuery } = useAppContext();
@@ -24,28 +26,7 @@ export default function Header() {
       .slice(0, 6);
   }, [searchQuery]);
 
-  const initialNotifications = [
-    { id: 1, title: 'Order Delivered', desc: 'Your order #FLX-9823 has been delivered successfully.', time: '2 mins ago', icon: Package, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', isRead: false, path: '/account', state: { screen: 'my-orders' } },
-    { id: 2, title: 'Flash Sale Alert', desc: 'Get up to 50% off on premium Developer Tools. Limited time only!', time: '2 hours ago', icon: Tag, iconBg: 'bg-blue-100', iconColor: 'text-blue-600', isRead: false, path: '/shop' },
-    { id: 3, title: 'Payment Confirmed', desc: 'We received your payment for the Nexus Core subscription.', time: '1 day ago', icon: CheckCircle, iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', isRead: true, path: '/account', state: { screen: 'my-orders' } },
-    { id: 4, title: 'Account Security', desc: 'New login detected from Chrome on Windows.', time: '2 days ago', icon: Info, iconBg: 'bg-amber-100', iconColor: 'text-amber-600', isRead: true, path: '/account', state: { screen: 'profile-settings' } }
-  ];
-
-  const [notifications, setNotifications] = useState(initialNotifications);
-  
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
-  };
-
-  const handleNotificationClick = (notif) => {
-    setNotifications(notifications.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
-    setShowNotifDropdown(false);
-    if (notif.path) {
-      navigate(notif.path, { state: notif.state });
-    }
-  };
+  const { notifications, unreadCount, markAllAsRead, handleNotificationClick } = useNotifications();
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -185,7 +166,7 @@ export default function Header() {
                         {notifications.map(notif => (
                           <div 
                             key={notif.id} 
-                            onClick={() => handleNotificationClick(notif)}
+                            onClick={() => handleNotificationClick(notif, () => setShowNotifDropdown(false))}
                             className={`p-4 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${!notif.isRead ? 'bg-blue-50/50' : ''}`}
                           >
                             <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${notif.iconBg}`}>
@@ -203,7 +184,7 @@ export default function Header() {
                         ))}
                       </div>
                       <div className="px-5 py-3 border-t border-slate-100 text-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => setShowNotifDropdown(false)}>
-                        <Link to="/account" state={{ screen: 'notifications' }} className="text-xs font-bold text-primary hover:underline block w-full h-full">
+                        <Link to={ROUTES.ACCOUNT} state={{ screen: ACCOUNT_SCREENS.NOTIFICATIONS }} className="text-xs font-bold text-primary hover:underline block w-full h-full">
                           View all notifications
                         </Link>
                       </div>

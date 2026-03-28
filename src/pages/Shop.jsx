@@ -1,73 +1,27 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ShoppingCart, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
-import { products } from '../utils/data';
+import { SORT_OPTIONS } from '../utils/constants';
+import { useShopFilters } from '../hooks/useShopFilters';
 
 export default function Shop() {
   const { setShowModal, addToCart, setSelectedProduct, handleQuickAdd, searchQuery, setSearchQuery } = useAppContext();
   const navigate = useNavigate();
 
+  const {
+    sortBy, setSortBy,
+    priceRange, setPriceRange,
+    selectedBrands, toggleBrand,
+    selectedSizes, toggleSize,
+    clearFilters,
+    currentPage, totalPages, handlePageChange,
+    filteredProducts, currentProducts,
+    gridTopRef,
+  } = useShopFilters();
+
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [sortBy, setSortBy] = useState('Newest Arrivals');
   const sortDropdownRef = useRef(null);
-  const gridTopRef = useRef(null);
-
-  const [priceRange, setPriceRange] = useState([0, 500]);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]);
-
-  const ITEMS_PER_PAGE = 12;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    if (gridTopRef.current) {
-      const offset = 80; // approximate sticky header height
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = gridTopRef.current.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [priceRange, selectedBrands, selectedSizes, sortBy, searchQuery]);
-
-  const filteredProducts = useMemo(() => {
-    const q = searchQuery.toLowerCase();
-    let result = products.filter(product => {
-      const inPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
-      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brand);
-      const matchesSize = selectedSizes.length === 0 || (product.sizes && product.sizes.some(s => selectedSizes.includes(s)));
-      const matchesSearch = !q || product.name.toLowerCase().includes(q) || (product.desc && product.desc.toLowerCase().includes(q));
-      return inPriceRange && matchesBrand && matchesSize && matchesSearch;
-    });
-
-    if (sortBy === 'Price: Low to High') {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'Price: High to Low') {
-      result.sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'Newest Arrivals') {
-      result.sort((a, b) => b.id - a.id);
-    } else if (sortBy === 'Best Selling') {
-      result.sort((a, b) => a.id - b.id);
-    }
-    return result;
-  }, [priceRange, selectedBrands, selectedSizes, sortBy, searchQuery]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
-  const currentProducts = filteredProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
 
   const renderPaginationButtons = () => {
     const pages = [];
@@ -91,12 +45,12 @@ export default function Shop() {
 
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
-        <button 
+        <button
           key={i}
           onClick={() => handlePageChange(i)}
           className={`w-10 h-10 flex items-center justify-center rounded-lg font-bold transition-all ${
-            currentPage === i 
-              ? 'bg-primary text-white shadow-lg shadow-primary/25' 
+            currentPage === i
+              ? 'bg-primary text-white shadow-lg shadow-primary/25'
               : 'text-slate-600 hover:bg-primary/5 hover:text-primary'
           }`}
         >
@@ -123,31 +77,19 @@ export default function Shop() {
         setShowSortDropdown(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [sortDropdownRef]);
 
-  const sortOptions = [
-    'Newest Arrivals',
-    'Price: Low to High',
-    'Price: High to Low',
-    'Best Selling'
-  ];
-
   return (
-    <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
         <aside className="w-full lg:w-64 shrink-0 space-y-8">
           <div className="lg:sticky lg:top-24">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-slate-900">Filters</h2>
-              <button 
-                onClick={() => {
-                  setPriceRange([0, 500]);
-                  setSelectedBrands([]);
-                  setSelectedSizes([]);
-                  setSortBy('Newest Arrivals');
-                }}
+              <button
+                onClick={clearFilters}
                 className="text-xs font-semibold text-primary hover:underline uppercase tracking-wider"
               >
                 Clear All
@@ -207,14 +149,11 @@ export default function Shop() {
               <div className="space-y-3">
                 {['Elite Series', 'Modern Essentials', 'Tech Core', 'Studio Line'].map((brand, i) => (
                   <label key={i} className="flex items-center gap-3 cursor-pointer group">
-                    <input 
-                      type="checkbox" 
-                      checked={selectedBrands.includes(brand)} 
-                      onChange={(e) => {
-                        if (e.target.checked) setSelectedBrands([...selectedBrands, brand]);
-                        else setSelectedBrands(selectedBrands.filter(b => b !== brand));
-                      }}
-                      className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/20 cursor-pointer" 
+                    <input
+                      type="checkbox"
+                      checked={selectedBrands.includes(brand)}
+                      onChange={() => toggleBrand(brand)}
+                      className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/20 cursor-pointer"
                     />
                     <span className="text-sm text-slate-700 group-hover:text-primary transition-colors">{brand}</span>
                   </label>
@@ -230,10 +169,7 @@ export default function Shop() {
                   return (
                     <button 
                       key={i} 
-                      onClick={() => {
-                        if (isSelected) setSelectedSizes(selectedSizes.filter(s => s !== size));
-                        else setSelectedSizes([...selectedSizes, size]);
-                      }}
+                      onClick={() => toggleSize(size)}
                       className={`py-2 text-xs font-medium border rounded-lg transition-colors ${isSelected ? 'border-primary bg-primary/5 text-primary' : 'border-slate-200 hover:border-primary'}`}
                     >
                       {size}
@@ -277,7 +213,7 @@ export default function Shop() {
                 
                 {showSortDropdown && (
                   <div className="absolute top-full right-0 mt-2 w-full bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 py-1.5 z-20 overflow-hidden">
-                    {sortOptions.map((option, idx) => (
+                    {SORT_OPTIONS.map((option, idx) => (
                       <button
                         key={idx}
                         onClick={() => {

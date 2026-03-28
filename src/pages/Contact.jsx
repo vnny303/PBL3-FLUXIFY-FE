@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 
 export default function Contact() {
   return (
-    <main className="flex-grow max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
+    <main className="grow max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-black text-slate-900 mb-4">Contact Us</h1>
         <p className="text-lg text-slate-500">We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
