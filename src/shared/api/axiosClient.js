@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const axiosClient = axios.create({
     // Sử dụng biến môi trường lấy Base URL, hoặc fallback về localhost
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5119',
     headers: {
         'Content-Type': 'application/json',
     },

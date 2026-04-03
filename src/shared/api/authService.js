@@ -1,7 +1,7 @@
 import axiosClient from './axiosClient';
 
 // BIẾN MÔ PHỎNG: Chuyển thành false khi đã có Backend nối vào
-const MOCK_API = true;
+const MOCK_API = false;
 
 export const authService = {
     registerCustomer: async (payload) => {
@@ -22,7 +22,12 @@ export const authService = {
                 user: { email: payload.Email }
             };
         }
-        return await axiosClient.post('/api/simpleauth/customer/login', payload);
+        const subdomain = payload.Subdomain || payload.subdomain || '';
+        const queryString = subdomain ? `?subdomain=${encodeURIComponent(subdomain)}` : '';
+        return await axiosClient.post(`/api/simpleauth/customer/login${queryString}`, {
+            Email: payload.Email,
+            Password: payload.Password,
+        });
     },
 
     logout: async () => {
