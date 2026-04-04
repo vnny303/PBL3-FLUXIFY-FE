@@ -9,6 +9,7 @@ export const useLogin = () => {
   const location = useLocation();
   const { setIsLoggedIn } = useAppContext();
   const [formData, setFormData] = useState({
+    subdomain: '',
     email: '',
     password: '',
     rememberMe: false
@@ -31,7 +32,7 @@ export const useLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.password) {
+    if (!formData.subdomain || !formData.email || !formData.password) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -48,8 +49,9 @@ export const useLogin = () => {
 
     try {
       const payload = {
+        Subdomain: formData.subdomain,
         Email: formData.email,
-        PasswordHash: formData.password
+        Password: formData.password
       };
 
       const mockData = await authService.loginCustomer(payload);
@@ -62,6 +64,7 @@ export const useLogin = () => {
       setFormData((prev) => ({ ...prev, password: '' }));
 
       localStorage.setItem('tenant_token', mockData.token);
+      localStorage.setItem('tenant_subdomain', formData.subdomain);
       
       setTimeout(() => {
         const from = location.state?.from?.pathname || '/';

@@ -95,6 +95,15 @@ export default function Login() {
           {/* Form Section */}
           <form className="space-y-5" onSubmit={handleSubmit}>
             <Input
+              label="Subdomain"
+              id="subdomain"
+              name="subdomain"
+              value={formData.subdomain}
+              onChange={handleChange}
+              placeholder="pbl3-shop"
+            />
+
+            <Input
               label="Email"
               id="email"
               name="email"

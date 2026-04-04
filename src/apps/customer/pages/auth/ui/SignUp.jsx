@@ -116,10 +116,10 @@ export default function SignUp() {
 
             <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
               <Input
-                label="Tenant ID (Workspace Name)"
-                id="tenantId"
-                name="tenantId"
-                value={formData.tenantId}
+                label="Subdomain"
+                id="subdomain"
+                name="subdomain"
+                value={formData.subdomain}
                 onChange={handleChange}
                 placeholder="my-workspace"
               />

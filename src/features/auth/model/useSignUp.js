@@ -6,7 +6,7 @@ import { authService } from '../../../shared/api/authService';
 export const useSignUp = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    tenantId: '',
+    subdomain: '',
     email: '',
     password: '',
     acceptTerms: false
@@ -29,7 +29,7 @@ export const useSignUp = () => {
     e.preventDefault();
     
     // Basic validation
-    if (!formData.tenantId || !formData.email || !formData.password) {
+    if (!formData.subdomain || !formData.email || !formData.password) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -57,9 +57,9 @@ export const useSignUp = () => {
     try {
       // Map dữ liệu từ state sang format API yêu cầu
       const payload = {
-        TenantId: formData.tenantId,
+        Subdomain: formData.subdomain,
         Email: formData.email,
-        PasswordHash: formData.password,
+        Password: formData.password,
         // CreatedAt: Thường Backend sẽ tự tạo (hoặc bạn có thể truyền new Date().toISOString() nếu BE bắt buộc)
       };
 
@@ -72,7 +72,7 @@ export const useSignUp = () => {
       
       // Xóa form sau khi thành công
       setFormData({ 
-        tenantId: '', 
+        subdomain: '', 
         email: '', 
         password: '',
         acceptTerms: false
