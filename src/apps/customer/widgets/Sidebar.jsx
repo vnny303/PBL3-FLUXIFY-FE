@@ -7,7 +7,7 @@ import { useAppContext } from '../../../app/providers/AppContext';
 export default function Sidebar({ currentScreen, setCurrentScreen }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
-  const { setIsLoggedIn } = useAppContext();
+  const { logout, session } = useAppContext();
 
   const navItems = [
     { id: 'my-orders', label: 'My Orders', icon: Package },
@@ -24,8 +24,8 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
             <span className="text-sm font-bold">AT</span>
           </div>
           <div className="overflow-hidden">
-            <p className="text-sm font-semibold truncate">Alex Thompson</p>
-            <p className="text-xs text-slate-500 truncate">alex.t@example.com</p>
+            <p className="text-sm font-semibold truncate">Customer</p>
+            <p className="text-xs text-slate-500 truncate">{session?.email || 'anonymous'}</p>
           </div>
         </div>
         <nav className="space-y-1">
@@ -81,8 +81,7 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
               <button 
                 onClick={() => {
                   setShowLogoutConfirm(false);
-                  localStorage.removeItem('tenant_token');
-                  setIsLoggedIn(false);
+                  logout();
                   navigate('/');
                   toast.success('Đã đăng xuất tài khoản!');
                 }}

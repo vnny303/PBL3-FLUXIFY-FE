@@ -1,59 +1,46 @@
 import { useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { authService } from '../../../shared/api/authService';
 import { useAppContext } from '../../../app/providers/AppContext';
 import { extractErrorMessage } from '../../../shared/lib/api';
-import { buildShopPath, extractSubdomainFromPath, normalizeSubdomain, parseSubdomainSegment, resolveActiveSubdomain, STORAGE_KEYS } from '../../../shared/lib/constants';
+import { ROUTES } from '../../../shared/lib/constants';
 
-export const useLogin = () => {
+export const useMerchantLogin = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { subdomainToken } = useParams();
   const { login } = useAppContext();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false
+    rememberMe: false,
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const activeSubdomain = resolveActiveSubdomain(
-    parseSubdomainSegment(subdomainToken),
-    extractSubdomainFromPath(location.state?.from?.pathname),
-    normalizeSubdomain(localStorage.getItem(STORAGE_KEYS.SUBDOMAIN)),
-    normalizeSubdomain(import.meta.env.VITE_DEFAULT_SUBDOMAIN),
-  );
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({ 
-      ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
     }));
-    
+
     if (error) setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.email || !formData.password) {
-      setError("Please fill in all required fields.");
-      return;
-    }
 
-    if (!activeSubdomain) {
-      setError('Không xác định được subdomain cửa hàng. Vui lòng vào lại trang shop trước khi đăng nhập.');
+    if (!formData.email || !formData.password) {
+      setError('Please fill in all required fields.');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address.");
+      setError('Please enter a valid email address.');
       return;
     }
 
@@ -62,33 +49,29 @@ export const useLogin = () => {
     setIsSuccess(false);
 
     try {
-      const payload = {
-        subdomain: activeSubdomain,
+      const result = await authService.loginMerchant({
         email: formData.email,
         password: formData.password,
-      };
+      });
 
-      const result = await authService.loginCustomer(payload);
-
-      setIsSuccess(true);
       login({
         token: result.token,
         userId: result.userId,
         email: result.email,
         role: result.role,
         tenantId: result.tenantId,
-        subdomain: result.subdomain || activeSubdomain,
+        subdomain: result.subdomain,
       });
-      toast.success('Đăng nhập thành công!');
-      
+
+      setIsSuccess(true);
+      toast.success('Merchant đăng nhập thành công!');
+
       setFormData((prev) => ({ ...prev, password: '' }));
 
       setTimeout(() => {
-        navigate(buildShopPath(result.subdomain || activeSubdomain), { replace: true });
+        navigate(ROUTES.MERCHANT_HOME, { replace: true });
       }, 1000);
-
     } catch (err) {
-      console.error("Login failed:", err);
       const errorMessage = extractErrorMessage(err, 'Invalid email or password. Please try again.');
       setError(errorMessage);
       toast.error(errorMessage);
@@ -102,9 +85,7 @@ export const useLogin = () => {
     isLoading,
     error,
     isSuccess,
-    activeSubdomain,
     handleChange,
-    handleSubmit
+    handleSubmit,
   };
 };
-

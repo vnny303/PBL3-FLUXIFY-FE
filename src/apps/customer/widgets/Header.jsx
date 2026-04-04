@@ -3,12 +3,23 @@ import { Search, Bell, ShoppingBag, ShoppingCart, MapPin, Settings, LogOut, User
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAppContext } from '../../../app/providers/AppContext';
-import { products } from '../../../shared/lib/data';
 import { useNotifications } from '../../../entities/notification/model/useNotifications';
-import { ROUTES, ACCOUNT_SCREENS } from '../../../shared/lib/constants';
+import { ROUTES, ACCOUNT_SCREENS, STORAGE_KEYS, buildShopPath, extractSubdomainFromPath, resolveActiveSubdomain } from '../../../shared/lib/constants';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function Header() {
-  const { setShowModal, isLoggedIn, setIsLoggedIn, setShowCart, cartCount, wishlistCount, searchQuery, setSearchQuery } = useAppContext();
+  const {
+    setShowModal,
+    isLoggedIn,
+    logout,
+    session,
+    setShowCart,
+    cartCount,
+    wishlistCount,
+    searchQuery,
+    setSearchQuery,
+    products,
+  } = useAppContext();
   const location = useLocation();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -17,6 +28,13 @@ export default function Header() {
   const notifRef = useRef(null);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const searchRef = useRef(null);
+  const activeSubdomain = resolveActiveSubdomain(
+    extractSubdomainFromPath(location.pathname),
+    localStorage.getItem(STORAGE_KEYS.SUBDOMAIN),
+    session?.subdomain,
+    import.meta.env.VITE_DEFAULT_SUBDOMAIN,
+  );
+  const shopPath = buildShopPath(activeSubdomain);
 
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
@@ -59,7 +77,7 @@ export default function Header() {
           </div>
           <nav className="hidden lg:flex items-center gap-8">
             <Link to="/" className={`text-sm font-semibold transition-colors ${location.pathname === '/' ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>Home</Link>
-            <Link to="/shop" className={`text-sm font-semibold transition-colors ${location.pathname.includes('/shop') ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>Shop / Products</Link>
+            <Link to={shopPath} className={`text-sm font-semibold transition-colors ${location.pathname.includes('/shop') ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>Shop / Products</Link>
             <Link to="/about" className={`text-sm font-semibold transition-colors ${location.pathname.includes('/about') ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>About Us</Link>
             <Link to="/contact" className={`text-sm font-semibold transition-colors ${location.pathname.includes('/contact') ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>Contact</Link>
           </nav>
@@ -74,7 +92,7 @@ export default function Header() {
                   setSearchQuery(e.target.value);
                   setShowSearchDropdown(true);
                   if (!location.pathname.includes('/shop')) {
-                    navigate('/shop');
+                    navigate(shopPath);
                   }
                 }}
                 onFocus={() => setShowSearchDropdown(true)}
@@ -108,16 +126,16 @@ export default function Header() {
                           onClick={() => {
                             setShowSearchDropdown(false);
                             setSearchQuery(product.name);
-                            if (!location.pathname.includes('/shop')) navigate('/shop');
+                            if (!location.pathname.includes('/shop')) navigate(shopPath);
                           }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors text-left"
                         >
-                          <img src={product.img} alt={product.name} className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                          <img src={product.image || product.img} alt={product.name} className="w-8 h-8 rounded-lg object-cover shrink-0" />
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-slate-900 truncate">{product.name}</p>
                             <p className="text-xs text-slate-400 truncate">{product.desc}</p>
                           </div>
-                          <span className="shrink-0 text-sm font-bold text-primary ml-auto">${product.price.toFixed(2)}</span>
+                          <span className="shrink-0 text-sm font-bold text-primary ml-auto">{formatVnd(product.price)}</span>
                         </button>
                       ))}
                       <div className="border-t border-slate-100 p-2">
@@ -216,8 +234,8 @@ export default function Header() {
                       <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
                         <img src="https://i.pravatar.cc/150?img=11" alt="Alex Thompson" className="w-10 h-10 rounded-full object-cover" />
                         <div>
-                          <p className="text-sm font-bold text-slate-900">Alex Thompson</p>
-                          <p className="text-xs text-slate-500">alex.t@example.com</p>
+                          <p className="text-sm font-bold text-slate-900">{session?.email || 'Customer'}</p>
+                          <p className="text-xs text-slate-500">{session?.subdomain || ''}</p>
                         </div>
                       </div>
                       <div className="py-2">
@@ -252,9 +270,8 @@ export default function Header() {
                       <div className="border-t border-slate-100 py-2">
                         <button 
                           onClick={() => {
-                            setIsLoggedIn(false);
+                            logout();
                             setShowDropdown(false);
-                            localStorage.removeItem('tenant_token');
                             toast.success('Đã đăng xuất tài khoản!');
                           }}
                           className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 flex items-center gap-3 transition-colors"

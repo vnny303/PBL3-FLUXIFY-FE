@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
 import Header from '../apps/customer/widgets/Header';
@@ -13,6 +13,8 @@ import Contact from '../apps/customer/pages/contact/ui/Contact';
 import ProductDetail from '../apps/customer/pages/product-detail/ui/ProductDetail';
 import SignUp from '../apps/customer/pages/auth/ui/SignUp';
 import Login from '../apps/customer/pages/auth/ui/Login';
+import MerchantLogin from '../apps/merchant/pages/auth/ui/MerchantLogin';
+import MerchantHome from '../apps/merchant/pages/home/ui/MerchantHome';
 import AccountPage from '../apps/customer/pages/account/ui/AccountPage';
 import Checkout from '../apps/customer/pages/checkout/ui/Checkout';
 import OrderConfirmation from '../apps/customer/pages/order-confirmation/ui/OrderConfirmation';
@@ -23,6 +25,7 @@ import CartDrawer from '../apps/customer/widgets/CartDrawer';
 import AddToCartPopup from '../features/cart-actions/ui/AddToCartPopup';
 import QuickAddModal from '../features/cart-actions/ui/QuickAddModal';
 import { useAppContext } from './providers/AppContext';
+import { buildLoginPath, buildShopPath, extractSubdomainFromPath, ROUTES, resolveActiveSubdomain, STORAGE_KEYS } from '../shared/lib/constants';
 
 const MainLayout = () => {
   const { showModal } = useAppContext();
@@ -44,16 +47,74 @@ const MainLayout = () => {
   );
 };
 
+const MerchantRoute = () => {
+  const { isLoggedIn, session } = useAppContext();
+  const role = String(session?.role || '').toLowerCase();
+  const isMerchantRole = role.includes('merchant') || role.includes('admin');
+
+  if (!isLoggedIn) {
+    return <Navigate to={ROUTES.MERCHANT_LOGIN} replace />;
+  }
+
+  if (role && !isMerchantRole) {
+    return <Navigate to={ROUTES.HOME} replace />;
+  }
+
+  return <Outlet />;
+};
+
+const ShopEntryRoute = () => {
+  const { session } = useAppContext();
+  const subdomain = resolveActiveSubdomain(
+    localStorage.getItem(STORAGE_KEYS.SUBDOMAIN),
+    session?.subdomain,
+    import.meta.env.VITE_DEFAULT_SUBDOMAIN,
+  );
+
+  if (subdomain) {
+    return <Navigate to={buildShopPath(subdomain)} replace />;
+  }
+
+  return <Shop />;
+};
+
+const LoginEntryRoute = () => {
+  const location = useLocation();
+  const { session } = useAppContext();
+  const fromPath = location.state?.from?.pathname;
+
+  const subdomain = resolveActiveSubdomain(
+    extractSubdomainFromPath(fromPath),
+    localStorage.getItem(STORAGE_KEYS.SUBDOMAIN),
+    session?.subdomain,
+    import.meta.env.VITE_DEFAULT_SUBDOMAIN,
+  );
+
+  if (subdomain) {
+    return <Navigate to={buildLoginPath(subdomain)} replace state={location.state} />;
+  }
+
+  return <Login />;
+};
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<LoginEntryRoute />} />
+        <Route path="/login/:subdomainToken" element={<Login />} />
+        <Route path="/merchant/login" element={<MerchantLogin />} />
+
+        <Route element={<MerchantRoute />}>
+          <Route path="/merchant" element={<MerchantHome />} />
+          <Route path="/merchant/home" element={<Navigate to="/merchant" replace />} />
+        </Route>
 
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
-          <Route path="shop" element={<Shop />} />
+          <Route path="shop" element={<ShopEntryRoute />} />
+          <Route path="shop/:subdomainToken" element={<Shop />} />
           <Route path="product/:id" element={<ProductDetail />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
@@ -65,6 +126,8 @@ export default function App() {
         <Route element={<CheckoutLayout />}>
           <Route path="/checkout" element={<Checkout />} />
         </Route>
+
+        <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
       </Routes>
     </BrowserRouter>
   );

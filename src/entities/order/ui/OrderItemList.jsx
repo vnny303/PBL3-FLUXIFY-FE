@@ -12,7 +12,8 @@ export default function OrderItemList({ items, reviewedItems, buyingItemIds, onW
           const productName = item.name || 'Product';
           const productVariant = item.variant || 'Standard';
           const productImage = item.image || `https://picsum.photos/seed/product${idx}/200/300`;
-          const productPrice = item.price || '$35.00';
+          const productPrice = item.price || '0 ₫';
+          const quantity = item.quantity || 1;
           return (
             <div key={idx} className="p-6 flex gap-4">
               <div className="w-20 h-24 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shrink-0">
@@ -27,7 +28,7 @@ export default function OrderItemList({ items, reviewedItems, buyingItemIds, onW
                   <p className="font-bold text-slate-900 dark:text-white text-sm">{productPrice}</p>
                 </div>
                 <div className="flex justify-between items-center mt-4">
-                  <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded">Qty: 1</span>
+                  <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded">Qty: {quantity}</span>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => onWriteReview({ name: productName, variant: productVariant, image: productImage })}

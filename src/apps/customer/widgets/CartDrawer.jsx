@@ -2,16 +2,11 @@ import React from 'react';
 import { X, Trash2, Minus, Plus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../app/providers/AppContext';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function CartDrawer() {
   const { showCart, setShowCart, cartItems, removeFromCart, updateQuantity, cartTotal, cartCount } = useAppContext();
   const navigate = useNavigate();
-
-  const toNumberPrice = (value) => {
-    if (typeof value === 'number') return value;
-    if (typeof value === 'string') return parseFloat(value.replace('$', ''));
-    return 0;
-  };
 
   if (!showCart) return null;
 
@@ -52,7 +47,7 @@ export default function CartDrawer() {
             </div>
           ) : (
             cartItems.map((item) => (
-              <div key={item.cartId} className="flex gap-4">
+              <div key={item.cartItemId} className="flex gap-4">
                 <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
                   <img src={item.image || item.img} alt={item.name} className="w-full h-full object-cover" />
                 </div>
@@ -60,10 +55,10 @@ export default function CartDrawer() {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-sm font-bold text-slate-900">{item.name}</h3>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">SIZE: {item.size} | COLOR: {item.color}</p>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">SKU: {item.productSkuId}</p>
                     </div>
                     <button 
-                      onClick={() => removeFromCart(item.cartId)}
+                      onClick={() => removeFromCart(item.cartItemId)}
                       className="text-slate-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 className=" text-lg" />
@@ -72,21 +67,21 @@ export default function CartDrawer() {
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-100">
                       <button 
-                        onClick={() => updateQuantity(item.cartId, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
                         className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all"
                       >
                         <Minus className=" text-sm" />
                       </button>
                       <span className="w-8 text-center text-sm font-bold text-slate-900">{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item.cartId, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
                         className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white rounded shadow-sm transition-all"
                       >
                         <Plus className=" text-sm" />
                       </button>
                     </div>
                     <span className="text-sm font-bold text-blue-600">
-                      ${(toNumberPrice(item.price) * item.quantity).toFixed(2)}
+                      {formatVnd(item.subTotal || item.price * item.quantity)}
                     </span>
                   </div>
                 </div>
@@ -102,7 +97,7 @@ export default function CartDrawer() {
           </div>
           <div className="flex justify-between items-center mb-6">
             <span className="text-base font-bold text-slate-900">Subtotal</span>
-            <span className="text-xl font-black text-blue-600">${cartTotal.toFixed(2)}</span>
+            <span className="text-xl font-black text-blue-600">{formatVnd(cartTotal)}</span>
           </div>
           
           <button 

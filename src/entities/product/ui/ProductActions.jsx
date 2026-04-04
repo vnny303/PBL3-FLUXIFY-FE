@@ -1,11 +1,11 @@
 import React from 'react';
 import { Minus, Plus, ShoppingBag, Truck, ShieldCheck } from 'lucide-react';
 
-export default function ProductActions({ product, quantity, setQuantity, selectedColor, selectedSize, addToCart }) {
+export default function ProductActions({ product, quantity, setQuantity, addToCart }) {
   const currentProduct = product || {
     id: 999,
     name: 'Studio Microphone Pro',
-    price: '$299.00',
+    price: 0,
     img: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000',
   };
 
@@ -28,7 +28,7 @@ export default function ProductActions({ product, quantity, setQuantity, selecte
           </button>
         </div>
         <button
-          onClick={() => addToCart(currentProduct, quantity, selectedColor, selectedSize)}
+          onClick={() => addToCart(currentProduct, quantity)}
           className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-600/20"
         >
           <ShoppingBag className="text-sm" />

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { CheckCircle, Clock, ArrowRight, ShoppingCart } from 'lucide-react';
+import { formatDateTime, formatVnd } from '../../../../../shared/lib/formatters';
 
-export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders = [] }) {
+export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders = [], featureMessage = '' }) {
   const [showAll, setShowAll] = useState(false);
 
   const displayedOrders = showAll ? orders : orders.slice(0, 2);
@@ -18,7 +19,7 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
             <ShoppingCart className="w-10 h-10 text-slate-300 dark:text-slate-600" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No orders yet</h3>
-          <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs mx-auto">You haven't placed any orders yet. Start exploring our collections to find something you love.</p>
+          <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs mx-auto">{featureMessage || "You haven't placed any orders yet. Start exploring our collections to find something you love."}</p>
           <button className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-hover transition-all shadow-sm">
             Start Shopping
           </button>
@@ -40,7 +41,7 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div className="space-y-1">
                 <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold">{order.id}</span>
+                  <span className="text-lg font-bold">#{String(order.id).slice(0, 8).toUpperCase()}</span>
                   {order.status === 'Delivered' ? (
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1">
                       <CheckCircle className="w-3.5 h-3.5" />
@@ -53,7 +54,7 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-slate-500">Ordered on {order.date} • Total: {order.total}</p>
+                <p className="text-sm text-slate-500">Ordered on {formatDateTime(order.createdAt)} • Total: {formatVnd(order.totalAmount)}</p>
               </div>
               <button 
                 onClick={() => {
@@ -67,9 +68,9 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
               </button>
             </div>
             <div className="flex gap-4">
-              {order.items.map((item, idx) => (
+              {(order.orderItems || []).slice(0, 4).map((item, idx) => (
                 <div key={idx} className="h-20 w-20 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-md" />
+                  <img src={`https://picsum.photos/seed/order-${item.id || idx}/100/100`} alt={item.productName || 'Product'} className="w-full h-full object-cover rounded-md" />
                 </div>
               ))}
             </div>

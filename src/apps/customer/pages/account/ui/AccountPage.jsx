@@ -6,68 +6,16 @@ import SavedAddresses from './SavedAddresses';
 import ProfileSettings from './ProfileSettings';
 import OrderDetails from './OrderDetails';
 import Notifications from './Notifications';
-
-// Mock data for orders
-const mockOrders = [
-  {
-    id: '#ORD-2024-8921',
-    date: 'Oct 24, 2024',
-    total: '$82.07',
-    status: 'Processing',
-    paymentMethod: 'Cash on Delivery',
-    items: [
-      { name: 'T-Shirt', image: 'https://picsum.photos/seed/shirt1/100/100' },
-      { name: 'Jeans', image: 'https://picsum.photos/seed/jeans1/100/100' }
-    ]
-  },
-  {
-    id: '#ORD-2024-7543',
-    date: 'Sep 12, 2024',
-    total: '$145.50',
-    status: 'Delivered',
-    paymentMethod: 'Bank Transfer',
-    items: [
-      { name: 'Sneakers', image: 'https://picsum.photos/seed/shoes1/100/100' }
-    ]
-  },
-  {
-    id: '#ORD-2024-6102',
-    date: 'Aug 05, 2024',
-    total: '$45.00',
-    status: 'Delivered',
-    paymentMethod: 'Cash on Delivery',
-    items: [
-      { name: 'Cap', image: 'https://picsum.photos/seed/cap1/100/100' },
-      { name: 'Socks', image: 'https://picsum.photos/seed/socks1/100/100' }
-    ]
-  },
-  {
-    id: '#ORD-2024-5099',
-    date: 'Jul 18, 2024',
-    total: '$210.99',
-    status: 'Delivered',
-    paymentMethod: 'Bank Transfer',
-    items: [
-      { name: 'Jacket', image: 'https://picsum.photos/seed/jacket1/100/100' },
-      { name: 'Boots', image: 'https://picsum.photos/seed/boots1/100/100' }
-    ]
-  },
-  {
-    id: '#ORD-2024-4112',
-    date: 'Jun 30, 2024',
-    total: '$35.50',
-    status: 'Delivered',
-    paymentMethod: 'Cash on Delivery',
-    items: [
-      { name: 'Sunglasses', image: 'https://picsum.photos/seed/sunglasses1/100/100' }
-    ]
-  }
-];
+import { useAppContext } from '../../../../../app/providers/AppContext';
+import { orderService } from '../../../../../shared/api/orderService';
 
 export default function AccountPage() {
+  const { session } = useAppContext();
   const location = useLocation();
   const [currentScreen, setCurrentScreen] = useState(location.state?.screen || 'my-orders');
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [orderFeatureMessage, setOrderFeatureMessage] = useState('');
 
   useEffect(() => {
     if (location.state?.screen) {
@@ -75,20 +23,41 @@ export default function AccountPage() {
     }
   }, [location.state]);
 
+  useEffect(() => {
+    const loadOrders = async () => {
+      if (!session?.tenantId || !session?.userId) return;
+
+      try {
+        const result = await orderService.getCustomerOrders(session.tenantId, session.userId);
+        setOrders(result);
+        setOrderFeatureMessage('');
+      } catch (error) {
+        if (error?.response?.status === 404) {
+          setOrderFeatureMessage('Feature not available: endpoint customer orders chưa sẵn sàng.');
+          setOrders([]);
+          return;
+        }
+        setOrderFeatureMessage('Không thể tải lịch sử đơn hàng.');
+      }
+    };
+
+    loadOrders();
+  }, [session?.tenantId, session?.userId]);
+
   const renderScreen = () => {
     switch (currentScreen) {
       case 'my-orders':
-        return <MyOrders setCurrentScreen={setCurrentScreen} setSelectedOrderId={setSelectedOrderId} orders={mockOrders} />;
+        return <MyOrders setCurrentScreen={setCurrentScreen} setSelectedOrderId={setSelectedOrderId} orders={orders} featureMessage={orderFeatureMessage} />;
       case 'saved-addresses':
         return <SavedAddresses />;
       case 'profile-settings':
         return <ProfileSettings />;
       case 'order-details':
-        return <OrderDetails setCurrentScreen={setCurrentScreen} order={mockOrders.find(o => o.id === selectedOrderId) || mockOrders[0]} />;
+        return <OrderDetails setCurrentScreen={setCurrentScreen} order={orders.find(o => o.id === selectedOrderId) || orders[0]} />;
       case 'notifications':
         return <Notifications />;
       default:
-        return <MyOrders setCurrentScreen={setCurrentScreen} setSelectedOrderId={setSelectedOrderId} orders={mockOrders} />;
+        return <MyOrders setCurrentScreen={setCurrentScreen} setSelectedOrderId={setSelectedOrderId} orders={orders} featureMessage={orderFeatureMessage} />;
     }
   };
 

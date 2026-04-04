@@ -2,15 +2,23 @@ import React from 'react';
 import { X, UserPlus } from 'lucide-react';
 import { useAppContext } from '../../app/providers/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { buildLoginPath, extractSubdomainFromPath, resolveActiveSubdomain, STORAGE_KEYS } from '../lib/constants';
 
 export default function Modal() {
-  const { setShowModal } = useAppContext();
+  const { setShowModal, session } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleLogin = () => {
+    const subdomain = resolveActiveSubdomain(
+      extractSubdomainFromPath(location.pathname),
+      session?.subdomain,
+      localStorage.getItem(STORAGE_KEYS.SUBDOMAIN),
+      import.meta.env.VITE_DEFAULT_SUBDOMAIN,
+    );
+
     setShowModal(false);
-    navigate('/login', { state: { from: location } });
+    navigate(buildLoginPath(subdomain), { state: { from: location } });
   };
 
   const handleSignUp = () => {

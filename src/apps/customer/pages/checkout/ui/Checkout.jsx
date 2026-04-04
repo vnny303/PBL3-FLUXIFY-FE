@@ -3,8 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import CheckoutForm, { CITY_OPTIONS, STATE_OPTIONS } from '../../../../../features/checkout/ui/CheckoutForm';
 import OrderSummary from '../../../../../features/checkout/ui/OrderSummary';
+import { useAppContext } from '../../../../../app/providers/AppContext';
+import { orderService } from '../../../../../shared/api/orderService';
+import { PAYMENT_METHODS } from '../../../../../shared/lib/constants';
+import { extractErrorMessage } from '../../../../../shared/lib/api';
 
 export default function Checkout() {
+  const { cartItems, cartTotal, clearCart, session } = useAppContext();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [street, setStreet] = useState('');
@@ -75,34 +80,51 @@ export default function Checkout() {
   };
 
   const handlePlaceOrder = () => {
+    if (!session?.tenantId || !session?.userId) {
+      toast.error('Bạn cần đăng nhập để checkout.');
+      return;
+    }
+
+    if (!cartItems.length) {
+      toast.error('Giỏ hàng đang trống.');
+      return;
+    }
+
     if (selectedAddress === 'new') {
       if (!validateAddress()) { setIsAddingNewAddress(true); return; }
     }
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      let finalAddress = null;
-      if (selectedAddress === 'new') {
-        finalAddress = {
-          name: contactInfo.name, street,
+
+    const selectedAddressData = selectedAddress === 'new'
+      ? {
+          street,
           city: CITY_OPTIONS.find(o => o.value === city)?.label || city,
           state: STATE_OPTIONS.find(o => o.value === state)?.label || state,
-          zip: '62704', country: 'United States'
-        };
-      } else {
-        const addr = addresses.find(a => a.id === selectedAddress);
-        if (addr) finalAddress = { name: contactInfo.name, street: addr.street, city: addr.city, state: addr.state, zip: addr.zip, country: addr.country };
-      }
-      const orderData = {
-        shippingAddress: finalAddress,
-        payment: {
-          methodName: paymentMethod === 'bank' ? 'Bank Transfer' : 'Cash on Delivery (COD)',
-          transactionId: paymentMethod === 'bank' ? 'TXN-' + Math.floor(Math.random() * 10000000) : 'N/A'
         }
-      };
-      toast.success('Đặt hàng thành công!');
-      navigate('/order-confirmation', { state: { orderData } });
-    }, 2000);
+      : addresses.find((addr) => addr.id === selectedAddress);
+
+    const address = `${selectedAddressData?.street}, ${selectedAddressData?.city}, ${selectedAddressData?.state}`;
+    const mappedPaymentMethod = paymentMethod === 'cod' ? PAYMENT_METHODS.COD : PAYMENT_METHODS.BANK_TRANSFER;
+
+    orderService.checkout(session.tenantId, session.userId, {
+      address,
+      paymentMethod: mappedPaymentMethod,
+    })
+      .then((orderData) => {
+        toast.success('Đặt hàng thành công!');
+        clearCart();
+        navigate('/order-confirmation', { state: { orderData } });
+      })
+      .catch((error) => {
+        if (error?.response?.status === 404) {
+          toast.error('Feature not available: endpoint checkout chưa sẵn sàng.');
+          return;
+        }
+        toast.error(extractErrorMessage(error, 'Không thể checkout.'));
+      })
+      .finally(() => {
+        setIsProcessing(false);
+      });
   };
 
   return (
@@ -134,6 +156,8 @@ export default function Checkout() {
           setPaymentMethod={setPaymentMethod}
         />
         <OrderSummary
+          items={cartItems}
+          subTotal={cartTotal}
           shippingFee={shippingFee}
           isProcessing={isProcessing}
           onPlaceOrder={handlePlaceOrder}
