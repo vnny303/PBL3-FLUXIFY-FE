@@ -1,48 +1,37 @@
 import axiosClient from './axiosClient';
+import { API_CONFIG } from '../lib/constants';
+import { unwrapApiData } from '../lib/api';
 
-// BIẾN MÔ PHỎNG: Chuyển thành false khi đã có Backend nối vào
-const MOCK_API = false;
+const AUTH_PREFIX = API_CONFIG.AUTH_PREFIX;
 
 export const authService = {
     registerCustomer: async (payload) => {
-        if (MOCK_API) {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            return { message: "Account created successfully", ...payload };
-        }
-        // Khi có thật, mã chỉ còn 1 dòng rất gọn
-        return await axiosClient.post('/api/simpleauth/customer/register', payload);
+        const response = await axiosClient.post(`${AUTH_PREFIX}/customer/register`, payload);
+        return unwrapApiData(response);
     },
 
     loginCustomer: async (payload) => {
-        if (MOCK_API) {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            return {
-                message: "Login successful",
-                token: "fake-jwt-token-123xyz...",
-                user: { email: payload.Email }
-            };
-        }
-        const subdomain = payload.Subdomain || payload.subdomain || '';
-        const queryString = subdomain ? `?subdomain=${encodeURIComponent(subdomain)}` : '';
-        return await axiosClient.post(`/api/simpleauth/customer/login${queryString}`, {
-            Email: payload.Email,
-            Password: payload.Password,
-        });
+        const subdomain = payload?.subdomain || payload?.Subdomain || '';
+        const query = subdomain ? `?subdomain=${encodeURIComponent(subdomain)}` : '';
+        // Compat mode: send subdomain in BOTH query and body.
+        // - Current BE expects query.
+        // - API spec expects body.
+        const response = await axiosClient.post(`${AUTH_PREFIX}/customer/login${query}`, payload);
+        return unwrapApiData(response);
+    },
+
+    loginMerchant: async (payload) => {
+        const response = await axiosClient.post(`${AUTH_PREFIX}/merchant/login`, payload);
+        return unwrapApiData(response);
     },
 
     logout: async () => {
-        if (MOCK_API) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            return { message: "Logged out" };
-        }
-        return await axiosClient.post('/api/simpleauth/logout');
+        const response = await axiosClient.post(`${AUTH_PREFIX}/logout`);
+        return unwrapApiData(response);
     },
 
     getCurrentUser: async () => {
-        if (MOCK_API) {
-            await new Promise(resolve => setTimeout(resolve, 800));
-            return { email: "mock@user.com", tenantId: "MockTenant" };
-        }
-        return await axiosClient.get('/api/simpleauth/me');
+        const response = await axiosClient.get(`${AUTH_PREFIX}/me`);
+        return unwrapApiData(response);
     }
 };

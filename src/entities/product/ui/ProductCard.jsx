@@ -1,10 +1,11 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function ProductCard({ product, onQuickAdd, onCardClick }) {
   const imageSrc = product.image || product.img;
-  const displayPrice =
-    typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price;
+  const displayPrice = formatVnd(product.price || 0);
+  const inStock = Number(product.stock || 0) > 0;
 
   const handleQuickAddClick = (event) => {
     event.stopPropagation();
@@ -32,8 +33,8 @@ export default function ProductCard({ product, onQuickAdd, onCardClick }) {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute top-3 left-3">
-          <span className="px-2 py-1 bg-emerald-500 text-[10px] font-bold text-white rounded uppercase tracking-wider">
-            In Stock
+          <span className={`px-2 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider ${inStock ? 'bg-emerald-500' : 'bg-slate-500'}`}>
+            {inStock ? 'In Stock' : 'Out Stock'}
           </span>
         </div>
       </div>

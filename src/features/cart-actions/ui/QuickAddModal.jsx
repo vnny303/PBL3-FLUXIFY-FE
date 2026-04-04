@@ -1,26 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useAppContext } from '../../../app/providers/AppContext';
+import { findSkuBySelection, getLowestPriceSku, getVariantGroups } from '../../../shared/lib/product';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function QuickAddModal() {
   const { quickAddProduct, setQuickAddProduct, addToCart } = useAppContext();
-  const [selectedSize, setSelectedSize] = useState(null);
-  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedAttributes, setSelectedAttributes] = useState({});
+
+  const variantGroups = getVariantGroups(quickAddProduct);
 
   useEffect(() => {
-    setSelectedSize(null);
-    setSelectedColor(null);
+    const next = {};
+    Object.entries(variantGroups).forEach(([key, values]) => {
+      next[key] = values[0];
+    });
+    setSelectedAttributes(next);
   }, [quickAddProduct]);
 
   if (!quickAddProduct) return null;
 
-  const isAddDisabled = 
-    (quickAddProduct.variants?.sizes && !selectedSize) || 
-    (quickAddProduct.variants?.colors && !selectedColor);
+  const selectedSku = findSkuBySelection(quickAddProduct, selectedAttributes) || getLowestPriceSku(quickAddProduct);
+  const isAddDisabled = !selectedSku;
 
   const handleAdd = () => {
     if (!isAddDisabled) {
-      addToCart(quickAddProduct, 1, selectedColor || 'Default', selectedSize || 'Standard');
+      addToCart({ ...quickAddProduct, selectedSku }, 1);
       setQuickAddProduct(null);
     }
   };
@@ -42,51 +47,30 @@ export default function QuickAddModal() {
             </div>
             <div>
               <h3 className="font-bold text-slate-900 leading-tight">{quickAddProduct.name}</h3>
-              <p className="text-primary font-bold mt-1">{quickAddProduct.price}</p>
+              <p className="text-primary font-bold mt-1">{formatVnd(selectedSku?.price || quickAddProduct.price)}</p>
             </div>
           </div>
 
-          {quickAddProduct.variants?.sizes && (
-            <div className="mb-6">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Size</h4>
+          {Object.entries(variantGroups).map(([key, values]) => (
+            <div className="mb-6" key={key}>
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">{key}</h4>
               <div className="flex flex-wrap gap-2">
-                {quickAddProduct.variants.sizes.map(size => (
+                {values.map(option => (
                   <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
+                    key={option}
+                    onClick={() => setSelectedAttributes((prev) => ({ ...prev, [key]: option }))}
                     className={`px-4 py-2 text-sm font-semibold border rounded-full transition-all ${
-                      selectedSize === size 
+                      selectedAttributes[key] === option 
                         ? 'border-blue-600 bg-blue-50 text-blue-700' 
                         : 'border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   >
-                    {size}
+                    {option}
                   </button>
                 ))}
               </div>
             </div>
-          )}
-
-          {quickAddProduct.variants?.colors && (
-            <div className="mb-8">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Color</h4>
-              <div className="flex flex-wrap gap-2">
-                {quickAddProduct.variants.colors.map(color => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`px-4 py-2 text-sm font-semibold border rounded-full transition-all ${
-                      selectedColor === color 
-                        ? 'border-blue-600 bg-blue-50 text-blue-700' 
-                        : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                    }`}
-                  >
-                    {color}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          ))}
 
           <button
             onClick={handleAdd}

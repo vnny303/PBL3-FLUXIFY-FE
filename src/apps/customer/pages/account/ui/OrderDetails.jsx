@@ -7,22 +7,35 @@ import { useAppContext } from '../../../../../app/providers/AppContext';
 import OrderItemList from '../../../../../entities/order/ui/OrderItemList';
 import OrderStatusTimeline from '../../../../../entities/order/ui/OrderStatusTimeline';
 import OrderSummaryCard from '../../../../../entities/order/ui/OrderSummaryCard';
+import { formatDateTime, formatVnd } from '../../../../../shared/lib/formatters';
 
 export default function OrderDetails({ setCurrentScreen, order }) {
   const { addToCart, setShowCart } = useAppContext();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const orderData = order || {
+  const orderData = order ? {
+    id: `#${String(order.id).slice(0, 8).toUpperCase()}`,
+    date: formatDateTime(order.createdAt),
+    total: formatVnd(order.totalAmount),
+    status: order.status || 'Pending',
+    paymentMethod: order.paymentMethod || 'COD',
+    items: (order.orderItems || []).map((item, idx) => ({
+      id: item.id,
+      name: item.productName,
+      productSkuId: item.productSkuId,
+      variant: `SKU ${String(item.productSkuId).slice(0, 8)}`,
+      image: `https://picsum.photos/seed/order-detail-${item.id || idx}/200/300`,
+      price: formatVnd((item.unitPrice || 0) * (item.quantity || 1)),
+      quantity: item.quantity || 1,
+    })),
+  } : {
     id: '#FLX-8829',
     date: 'Oct 12, 2023',
-    total: '$242.50',
+    total: '0 ₫',
     status: 'Pending',
     paymentMethod: 'Bank Transfer',
-    items: [
-      { name: 'Premium Headphones', variant: 'Space Gray • Wireless', image: 'https://picsum.photos/seed/product1/200/300', price: '$199.00' },
-      { name: 'Cotton T-Shirt', variant: 'Arctic White • Large', image: 'https://picsum.photos/seed/product2/200/300', price: '$25.00' }
-    ]
+    items: [],
   };
 
   const [orderStatus, setOrderStatus] = useState(orderData.status || 'Pending');
@@ -64,10 +77,14 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   };
 
   const handleBuyItem = (item, idx) => {
+    if (!item.productSkuId) {
+      toast.error('Không đủ thông tin SKU để mua lại sản phẩm này.');
+      return;
+    }
+
     setBuyingItemIds(prev => ({ ...prev, [idx]: true }));
     setTimeout(() => {
-      const { size, color } = getVariantDetails(item.variant);
-      addToCart({ ...item, id: item.id || item.name || `product-${idx}`, name: item.name || 'Product', price: item.price || '$35.00', image: item.image || `https://picsum.photos/seed/product${idx}/200/300` }, 1, color, size, false);
+      addToCart({ ...item, skuId: item.productSkuId, id: item.id || item.name || `product-${idx}`, name: item.name || 'Product', image: item.image || `https://picsum.photos/seed/product${idx}/200/300` }, 1, undefined, undefined, false);
       setShowCart(true);
       setBuyingItemIds(prev => ({ ...prev, [idx]: false }));
     }, 500);
@@ -77,8 +94,9 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     setIsBuyingWholeOrder(true);
     setTimeout(() => {
       orderData.items.forEach((item, idx) => {
-        const { size, color } = getVariantDetails(item.variant);
-        addToCart({ ...item, id: item.id || item.name || `product-${idx}`, name: item.name || 'Product', price: item.price || '$35.00', image: item.image || `https://picsum.photos/seed/product${idx}/200/300` }, 1, color, size, false);
+        if (item.productSkuId) {
+          addToCart({ ...item, skuId: item.productSkuId, id: item.id || item.name || `product-${idx}`, name: item.name || 'Product', image: item.image || `https://picsum.photos/seed/product${idx}/200/300` }, 1, undefined, undefined, false);
+        }
       });
       setShowCart(true);
       setIsBuyingWholeOrder(false);
@@ -86,7 +104,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     }, 500);
   };
 
-  const statusList = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+  const statusList = ['Pending', 'Confirmed', 'Shipping', 'Delivered', 'Cancelled'];
   const currentIndex = Math.max(0, statusList.indexOf(orderStatus));
   const progressWidth = `${(currentIndex / (statusList.length - 1)) * 100}%`;
 

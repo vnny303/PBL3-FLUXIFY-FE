@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { authService } from '../../../shared/api/authService';
+import { extractErrorMessage } from '../../../shared/lib/api';
+import { buildLoginPath } from '../../../shared/lib/constants';
 
 export const useSignUp = () => {
   const navigate = useNavigate();
@@ -57,16 +59,13 @@ export const useSignUp = () => {
     try {
       // Map dữ liệu từ state sang format API yêu cầu
       const payload = {
-        Subdomain: formData.subdomain,
-        Email: formData.email,
-        Password: formData.password,
-        // CreatedAt: Thường Backend sẽ tự tạo (hoặc bạn có thể truyền new Date().toISOString() nếu BE bắt buộc)
+        subdomain: formData.subdomain,
+        email: formData.email,
+        password: formData.password,
       };
 
       // Gọi API qua Service 
-      const mockData = await authService.registerCustomer(payload);
-
-      console.log("Registration successful:", mockData);
+      await authService.registerCustomer(payload);
       setIsSuccess(true);
       toast.success('Đăng ký thành công!');
       
@@ -80,13 +79,12 @@ export const useSignUp = () => {
 
       // Nếu bạn dùng react-router-dom, bạn có thể chuyển hướng sang trang đăng nhập:
       setTimeout(() => {
-        navigate('/login');
+        navigate(buildLoginPath(formData.subdomain));
       }, 1500);
 
     } catch (err) {
       console.error("Registration failed:", err);
-      // Lấy lỗi trực tiếp từ response API trả về thông qua axios
-      const errorMessage = err.response?.data?.message || err.message || 'An error occurred. Please try again later.';
+      const errorMessage = extractErrorMessage(err, 'An error occurred. Please try again later.');
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {

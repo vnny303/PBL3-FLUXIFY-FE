@@ -1,20 +1,53 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../../../../../app/providers/AppContext';
-import { SORT_OPTIONS } from '../../../../../shared/lib/constants';
+import { normalizeSubdomain, parseSubdomainSegment, SORT_OPTIONS, STORAGE_KEYS } from '../../../../../shared/lib/constants';
 import { useShopFilters } from '../../../../../features/product-filter/model/useShopFilters';
 import ProductCard from '../../../../../entities/product/ui/ProductCard';
 
 export default function Shop() {
-  const { setSelectedProduct, handleQuickAdd, searchQuery, setSearchQuery } = useAppContext();
+  const {
+    setSelectedProduct,
+    handleQuickAdd,
+    searchQuery,
+    setSearchQuery,
+    tenant,
+    storeError,
+    loadingProducts,
+    refreshStoreData,
+  } = useAppContext();
   const navigate = useNavigate();
+  const { subdomainToken } = useParams();
+
+  const normalizedRouteSubdomain = parseSubdomainSegment(subdomainToken);
+
+  const activeSubdomain =
+    normalizedRouteSubdomain ||
+    normalizeSubdomain(localStorage.getItem(STORAGE_KEYS.SUBDOMAIN)) ||
+    normalizeSubdomain(import.meta.env.VITE_DEFAULT_SUBDOMAIN);
+
+  useEffect(() => {
+    if (!normalizedRouteSubdomain) return;
+
+    const currentSubdomain = normalizeSubdomain(localStorage.getItem(STORAGE_KEYS.SUBDOMAIN));
+    if (currentSubdomain !== normalizedRouteSubdomain) {
+      localStorage.setItem(STORAGE_KEYS.SUBDOMAIN, normalizedRouteSubdomain);
+    }
+
+    refreshStoreData(normalizedRouteSubdomain);
+  }, [normalizedRouteSubdomain, refreshStoreData]);
 
   const {
     sortBy, setSortBy,
     priceRange, setPriceRange,
     selectedBrands, toggleBrand,
     selectedSizes, toggleSize,
+    selectedCategoryId,
+    setSelectedCategoryId,
+    categories,
+    loading,
+    error,
     clearFilters,
     currentPage, totalPages, handlePageChange,
     filteredProducts, currentProducts,
@@ -101,17 +134,17 @@ export default function Shop() {
               <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Price Range</h3>
               <div className="px-2">
                 <div className="relative h-1 bg-slate-200 rounded-full mb-6 flex items-center">
-                  <div className="absolute top-0 h-full bg-primary rounded-full" style={{ left: `${Math.max(0, Math.min(100, (priceRange[0] / 500) * 100))}%`, right: `${Math.max(0, Math.min(100, 100 - (priceRange[1] / 500) * 100))}%` }}></div>
+                  <div className="absolute top-0 h-full bg-primary rounded-full" style={{ left: `${Math.max(0, Math.min(100, (priceRange[0] / 10000000) * 100))}%`, right: `${Math.max(0, Math.min(100, 100 - (priceRange[1] / 10000000) * 100))}%` }}></div>
                   <input
                     type="range"
-                    min="0" max="500"
+                    min="0" max="10000000"
                     value={priceRange[0]}
                     onChange={e => setPriceRange([Math.min(Number(e.target.value), priceRange[1] - 1), priceRange[1]])}
                     className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-sm z-10 focus:outline-none"
                   />
                   <input
                     type="range"
-                    min="0" max="500"
+                    min="0" max="10000000"
                     value={priceRange[1]}
                     onChange={e => setPriceRange([priceRange[0], Math.max(Number(e.target.value), priceRange[0] + 1)])}
                     className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-sm z-20 focus:outline-none"
@@ -120,7 +153,7 @@ export default function Shop() {
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₫</span>
                       <input
                         type="number"
                         value={priceRange[0]}
@@ -132,7 +165,7 @@ export default function Shop() {
                   <span className="text-slate-400">-</span>
                   <div className="flex-1">
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₫</span>
                       <input
                         type="number"
                         value={priceRange[1]}
@@ -146,17 +179,26 @@ export default function Shop() {
             </div>
 
             <div className="mb-8 pb-8 border-b border-slate-200">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Brand/Collection</h3>
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Category</h3>
               <div className="space-y-3">
-                {['Elite Series', 'Modern Essentials', 'Tech Core', 'Studio Line'].map((brand, i) => (
-                  <label key={i} className="flex items-center gap-3 cursor-pointer group">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="radio"
+                    checked={!selectedCategoryId}
+                    onChange={() => setSelectedCategoryId('')}
+                    className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/20 cursor-pointer"
+                  />
+                  <span className="text-sm text-slate-700 group-hover:text-primary transition-colors">All categories</span>
+                </label>
+                {categories.map((category) => (
+                  <label key={category.id} className="flex items-center gap-3 cursor-pointer group">
                     <input
-                      type="checkbox"
-                      checked={selectedBrands.includes(brand)}
-                      onChange={() => toggleBrand(brand)}
+                      type="radio"
+                      checked={selectedCategoryId === category.id}
+                      onChange={() => setSelectedCategoryId(category.id)}
                       className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/20 cursor-pointer"
                     />
-                    <span className="text-sm text-slate-700 group-hover:text-primary transition-colors">{brand}</span>
+                    <span className="text-sm text-slate-700 group-hover:text-primary transition-colors">{category.name}</span>
                   </label>
                 ))}
               </div>
@@ -237,7 +279,22 @@ export default function Shop() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {currentProducts.length === 0 ? (
+            {loadingProducts || loading ? (
+              <div className="col-span-full py-12 text-center text-slate-500">
+                <p>Loading store data...</p>
+              </div>
+            ) : !tenant ? (
+              <div className="col-span-full py-12 text-center text-slate-500">
+                <p className="font-semibold text-slate-700 mb-2">Không tải được storefront theo subdomain hiện tại.</p>
+                <p className="mb-1">Subdomain đang dùng: <span className="font-bold">{activeSubdomain || '(trống)'}</span></p>
+                {storeError && <p className="text-red-500">{storeError}</p>}
+                <p className="mt-2">Hãy đăng nhập customer với subdomain hợp lệ hoặc cập nhật <span className="font-semibold">VITE_DEFAULT_SUBDOMAIN</span> trong file .env.</p>
+              </div>
+            ) : error ? (
+              <div className="col-span-full py-12 text-center text-red-500">
+                <p>{error}</p>
+              </div>
+            ) : currentProducts.length === 0 ? (
               <div className="col-span-full py-12 text-center text-slate-500">
                 <p>No products found matching your active filters.</p>
               </div>

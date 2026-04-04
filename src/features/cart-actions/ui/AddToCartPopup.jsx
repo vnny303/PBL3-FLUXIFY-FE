@@ -1,14 +1,12 @@
 import React, { useEffect } from 'react';
 import { X, Check, ArrowRight } from 'lucide-react';
 import { useAppContext } from '../../../app/providers/AppContext';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function AddToCartPopup() {
   const { showAddToCartPopup, setShowAddToCartPopup, setShowCart, lastAddedItem, cartTotal } = useAppContext();
 
-  const displayPrice =
-    typeof lastAddedItem?.price === 'number'
-      ? `$${lastAddedItem.price.toFixed(2)}`
-      : (lastAddedItem?.price || '$0.00');
+  const displayPrice = formatVnd(lastAddedItem?.price || 0);
 
   useEffect(() => {
     if (showAddToCartPopup) {
@@ -55,14 +53,14 @@ export default function AddToCartPopup() {
             </div>
             <div className="flex flex-col justify-center">
               <h3 className="text-sm font-bold text-slate-900 mb-1">{lastAddedItem.name}</h3>
-              <p className="text-xs text-slate-500 mb-2">{lastAddedItem.color} / {lastAddedItem.size} / Qty: {lastAddedItem.quantity}</p>
+              <p className="text-xs text-slate-500 mb-2">Qty: {lastAddedItem.quantity}</p>
               <span className="text-sm font-bold text-blue-600">{displayPrice}</span>
             </div>
           </div>
 
           <div className="flex items-center justify-between mb-6">
             <span className="text-sm font-medium text-slate-500">Cart Subtotal</span>
-            <span className="text-xl font-black text-slate-900">${cartTotal.toFixed(2)}</span>
+            <span className="text-xl font-black text-slate-900">{formatVnd(cartTotal)}</span>
           </div>
 
           <div className="flex gap-4">

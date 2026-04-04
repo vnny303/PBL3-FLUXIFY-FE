@@ -4,6 +4,7 @@ import Input from '../../../../../shared/ui/Input';
 import PasswordInput from '../../../../../shared/ui/PasswordInput';
 import Checkbox from '../../../../../shared/ui/Checkbox';
 import Button from '../../../../../shared/ui/Button';
+import { buildLoginPath } from '../../../../../shared/lib/constants';
 
 export default function SignUp() {
   const { formData, isLoading, error, isSuccess, handleChange, handleSubmit } = useSignUp();
@@ -178,7 +179,7 @@ export default function SignUp() {
           <div className="text-center pt-2">
             <p className="text-slate-600">
               Already have an account?{' '}
-              <Link className="text-[#1754cf] font-bold hover:underline ml-1" to="/login">
+              <Link className="text-[#1754cf] font-bold hover:underline ml-1" to={buildLoginPath(formData.subdomain)}>
                 Log in
               </Link>
             </p>

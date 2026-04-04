@@ -1,26 +1,57 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { products } from '../../../shared/lib/data';
 import { useAppContext } from '../../../app/providers/AppContext';
 import { ITEMS_PER_PAGE, SORT_OPTIONS, PRICE_RANGE_MIN, PRICE_RANGE_MAX } from '../../../shared/lib/constants';
+import { productService } from '../../../shared/api/productService';
+import { extractErrorMessage } from '../../../shared/lib/api';
 
 export function useShopFilters() {
-  const { searchQuery } = useAppContext();
+  const { searchQuery, products, categories, tenant } = useAppContext();
 
   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0]);
-  const [priceRange, setPriceRange] = useState([PRICE_RANGE_MIN, PRICE_RANGE_MAX]);
+  const [priceRange, setPriceRange] = useState([PRICE_RANGE_MIN, 10_000_000]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [sourceProducts, setSourceProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const gridTopRef = useRef(null);
+
+  useEffect(() => {
+    setSourceProducts(products);
+  }, [products]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!tenant?.id) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+        const serverProducts = await productService.getProducts(tenant.id, {
+          categoryId: selectedCategoryId || undefined,
+          subdomain: tenant.subdomain || undefined,
+        });
+        setSourceProducts(serverProducts);
+      } catch (err) {
+        setError(extractErrorMessage(err, 'Không thể tải danh sách sản phẩm.'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [tenant?.id, tenant?.subdomain, selectedCategoryId]);
 
   // Reset page when any filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [priceRange, selectedBrands, selectedSizes, sortBy, searchQuery]);
+  }, [priceRange, selectedBrands, selectedSizes, sortBy, searchQuery, selectedCategoryId]);
 
   const filteredProducts = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    let result = products.filter((product) => {
+    let result = sourceProducts.filter((product) => {
       const inPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
       const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brand);
       const matchesSize =
@@ -39,7 +70,7 @@ export function useShopFilters() {
     else if (sortBy === 'Best Selling') result.sort((a, b) => a.id - b.id);
 
     return result;
-  }, [priceRange, selectedBrands, selectedSizes, sortBy, searchQuery]);
+  }, [sourceProducts, priceRange, selectedBrands, selectedSizes, sortBy, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
   const currentProducts = filteredProducts.slice(
@@ -59,9 +90,10 @@ export function useShopFilters() {
   };
 
   const clearFilters = () => {
-    setPriceRange([PRICE_RANGE_MIN, PRICE_RANGE_MAX]);
+    setPriceRange([PRICE_RANGE_MIN, 10_000_000]);
     setSelectedBrands([]);
     setSelectedSizes([]);
+    setSelectedCategoryId('');
     setSortBy(SORT_OPTIONS[0]);
   };
 
@@ -83,6 +115,11 @@ export function useShopFilters() {
     priceRange, setPriceRange,
     selectedBrands, toggleBrand,
     selectedSizes, toggleSize,
+    selectedCategoryId,
+    setSelectedCategoryId,
+    categories,
+    loading,
+    error,
     clearFilters,
     // Pagination
     currentPage, totalPages, handlePageChange,
