@@ -3,7 +3,7 @@ import { AuthProvider, useAuthContext } from '../../entities/user/model/AuthCont
 import { CartProvider, useCartContext } from '../../entities/cart/model/CartContext';
 import { WishlistProvider, useWishlistContext } from './WishlistContext';
 import { SearchProvider, useSearchContext } from './SearchContext';
-import { ProductProvider, useProductContext } from './ProductContext';
+import { ProductProvider, useProductContext } from '../../entities/product/model/ProductContext';
 
 export function AppProvider({ children }) {
   return (
