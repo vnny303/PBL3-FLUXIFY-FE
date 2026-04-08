@@ -32,8 +32,14 @@ axiosClient.interceptors.response.use(
     (error) => {
         // Xử lý các lỗi chung (VD: 401 Unauthorized -> Tự động đăng xuất)
         if (error.response?.status === 401) {
-            // localStorage.removeItem('tenant_token');
-            // window.location.href = '/login';
+            localStorage.removeItem('tenant_token');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('tenantId');
+            localStorage.removeItem('tenant_subdomain');
+            window.location.href = '/login';
+        }
+        if (error.response?.status === 422) {
+            console.error('Validation Error:', error.response.data?.errors);
         }
         return Promise.reject(error);
     }

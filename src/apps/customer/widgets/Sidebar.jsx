@@ -82,6 +82,9 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
                 onClick={() => {
                   setShowLogoutConfirm(false);
                   localStorage.removeItem('tenant_token');
+                  localStorage.removeItem('userId');
+                  localStorage.removeItem('tenantId');
+                  localStorage.removeItem('tenant_subdomain');
                   setIsLoggedIn(false);
                   navigate('/');
                   toast.success('Đã đăng xuất tài khoản!');

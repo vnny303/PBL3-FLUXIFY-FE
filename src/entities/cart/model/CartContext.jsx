@@ -18,11 +18,29 @@ export function CartProvider({ children }) {
     }
     
     setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id && item.color === color && item.size === size);
+      const skuId = product.skuId || product.productSkuId || product.id;
+      const existing = prev.find(item => item.productSkuId === skuId && item.skuAttributes?.color === color && item.skuAttributes?.size === size);
       if (existing) {
         return prev.map(item => item === existing ? { ...item, quantity: item.quantity + quantity } : item);
       }
-      return [{ ...product, quantity, color, size, cartId: Date.now() }, ...prev];
+      const price = typeof product.price === 'number'
+        ? product.price
+        : typeof product.price === 'string'
+          ? parseFloat(product.price.replace('$', ''))
+          : 0;
+      const cartItem = {
+        cartId: Date.now(),
+        id: product.id,
+        productSkuId: skuId,
+        productId: product.productId || product.id,
+        productName: product.name || product.productName,
+        price,
+        quantity,
+        skuAttributes: { color, size },
+        attributes: product.attributes || {},
+        image: product.img || product.image,
+      };
+      return [cartItem, ...prev];
     });
     
     setLastAddedItem({ ...product, quantity, color, size });
@@ -44,8 +62,11 @@ export function CartProvider({ children }) {
   };
 
   const cartTotal = cartItems.reduce((sum, item) => {
-    const priceStr = item.price || '$0.00';
-    const price = typeof priceStr === 'string' ? parseFloat(priceStr.replace('$', '')) : priceStr;
+    const price = typeof item.price === 'number'
+      ? item.price
+      : typeof item.price === 'string'
+        ? parseFloat(item.price.replace('$', ''))
+        : 0;
     return sum + (isNaN(price) ? 0 : price) * item.quantity;
   }, 0);
 

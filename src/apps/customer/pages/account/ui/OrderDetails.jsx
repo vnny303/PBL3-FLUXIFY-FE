@@ -18,14 +18,34 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     date: 'Oct 12, 2023',
     total: '$242.50',
     status: 'Pending',
-    paymentMethod: 'Bank Transfer',
-    items: [
-      { name: 'Premium Headphones', variant: 'Space Gray • Wireless', image: 'https://picsum.photos/seed/product1/200/300', price: '$199.00' },
-      { name: 'Cotton T-Shirt', variant: 'Arctic White • Large', image: 'https://picsum.photos/seed/product2/200/300', price: '$25.00' }
-    ]
+    paymentMethod: 'BankTransfer',
+    orderItems: [
+      { id: 'item-1', productSkuId: 'sku-1', productName: 'Premium Headphones', skuAttributes: { color: 'Space Gray', size: 'Wireless' }, image: 'https://picsum.photos/seed/product1/200/300', unitPrice: 199.00 },
+      { id: 'item-2', productSkuId: 'sku-2', productName: 'Cotton T-Shirt', skuAttributes: { color: 'Arctic White', size: 'Large' }, image: 'https://picsum.photos/seed/product2/200/300', unitPrice: 25.00 },
+    ],
+    totalAmount: 242.50,
   };
 
-  const [orderStatus, setOrderStatus] = useState(orderData.status || 'Pending');
+  // Normalize order items: support both BE format (orderItems) and legacy format (items)
+  const normalizedItems = (orderData.orderItems || orderData.items || []).map(item => ({
+    id: item.id || item.name,
+    name: item.productName || item.name,
+    variant: item.variant || (item.skuAttributes ? `${item.skuAttributes.color || ''} • ${item.skuAttributes.size || ''}` : ''),
+    image: item.image || `https://picsum.photos/seed/${item.productName || 'product'}/200/300`,
+    price: item.unitPrice != null ? `$${Number(item.unitPrice).toFixed(2)}` : (item.price || '$0.00'),
+    quantity: item.quantity || 1,
+    productSkuId: item.productSkuId,
+    skuAttributes: item.skuAttributes,
+  }));
+
+  const normalizedOrder = {
+    ...orderData,
+    items: normalizedItems,
+    date: orderData.date || (orderData.createdAt ? new Date(orderData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : ''),
+    total: orderData.total || (orderData.totalAmount != null ? `$${Number(orderData.totalAmount).toFixed(2)}` : '$0.00'),
+  };
+
+  const [orderStatus, setOrderStatus] = useState(normalizedOrder.status || 'Pending');
   const [reviewedItems, setReviewedItems] = useState({});
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -76,7 +96,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   const handleBuyWholeOrder = () => {
     setIsBuyingWholeOrder(true);
     setTimeout(() => {
-      orderData.items.forEach((item, idx) => {
+      normalizedOrder.items.forEach((item, idx) => {
         const { size, color } = getVariantDetails(item.variant);
         addToCart({ ...item, id: item.id || item.name || `product-${idx}`, name: item.name || 'Product', price: item.price || '$35.00', image: item.image || `https://picsum.photos/seed/product${idx}/200/300` }, 1, color, size, false);
       });
@@ -101,7 +121,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Order {orderData.id}</h1>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Order {normalizedOrder.id}</h1>
               <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                 orderStatus === 'Cancelled' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
                 orderStatus === 'Pending' || orderStatus === 'Processing' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
@@ -110,7 +130,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
                 {orderStatus}
               </span>
             </div>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Placed on {orderData.date} • {orderData.items.length} Items</p>
+            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Placed on {normalizedOrder.date} • {normalizedOrder.items.length} Items</p>
           </div>
           <div className="flex gap-3">
             <button onClick={() => window.print()} className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
@@ -137,7 +157,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <OrderItemList
-            items={orderData.items}
+            items={normalizedOrder.items}
             reviewedItems={reviewedItems}
             buyingItemIds={buyingItemIds}
             onWriteReview={handleWriteReview}
@@ -145,7 +165,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
           />
           <OrderStatusTimeline orderStatus={orderStatus} currentIndex={currentIndex} progressWidth={progressWidth} />
         </div>
-        <OrderSummaryCard order={orderData} />
+        <OrderSummaryCard order={normalizedOrder} />
       </div>
 
       <ReviewModal
@@ -158,7 +178,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
           toast.success('Review Submitted! Thank you for sharing your experience.');
         }}
       />
-      <InvoicePrint order={orderData} />
+      <InvoicePrint order={normalizedOrder} />
 
       {/* Cancel Order Modal */}
       {isCancelModalOpen && (
@@ -167,7 +187,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
             <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-6">
               <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Cancel Order {orderData.id}?</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Cancel Order {normalizedOrder.id}?</h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Are you sure you want to cancel this order? This action cannot be undone.</p>
             <div className="mb-8">
               <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Reason for cancellation (Optional)</label>

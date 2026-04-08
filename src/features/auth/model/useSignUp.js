@@ -40,8 +40,15 @@ export const useSignUp = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+    const subdomainRegex = /^[a-z0-9-]{3,50}$/;
+    if (!subdomainRegex.test(formData.subdomain)) {
+      setError("Subdomain phải 3-50 ký tự, chỉ chứa chữ thường, số và dấu gạch ngang (-)");
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      setError("Mật khẩu phải ít nhất 8 ký tự, chứa chữ hoa, số và ký tự đặc biệt (@$!%*?&)");
       return;
     }
 
@@ -55,22 +62,24 @@ export const useSignUp = () => {
     setIsSuccess(false);
 
     try {
-      // Map dữ liệu từ state sang format API yêu cầu
       const payload = {
-        Subdomain: formData.subdomain,
-        Email: formData.email,
-        Password: formData.password,
-        // CreatedAt: Thường Backend sẽ tự tạo (hoặc bạn có thể truyền new Date().toISOString() nếu BE bắt buộc)
+        email: formData.email,
+        password: formData.password,
+        subdomain: formData.subdomain,
       };
 
-      // Gọi API qua Service 
-      const mockData = await authService.registerCustomer(payload);
+      const response = await authService.registerCustomer(payload);
 
-      console.log("Registration successful:", mockData);
+      console.log("Registration successful:", response);
+
+      if (response.token) localStorage.setItem('tenant_token', response.token);
+      if (response.userId) localStorage.setItem('userId', response.userId);
+      if (response.tenantId) localStorage.setItem('tenantId', response.tenantId);
+      if (response.subdomain) localStorage.setItem('tenant_subdomain', response.subdomain);
+
       setIsSuccess(true);
       toast.success('Đăng ký thành công!');
       
-      // Xóa form sau khi thành công
       setFormData({ 
         subdomain: '', 
         email: '', 
@@ -78,14 +87,12 @@ export const useSignUp = () => {
         acceptTerms: false
       });
 
-      // Nếu bạn dùng react-router-dom, bạn có thể chuyển hướng sang trang đăng nhập:
       setTimeout(() => {
         navigate('/login');
       }, 1500);
 
     } catch (err) {
       console.error("Registration failed:", err);
-      // Lấy lỗi trực tiếp từ response API trả về thông qua axios
       const errorMessage = err.response?.data?.message || err.message || 'An error occurred. Please try again later.';
       setError(errorMessage);
       toast.error(errorMessage);

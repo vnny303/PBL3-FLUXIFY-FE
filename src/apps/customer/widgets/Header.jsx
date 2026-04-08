@@ -255,6 +255,9 @@ export default function Header() {
                             setIsLoggedIn(false);
                             setShowDropdown(false);
                             localStorage.removeItem('tenant_token');
+                            localStorage.removeItem('userId');
+                            localStorage.removeItem('tenantId');
+                            localStorage.removeItem('tenant_subdomain');
                             toast.success('Đã đăng xuất tài khoản!');
                           }}
                           className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 flex items-center gap-3 transition-colors"

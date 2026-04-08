@@ -43,28 +43,41 @@ export const useLogin = () => {
       return;
     }
 
+    const subdomainRegex = /^[a-z0-9-]{3,50}$/;
+    if (!subdomainRegex.test(formData.subdomain)) {
+      setError("Subdomain phải 3-50 ký tự, chỉ chứa chữ thường, số và dấu gạch ngang (-)");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setIsSuccess(false);
 
     try {
       const payload = {
-        Subdomain: formData.subdomain,
-        Email: formData.email,
-        Password: formData.password
+        email: formData.email,
+        password: formData.password,
+        subdomain: formData.subdomain,
       };
 
-      const mockData = await authService.loginCustomer(payload);
+      const response = await authService.loginCustomer(payload);
 
-      console.log("Login successful:", mockData);
+      console.log("Login successful:", response);
       setIsSuccess(true);
       setIsLoggedIn(true);
       toast.success('Đăng nhập thành công!');
       
       setFormData((prev) => ({ ...prev, password: '' }));
 
-      localStorage.setItem('tenant_token', mockData.token);
-      localStorage.setItem('tenant_subdomain', formData.subdomain);
+      localStorage.setItem('tenant_token', response.token);
+      if (response.userId) localStorage.setItem('userId', response.userId);
+      if (response.tenantId) localStorage.setItem('tenantId', response.tenantId);
+      localStorage.setItem('tenant_subdomain', response.subdomain || formData.subdomain);
       
       setTimeout(() => {
         const from = location.state?.from?.pathname || '/';
@@ -73,7 +86,15 @@ export const useLogin = () => {
 
     } catch (err) {
       console.error("Login failed:", err);
-      const errorMessage = err.response?.data?.message || err.message || 'Invalid email or password. Please try again.';
+      const status = err.response?.status;
+      let errorMessage;
+      if (status === 401) {
+        errorMessage = 'Email hoặc password không chính xác.';
+      } else if (status === 400) {
+        errorMessage = err.response?.data?.message || 'Store không tồn tại hoặc dữ liệu không hợp lệ.';
+      } else {
+        errorMessage = err.response?.data?.message || err.message || 'Invalid email or password. Please try again.';
+      }
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {

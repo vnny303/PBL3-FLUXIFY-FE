@@ -49,11 +49,13 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
                   ) : (
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary dark:bg-primary/20 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
-                      Processing
+                      {order.status || 'Processing'}
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-slate-500">Ordered on {order.date} • Total: {order.total}</p>
+                <p className="text-sm text-slate-500">
+                  Ordered on {order.date || (order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '')} • Total: {order.total || (order.totalAmount != null ? `$${Number(order.totalAmount).toFixed(2)}` : '')}
+                </p>
               </div>
               <button 
                 onClick={() => {
@@ -67,9 +69,9 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
               </button>
             </div>
             <div className="flex gap-4">
-              {order.items.map((item, idx) => (
-                <div key={idx} className="h-20 w-20 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-md" />
+              {(order.orderItems || order.items || []).map((item, idx) => (
+                <div key={item.id || idx} className="h-20 w-20 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1">
+                  <img src={item.image} alt={item.productName || item.name} className="w-full h-full object-cover rounded-md" />
                 </div>
               ))}
             </div>

@@ -40,4 +40,7 @@ export const ROUTES = {
 // ─── Local Storage Keys ───────────────────────────────────────────────────────
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'tenant_token',
+  USER_ID: 'userId',
+  TENANT_ID: 'tenantId',
+  TENANT_SUBDOMAIN: 'tenant_subdomain',
 };
