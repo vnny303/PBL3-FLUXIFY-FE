@@ -37,9 +37,7 @@ export default function Home() {
             <button onClick={() => navigate('/shop')} className="bg-primary hover:opacity-90 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-primary/30 transition-all transform hover:scale-105">
               Shop Now
             </button>
-            <button onClick={() => navigate('/shop')} className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/20 px-8 py-3 rounded-xl font-bold text-lg transition-all">
-              View Collection
-            </button>
+            
           </div>
         </div>
       </section>
