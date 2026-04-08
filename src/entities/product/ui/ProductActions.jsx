@@ -1,16 +1,28 @@
 import React from 'react';
 import { Minus, Plus, ShoppingBag, Truck, ShieldCheck } from 'lucide-react';
 
-export default function ProductActions({ product, quantity, setQuantity, selectedColor, selectedSize, addToCart }) {
-  const currentProduct = product || {
-    id: 999,
-    name: 'Studio Microphone Pro',
-    price: '$299.00',
-    img: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000',
+export default function ProductActions({ product, quantity, setQuantity, selectedAttributes, addToCart }) {
+  const currentProduct = product || { id: 999, name: 'Product', price: 0 };
+
+  // Find matching SKU for price display
+  const matchingSku = currentProduct.skus?.find(s =>
+    Object.entries(s.attributes).every(([k, v]) => selectedAttributes[k] === v)
+  );
+  const skuPrice = matchingSku?.price ?? currentProduct.price ?? 0;
+  const displayPrice = `$${skuPrice.toFixed(2)}`;
+
+  const handleAddToCart = () => {
+    const color = selectedAttributes.color || 'Default';
+    const size = selectedAttributes.size || 'Standard';
+    addToCart(currentProduct, quantity, color, size);
   };
 
   return (
     <>
+      {matchingSku && (
+        <p className="text-2xl font-bold text-blue-600 mb-4">{displayPrice}</p>
+      )}
+
       <div className="flex gap-4 mb-8">
         <div className="flex items-center border border-slate-200 rounded-full bg-white">
           <button
@@ -28,7 +40,7 @@ export default function ProductActions({ product, quantity, setQuantity, selecte
           </button>
         </div>
         <button
-          onClick={() => addToCart(currentProduct, quantity, selectedColor, selectedSize)}
+          onClick={handleAddToCart}
           className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-600/20"
         >
           <ShoppingBag className="text-sm" />

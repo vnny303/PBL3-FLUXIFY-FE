@@ -22,7 +22,7 @@ export default function Header() {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
     return products
-      .filter(p => p.name.toLowerCase().includes(q) || (p.desc && p.desc.toLowerCase().includes(q)))
+      .filter(p => p.name.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q)))
       .slice(0, 6);
   }, [searchQuery]);
 
@@ -112,10 +112,10 @@ export default function Header() {
                           }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors text-left"
                         >
-                          <img src={product.img} alt={product.name} className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                          <img src={product.imgUrls?.[0] || product.img} alt={product.name} className="w-8 h-8 rounded-lg object-cover shrink-0" />
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-slate-900 truncate">{product.name}</p>
-                            <p className="text-xs text-slate-400 truncate">{product.desc}</p>
+                            <p className="text-xs text-slate-400 truncate">{product.description}</p>
                           </div>
                           <span className="shrink-0 text-sm font-bold text-primary ml-auto">${product.price.toFixed(2)}</span>
                         </button>

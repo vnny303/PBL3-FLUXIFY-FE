@@ -2,7 +2,8 @@ import React from 'react';
 import { ShoppingCart } from 'lucide-react';
 
 export default function ProductCard({ product, onQuickAdd, onCardClick }) {
-  const imageSrc = product.image || product.img;
+  // imgUrls is an array; fall back to legacy img/image fields for compatibility
+  const imageSrc = product.imgUrls?.[0] || product.image || product.img;
   const displayPrice =
     typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price;
 
@@ -47,7 +48,9 @@ export default function ProductCard({ product, onQuickAdd, onCardClick }) {
         <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-primary transition-colors">
           {product.name}
         </h3>
-        {product.desc && <p className="text-sm text-slate-500 mb-4">{product.desc}</p>}
+        {(product.description || product.desc) && (
+          <p className="text-sm text-slate-500 mb-4">{product.description || product.desc}</p>
+        )}
 
         <div className="flex items-center justify-between mt-auto">
           <span className="text-xl font-bold text-primary">{displayPrice}</span>

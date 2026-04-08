@@ -3,8 +3,12 @@ import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../../../app/providers/AppContext';
 import { SORT_OPTIONS } from '../../../../../shared/lib/constants';
+import { categories, products } from '../../../../../shared/lib/data';
 import { useShopFilters } from '../../../../../features/product-filter/model/useShopFilters';
 import ProductCard from '../../../../../entities/product/ui/ProductCard';
+
+// Collect all unique sizes across all products
+const allSizes = [...new Set(products.flatMap(p => p.attributes?.sizes || []))];
 
 export default function Shop() {
   const { setSelectedProduct, handleQuickAdd, searchQuery, setSearchQuery } = useAppContext();
@@ -13,7 +17,7 @@ export default function Shop() {
   const {
     sortBy, setSortBy,
     priceRange, setPriceRange,
-    selectedBrands, toggleBrand,
+    selectedCategories, toggleCategory,
     selectedSizes, toggleSize,
     clearFilters,
     currentPage, totalPages, handlePageChange,
@@ -146,30 +150,30 @@ export default function Shop() {
             </div>
 
             <div className="mb-8 pb-8 border-b border-slate-200">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Brand/Collection</h3>
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Category</h3>
               <div className="space-y-3">
-                {['Elite Series', 'Modern Essentials', 'Tech Core', 'Studio Line'].map((brand, i) => (
-                  <label key={i} className="flex items-center gap-3 cursor-pointer group">
+                {categories.map((cat) => (
+                  <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
                     <input
                       type="checkbox"
-                      checked={selectedBrands.includes(brand)}
-                      onChange={() => toggleBrand(brand)}
+                      checked={selectedCategories.includes(cat.id)}
+                      onChange={() => toggleCategory(cat.id)}
                       className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/20 cursor-pointer"
                     />
-                    <span className="text-sm text-slate-700 group-hover:text-primary transition-colors">{brand}</span>
+                    <span className="text-sm text-slate-700 group-hover:text-primary transition-colors">{cat.name}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div>
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Size/Specification</h3>
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Size / Specification</h3>
               <div className="grid grid-cols-3 gap-2">
-                {['S', 'M', 'L', '8GB', '16GB', '32GB'].map((size, i) => {
+                {allSizes.map((size) => {
                   const isSelected = selectedSizes.includes(size);
                   return (
                     <button
-                      key={i}
+                      key={size}
                       onClick={() => toggleSize(size)}
                       className={`py-2 text-xs font-medium border rounded-lg transition-colors ${isSelected ? 'border-primary bg-primary/5 text-primary' : 'border-slate-200 hover:border-primary'}`}
                     >

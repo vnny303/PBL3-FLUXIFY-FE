@@ -51,11 +51,15 @@ export default function AddToCartPopup() {
 
           <div className="bg-slate-50 rounded-xl p-4 flex gap-4 mb-6 border border-slate-100">
             <div className="w-20 h-20 rounded-lg bg-white overflow-hidden shrink-0 border border-slate-200">
-              <img src={lastAddedItem.image || lastAddedItem.img} alt={lastAddedItem.name} className="w-full h-full object-cover" />
+              <img src={lastAddedItem.imgUrls?.[0] || lastAddedItem.img} alt={lastAddedItem.name} className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col justify-center">
               <h3 className="text-sm font-bold text-slate-900 mb-1">{lastAddedItem.name}</h3>
-              <p className="text-xs text-slate-500 mb-2">{lastAddedItem.color} / {lastAddedItem.size} / Qty: {lastAddedItem.quantity}</p>
+              <p className="text-xs text-slate-500 mb-2">
+                {lastAddedItem.color && lastAddedItem.color !== 'Default' ? `${lastAddedItem.color} / ` : ''}
+                {lastAddedItem.size && lastAddedItem.size !== 'Standard' ? `${lastAddedItem.size} / ` : ''}
+                Qty: {lastAddedItem.quantity}
+              </p>
               <span className="text-sm font-bold text-blue-600">{displayPrice}</span>
             </div>
           </div>

@@ -54,13 +54,18 @@ export default function CartDrawer() {
             cartItems.map((item) => (
               <div key={item.cartId} className="flex gap-4">
                 <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
-                  <img src={item.image || item.img} alt={item.name} className="w-full h-full object-cover" />
+                  <img src={item.image} alt={item.productName} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900">{item.name}</h3>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">SIZE: {item.size} | COLOR: {item.color}</p>
+                      <h3 className="text-sm font-bold text-slate-900">{item.productName}</h3>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">
+                        {Object.entries(item.skuAttributes || {})
+                          .filter(([, v]) => v && v !== 'Default' && v !== 'Standard')
+                          .map(([k, v]) => `${k.toUpperCase()}: ${v}`)
+                          .join(' | ')}
+                      </p>
                     </div>
                     <button 
                       onClick={() => removeFromCart(item.cartId)}

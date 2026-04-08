@@ -12,8 +12,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState('Deep Black');
-  const [selectedSize, setSelectedSize] = useState('STANDARD');
+  const [selectedAttributes, setSelectedAttributes] = useState({});
 
   const handleLoginRedirect = () => {
     navigate('/login', { state: { from: location } });
@@ -25,13 +24,13 @@ export default function ProductDetail() {
       <nav className="flex text-sm text-slate-500 mb-8">
         <a href="#" className="hover:text-slate-900">Store</a>
         <span className="mx-2">›</span>
-        <a href="#" className="hover:text-slate-900">Audio Gear</a>
+        <a href="#" className="hover:text-slate-900">{selectedProduct?.categoryId || 'Products'}</a>
         <span className="mx-2">›</span>
-        <span className="text-slate-900 font-medium">Studio Microphone Pro</span>
+        <span className="text-slate-900 font-medium">{selectedProduct?.name || 'Product'}</span>
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
-        <ProductImageGallery 
+        <ProductImageGallery
           product={selectedProduct}
           isLoggedIn={isLoggedIn}
           isWishlisted={isWishlisted}
@@ -41,20 +40,17 @@ export default function ProductDetail() {
 
         {/* Right: Product Info & Actions */}
         <div className="w-full lg:w-1/2">
-          <ProductInfo 
+          <ProductInfo
             product={selectedProduct}
-            selectedColor={selectedColor}
-            setSelectedColor={setSelectedColor}
-            selectedSize={selectedSize}
-            setSelectedSize={setSelectedSize}
+            selectedAttributes={selectedAttributes}
+            setSelectedAttributes={setSelectedAttributes}
           />
-          
-          <ProductActions 
+
+          <ProductActions
             product={selectedProduct}
             quantity={quantity}
             setQuantity={setQuantity}
-            selectedColor={selectedColor}
-            selectedSize={selectedSize}
+            selectedAttributes={selectedAttributes}
             addToCart={addToCart}
           />
         </div>

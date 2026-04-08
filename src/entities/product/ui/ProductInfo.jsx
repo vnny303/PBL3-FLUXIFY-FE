@@ -1,7 +1,36 @@
 import React from 'react';
 import { Star, StarHalf } from 'lucide-react';
 
-export default function ProductInfo({ product, selectedColor, setSelectedColor, selectedSize, setSelectedSize }) {
+// Color name → CSS value for swatch rendering
+const COLOR_MAP = {
+  red: '#EF4444', blue: '#3B82F6', white: '#F8FAFC', black: '#1A1C29',
+  gray: '#6B7280', grey: '#6B7280', navy: '#1E3A5F', green: '#22C55E',
+  brown: '#92400E', tan: '#D2B48C', charcoal: '#374151', burgundy: '#800020',
+  camel: '#C19A6B', silver: '#CBD5E1', gold: '#F59E0B',
+};
+
+function getColorSwatch(colorName) {
+  return COLOR_MAP[colorName?.toLowerCase()] || null;
+}
+
+export default function ProductInfo({ product, selectedAttributes, setSelectedAttributes }) {
+  if (!product) return null;
+
+  const attrs = product.attributes || {};
+  const attrEntries = Object.entries(attrs); // e.g. [['colors', [...]], ['sizes', [...]], ['fabrics', [...]]]
+
+  // Find the matching SKU price for the currently selected attributes
+  const skuAttrKey = (skuAttrs) =>
+    Object.entries(skuAttrs).every(([k, v]) => selectedAttributes[k] === v);
+  const matchingSku = product.skus?.find(s => skuAttrKey(s.attributes));
+  const displayPrice = matchingSku
+    ? `$${matchingSku.price.toFixed(2)}`
+    : `$${product.price?.toFixed(2) ?? '0.00'}`;
+
+  const handleSelect = (attrKey, value) => {
+    setSelectedAttributes(prev => ({ ...prev, [attrKey]: value }));
+  };
+
   return (
     <>
       <div className="flex items-center gap-3 mb-4">
@@ -16,57 +45,71 @@ export default function ProductInfo({ product, selectedColor, setSelectedColor, 
         </div>
       </div>
 
-      <h1 className="text-4xl font-black text-slate-900 leading-tight mb-2">
-        {product?.name || "Studio Microphone Pro"}<br />
-        <span className="text-blue-600">2024 Edition</span>
-      </h1>
+      <h1 className="text-4xl font-black text-slate-900 leading-tight mb-2">{product.name}</h1>
 
       <div className="flex items-end gap-3 mb-6">
-        <span className="text-3xl font-bold text-slate-900">{product?.price || "$299.00"}</span>
-        <span className="text-lg text-slate-400 line-through mb-1">$349.00</span>
+        <span className="text-3xl font-bold text-slate-900">{displayPrice}</span>
       </div>
 
-      <div className="border-l-4 border-blue-200 pl-4 py-1 mb-8">
-        <p className="text-slate-600 italic">
-          "{product?.desc || "Engineered for clarity. The Fluxify Pro captures every nuance of your performance with studio-grade precision and near-zero self-noise."}"
-        </p>
-      </div>
+      {product.description && (
+        <div className="border-l-4 border-blue-200 pl-4 py-1 mb-8">
+          <p className="text-slate-600 italic">"{product.description}"</p>
+        </div>
+      )}
 
-      {/* Color Selection */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-xs font-bold text-slate-900 uppercase tracking-widest">COLOR:</span>
-          <span className="text-sm text-slate-500">{selectedColor}</span>
-        </div>
-        <div className="flex gap-3">
-          <button onClick={() => setSelectedColor('Deep Black')} className={`w-8 h-8 rounded-full bg-[#1A1C29] border-2 ${selectedColor === 'Deep Black' ? 'border-blue-600 ring-2 ring-blue-100' : 'border-transparent'} transition-all`}></button>
-          <button onClick={() => setSelectedColor('Silver')} className={`w-8 h-8 rounded-full bg-[#E2E8F0] border-2 ${selectedColor === 'Silver' ? 'border-blue-600 ring-2 ring-blue-100' : 'border-transparent'} transition-all`}></button>
-          <button onClick={() => setSelectedColor('White')} className={`w-8 h-8 rounded-full bg-[#F8FAFC] border-2 ${selectedColor === 'White' ? 'border-blue-600 ring-2 ring-blue-100' : 'border-transparent'} transition-all`}></button>
-        </div>
-      </div>
+      {/* Dynamic attribute selectors */}
+      {attrEntries.map(([pluralKey, values]) => {
+        // Derive singular key: colors → color, sizes → size, fabrics → fabric
+        const singularKey = pluralKey.endsWith('s') ? pluralKey.slice(0, -1) : pluralKey;
+        const label = pluralKey.charAt(0).toUpperCase() + pluralKey.slice(1);
+        const selected = selectedAttributes[singularKey];
 
-      {/* Size Selection */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-bold text-slate-900 uppercase tracking-widest">SIZE</span>
-          <button className="text-xs text-blue-600 font-medium hover:underline">Size Guide</button>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          {['COMPACT', 'STANDARD', 'EXTENDED'].map(size => (
-            <button
-              key={size}
-              onClick={() => setSelectedSize(size)}
-              className={`py-3 text-xs font-bold rounded-full border transition-all ${
-                selectedSize === size
-                  ? 'border-blue-600 text-blue-600 bg-blue-50/50'
-                  : 'border-slate-200 text-slate-600 hover:border-slate-300'
-              }`}
-            >
-              {size}
-            </button>
-          ))}
-        </div>
-      </div>
+        const isColorAttr = singularKey === 'color';
+
+        return (
+          <div key={pluralKey} className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs font-bold text-slate-900 uppercase tracking-widest">{label}:</span>
+              {selected && <span className="text-sm text-slate-500">{selected}</span>}
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {values.map(val => {
+                const isSelected = selected === val;
+                const swatch = isColorAttr ? getColorSwatch(val) : null;
+
+                if (swatch) {
+                  return (
+                    <button
+                      key={val}
+                      title={val}
+                      onClick={() => handleSelect(singularKey, val)}
+                      className={`w-9 h-9 rounded-full border-2 transition-all ${
+                        isSelected ? 'border-blue-600 ring-2 ring-blue-100 scale-110' : 'border-transparent hover:border-slate-300'
+                      }`}
+                      style={{ backgroundColor: swatch }}
+                    />
+                  );
+                }
+
+                return (
+                  <button
+                    key={val}
+                    onClick={() => handleSelect(singularKey, val)}
+                    className={`px-4 py-2 text-xs font-bold rounded-full border transition-all ${
+                      isSelected
+                        ? 'border-blue-600 text-blue-600 bg-blue-50'
+                        : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    {val}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </>
   );
 }

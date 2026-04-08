@@ -37,8 +37,7 @@ export function CartProvider({ children }) {
         price,
         quantity,
         skuAttributes: { color, size },
-        attributes: product.attributes || {},
-        image: product.img || product.image,
+        image: product.imgUrls?.[0] || product.imgUrl || product.img || product.image,
       };
       return [cartItem, ...prev];
     });

@@ -1,10 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingCart, Trash2, ShoppingBag } from 'lucide-react';
 import { useAppContext } from '../../../../../app/providers/AppContext';
+import { categories } from '../../../../../shared/lib/data';
 
 export default function Wishlist() {
   const { wishlistItems, toggleWishlist, addToCart } = useAppContext();
   const navigate = useNavigate();
+
+  const getCategoryName = (categoryId) =>
+    categories.find(c => c.id === categoryId)?.name || '';
 
   if (wishlistItems.length === 0) {
     return (
@@ -54,7 +58,7 @@ export default function Wishlist() {
               onClick={() => navigate(`/product/${item.id}`)}
             >
               <img
-                src={item.img}
+                src={item.imgUrls?.[0] || item.img}
                 alt={item.name}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -70,14 +74,14 @@ export default function Wishlist() {
             </div>
 
             <div className="p-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{item.brand}</p>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{getCategoryName(item.categoryId)}</p>
               <h3
                 className="font-bold text-slate-900 mb-1 cursor-pointer hover:text-primary transition-colors truncate"
                 onClick={() => navigate(`/product/${item.id}`)}
               >
                 {item.name}
               </h3>
-              <p className="text-sm text-slate-500 mb-4 line-clamp-1">{item.desc}</p>
+              <p className="text-sm text-slate-500 mb-4 line-clamp-1">{item.description}</p>
               <div className="flex items-center justify-between">
                 <span className="text-lg font-bold text-primary">
                   ${typeof item.price === 'number' ? item.price.toFixed(2) : item.price}

@@ -9,7 +9,9 @@ export function ProductProvider({ children }) {
   const [quickAddProduct, setQuickAddProduct] = useState(null);
 
   const handleQuickAdd = (product) => {
-    if (product.variants && (product.variants.sizes || product.variants.colors)) {
+    const attrs = product.attributes || {};
+    const hasSelectableAttrs = Object.values(attrs).some(v => Array.isArray(v) && v.length > 0);
+    if (hasSelectableAttrs) {
       setQuickAddProduct(product);
     } else {
       addToCart(product);
