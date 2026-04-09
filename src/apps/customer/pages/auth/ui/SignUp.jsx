@@ -115,15 +115,7 @@ export default function SignUp() {
             </div>
 
             <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-              <Input
-                label="Subdomain"
-                id="subdomain"
-                name="subdomain"
-                value={formData.subdomain}
-                onChange={handleChange}
-                placeholder="my-workspace"
-              />
-
+              
               <Input
                 label="Email Address"
                 id="email"
