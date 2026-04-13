@@ -12,7 +12,7 @@ export const addressService = {
     },
 
     // PUT /api/tenants/{tenantId}/customers/{customerId}/addresses/{addressId}
-    updateAddress: async (tenantId, customerId, addressId, addressData) => {
+    updateAddress:      async (tenantId, customerId, addressId, addressData) => {
         return await axiosClient.put(`/api/tenants/${tenantId}/customers/${customerId}/addresses/${addressId}`, addressData);
     },
 
