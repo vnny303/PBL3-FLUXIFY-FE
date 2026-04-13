@@ -1,184 +1,122 @@
 # PBL3 Fluxify FE
 
-Frontend cho hệ thống Fluxify (Customer app), xây dựng bằng React + Vite, refactor theo kiến trúc FSD (Feature-Sliced Design).
+Frontend monorepo for Fluxify, managed with pnpm workspaces.
 
 ## Overview
 
-- Framework: React 19
-- Build tool: Vite 7
-- Router: react-router-dom
-- HTTP client: axios
-- UI icons: lucide-react
-- Toast: sonner
-- Styling: Tailwind CSS v4 (qua plugin Vite)
-- Package manager: pnpm
+This repository contains:
+
+- storefront app (customer-facing website)
+- merchant app (admin/seller dashboard)
+- shared package(s) for reusable utilities
+
+## Workspace Structure
+
+```text
+apps/
+  merchant/
+  storefront/
+packages/
+  shared/
+```
+
+Both apps are React + Vite projects and follow a feature-oriented structure.
 
 ## Tech Stack
 
-- Runtime: Node.js LTS (khuyến nghị >= 20)
-- Package manager: pnpm 10+
-- Language: JavaScript (ESM)
-- Lint: ESLint 9
-
-## Project Structure
-
-Source chính nằm trong `src/`:
-
-```text
-src/
-	app/
-		App.jsx
-		providers/
-		styles/
-	apps/
-		customer/
-			pages/
-			widgets/
-	entities/
-	features/
-	shared/
-	main.jsx
-```
-
-Ý nghĩa nhanh:
-
-- `app/`: composition root (Router, Provider wiring, global app shell)
-- `apps/customer/pages`: route-level pages cho customer
-- `apps/customer/widgets`: widget cấp app/customer
-- `features/`: user actions/flows (auth, cart-actions, checkout, ...)
-- `entities/`: business entities (cart, product, order, user, ...)
-- `shared/`: shared libs, api client, UI primitives
+- React 19
+- Vite 7/8 (per app)
+- Tailwind CSS v4
+- react-router-dom
+- axios
+- pnpm workspaces
+- ESLint 9
 
 ## Prerequisites
 
-Đảm bảo cài sẵn:
+- Node.js 20+
+- pnpm 10+
 
-- Node.js
-- pnpm
-
-Kiểm tra nhanh:
+Check versions:
 
 ```bash
 node -v
 pnpm -v
 ```
 
-## Installation
+## Install Dependencies
+
+From repository root:
 
 ```bash
 pnpm install
 ```
 
+## Root Scripts
+
+```bash
+pnpm run dev:storefront
+pnpm run dev:merchant
+pnpm run dev:all
+```
+
+Notes:
+
+- `dev:storefront` runs the storefront app.
+- `dev:merchant` runs the merchant app.
+- `dev:all` starts both commands from the root script.
+
+## App-Level Commands
+
+Use workspace filtering from root:
+
+```bash
+pnpm --filter storefront dev
+pnpm --filter storefront build
+pnpm --filter storefront preview
+pnpm --filter storefront lint
+
+pnpm --filter merchant dev
+pnpm --filter merchant build
+pnpm --filter merchant preview
+pnpm --filter merchant lint
+```
+
+Or run inside each app directory with `pnpm dev`, `pnpm build`, `pnpm preview`, `pnpm lint`.
+
 ## Environment Variables
 
-Tạo file `.env` (hoặc `.env.local`) tại root project nếu cần đổi API URL:
+Each app can define its own `.env` file (inside `apps/storefront` or `apps/merchant`).
+
+Example:
 
 ```bash
 VITE_API_URL=http://localhost:5000
 ```
 
-Ghi chú:
+## Development Notes
 
-- Nếu không set `VITE_API_URL`, app fallback về `http://localhost:5000`.
-- `src/shared/api/authService.js` hiện có `MOCK_API = true`, nên auth flow đang chạy mock mặc định.
-
-## Available Scripts
-
-```bash
-pnpm run dev      # Start dev server
-pnpm run build    # Production build
-pnpm run preview  # Preview production build locally
-pnpm run lint     # Run ESLint
-```
-
-## Run In Development
-
-```bash
-pnpm run dev
-```
-
-Mở trình duyệt tại: `http://localhost:5173`
-
-## Production Build
-
-```bash
-pnpm run build
-pnpm run preview
-```
-
-Output build tại `dist/`.
-
-## Route Map
-
-- `/`
-- `/shop`
-- `/product/:id`
-- `/about`
-- `/contact`
-- `/wishlist`
-- `/account`
-- `/checkout`
-- `/order-confirmation`
-- `/login`
-- `/signup`
-
-## Post-Refactor Smoke Test (10-15 minutes)
-
-Chạy checklist này trước khi merge:
-
-1. Build pass
-- `pnpm run build`
-
-2. Route smoke
-- Mở các route chính trong mục Route Map.
-
-3. Core user flows
-- Từ `Shop`, mở `Product Detail`.
-- Add to cart từ Product Detail.
-- Trong popup, bấm `View Cart` (đảm bảo không crash).
-- Trong cart drawer: tăng/giảm số lượng, remove item.
-- Checkout button điều hướng đúng sang `/checkout`.
-
-4. Auth and modal
-- Khi chưa login, add-to-cart mở auth modal.
-- Login/Signup điều hướng đúng.
-
-5. Header interactions
-- Search dropdown hoạt động.
-- Notification dropdown hoạt động.
-- Profile dropdown điều hướng đúng.
-
-6. Account flows
-- `My Orders` -> `Order Details`.
-- Open/close Review modal.
-- `Buy again` thêm sản phẩm lại vào cart.
-
-## Known Notes
-
-- Cảnh báo chunk size > 500 kB khi build là warning tối ưu hiệu năng, không phải build error.
-- Có thể tối ưu thêm bằng route-level lazy loading hoặc manual chunking trong Vite/Rollup.
-
-## Coding Conventions
-
-- Ưu tiên tổ chức theo FSD layers.
-- Component UI thuần tái sử dụng đặt ở `shared/ui` hoặc `entities/*/ui` tùy scope.
-- Logic tương tác theo use-case đặt ở `features/*`.
-- Tránh import ngược tầng (layer violation).
+- Storefront and merchant are independent Vite apps.
+- Shared code should live in `packages/shared` when reusable across apps.
+- Keep feature boundaries clear to avoid cross-layer coupling.
 
 ## Troubleshooting
 
-Nếu gặp màn hình trắng:
+If install or build fails:
 
-1. Mở DevTools Console để xem runtime error.
-2. Chạy lại:
+1. Remove lock/install artifacts and reinstall if needed.
+2. Run lint/build per app to isolate errors.
+3. Check terminal output for the failing workspace name.
+
+Useful commands:
 
 ```bash
-pnpm run lint
-pnpm run build
+pnpm --filter storefront lint
+pnpm --filter storefront build
+pnpm --filter merchant lint
+pnpm --filter merchant build
 ```
-
-3. Hard reload trình duyệt (`Ctrl + F5`).
 
 ## License
 
-Nội bộ học thuật / đồ án PBL3.
+Internal academic project (PBL3).
