@@ -7,7 +7,7 @@ import { useAppContext } from '../../../app/providers/AppContext';
 export default function Sidebar({ currentScreen, setCurrentScreen }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
-  const { setIsLoggedIn } = useAppContext();
+  const { logout } = useAppContext();
 
   const navItems = [
     { id: 'my-orders', label: 'My Orders', icon: Package },
@@ -79,13 +79,9 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
                 Cancel
               </button>
               <button 
-                onClick={() => {
+                onClick={async () => {
                   setShowLogoutConfirm(false);
-                  localStorage.removeItem('tenant_token');
-                  localStorage.removeItem('userId');
-                  localStorage.removeItem('tenantId');
-                  localStorage.removeItem('tenant_subdomain');
-                  setIsLoggedIn(false);
+                  await logout();
                   navigate('/');
                   toast.success('Đã đăng xuất tài khoản!');
                 }}
