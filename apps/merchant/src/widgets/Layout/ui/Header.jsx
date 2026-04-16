@@ -1,12 +1,14 @@
 import { Search, Bell, CircleHelp } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMerchantAuth } from '../../../app/providers/AuthProvider';
 export default function Header() {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const profileRef = useRef(null);
     const notifRef = useRef(null);
     const navigate = useNavigate();
+    const { user, logout } = useMerchantAuth();
     useEffect(() => {
         function handleClickOutside(event) {
             if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -29,9 +31,9 @@ export default function Header() {
         alert('Help center is coming soon!');
         setIsProfileOpen(false);
     };
-    const handleLogout = () => {
-        alert('Logged out successfully!');
-        navigate('/');
+    const handleLogout = async () => {
+      await logout();
+      navigate('/login');
         setIsProfileOpen(false);
     };
     return (<header className="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 flex justify-between items-center px-6 py-3 bg-white border-b border-[#e3e3e3] h-16">
@@ -73,8 +75,8 @@ export default function Header() {
 
           {isProfileOpen && (<div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-[#e3e3e3] p-2 z-50">
               <div className="px-3 py-2 border-b border-[#e3e3e3] mb-1">
-                <p className="text-sm font-semibold text-black">John Doe</p>
-                <p className="text-sm text-gray-500">john@example.com</p>
+                <p className="text-sm font-semibold text-black">{user?.email || 'Merchant User'}</p>
+                <p className="text-sm text-gray-500">{user?.role || 'merchant'}</p>
               </div>
               <div className="space-y-0.5">
                 <div onClick={handleAccountSettings} className="px-3 py-2 rounded-lg hover:bg-[#f8f8f8] cursor-pointer text-sm font-medium text-black transition-colors">

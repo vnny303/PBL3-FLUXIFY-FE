@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { authService } from '../../../shared/api/authService';
+import { useAppContext } from '../../../app/providers/AppContext';
 
 export const useSignUp = () => {
   const navigate = useNavigate();
+  const { applyAuthResponse } = useAppContext();
   const [formData, setFormData] = useState({
+    subdomain: '',
     email: '',
     password: '',
     acceptTerms: false
@@ -17,8 +20,8 @@ export const useSignUp = () => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     
     // Xóa thông báo lỗi khi người dùng bắt đầu nhập lại
     if (error) setError(null);
@@ -28,6 +31,12 @@ export const useSignUp = () => {
     e.preventDefault();
     
    
+
+    const subdomainRegex = /^[a-z0-9-]{3,50}$/;
+    if (!subdomainRegex.test(formData.subdomain)) {
+      setError('Subdomain phải 3-50 ký tự, chỉ gồm chữ thường, số và dấu gạch ngang (-).');
+      return;
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
@@ -53,30 +62,27 @@ export const useSignUp = () => {
     setIsSuccess(false);
 
     try {
-      const payload = {
+      const response = await authService.registerCustomer({
+        subdomain: formData.subdomain,
         email: formData.email,
         password: formData.password,
-      };
-
-      const response = await authService.registerCustomer(payload);
+      });
 
       console.log("Registration successful:", response);
-
-      if (response.token) localStorage.setItem('tenant_token', response.token);
-      if (response.userId) localStorage.setItem('userId', response.userId);
-      if (response.tenantId) localStorage.setItem('tenantId', response.tenantId);
+      applyAuthResponse(response);
 
       setIsSuccess(true);
       toast.success('Đăng ký thành công!');
       
       setFormData({ 
+        subdomain: '',
         email: '', 
         password: '',
         acceptTerms: false
       });
 
       setTimeout(() => {
-        navigate('/login');
+        navigate('/');
       }, 1500);
 
     } catch (err) {

@@ -8,7 +8,7 @@ import { useNotifications } from '../../../entities/notification/model/useNotifi
 import { ROUTES, ACCOUNT_SCREENS } from '../../../shared/lib/constants';
 
 export default function Header() {
-  const { setShowModal, isLoggedIn, setIsLoggedIn, setShowCart, cartCount, wishlistCount, searchQuery, setSearchQuery } = useAppContext();
+  const { setShowModal, isLoggedIn, logout, setShowCart, cartCount, wishlistCount, searchQuery, setSearchQuery } = useAppContext();
   const location = useLocation();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -251,13 +251,9 @@ export default function Header() {
                       </div>
                       <div className="border-t border-slate-100 py-2">
                         <button 
-                          onClick={() => {
-                            setIsLoggedIn(false);
+                          onClick={async () => {
+                            await logout();
                             setShowDropdown(false);
-                            localStorage.removeItem('tenant_token');
-                            localStorage.removeItem('userId');
-                            localStorage.removeItem('tenantId');
-                            localStorage.removeItem('tenant_subdomain');
                             toast.success('Đã đăng xuất tài khoản!');
                           }}
                           className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 flex items-center gap-3 transition-colors"

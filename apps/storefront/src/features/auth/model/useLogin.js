@@ -7,7 +7,7 @@ import { useAppContext } from '../../../app/providers/AppContext';
 export const useLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setIsLoggedIn } = useAppContext();
+  const { applyAuthResponse } = useAppContext();
   const [formData, setFormData] = useState({
     subdomain: '',
     email: '',
@@ -59,25 +59,18 @@ export const useLogin = () => {
     setIsSuccess(false);
 
     try {
-      const payload = {
+      const response = await authService.loginCustomer({
+        subdomain: formData.subdomain,
         email: formData.email,
         password: formData.password,
-        subdomain: formData.subdomain,
-      };
-
-      const response = await authService.loginCustomer(payload);
+      });
 
       console.log("Login successful:", response);
       setIsSuccess(true);
-      setIsLoggedIn(true);
+      applyAuthResponse(response);
       toast.success('Đăng nhập thành công!');
       
       setFormData((prev) => ({ ...prev, password: '' }));
-
-      localStorage.setItem('tenant_token', response.token);
-      if (response.userId) localStorage.setItem('userId', response.userId);
-      if (response.tenantId) localStorage.setItem('tenantId', response.tenantId);
-      localStorage.setItem('tenant_subdomain', response.subdomain || formData.subdomain);
       
       setTimeout(() => {
         const from = location.state?.from?.pathname || '/';

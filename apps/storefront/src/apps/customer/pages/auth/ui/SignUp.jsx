@@ -115,6 +115,14 @@ export default function SignUp() {
             </div>
 
             <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+              <Input
+                label="Subdomain"
+                id="subdomain"
+                name="subdomain"
+                value={formData.subdomain}
+                onChange={handleChange}
+                placeholder="pbl3-shop"
+              />
               
               <Input
                 label="Email Address"
@@ -140,7 +148,7 @@ export default function SignUp() {
                   id="terms"
                   name="acceptTerms"
                   checked={formData.acceptTerms}
-                  onChange={(e) => handleChange({ target: { name: 'acceptTerms', value: e.target.checked } })}
+                  onChange={handleChange}
                 >
                   <span className="text-sm text-slate-500 ml-2">
                     I agree to the{' '}
