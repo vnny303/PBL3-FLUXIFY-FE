@@ -1,10 +1,20 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+//Bộ nhớ đăng nhập toàn cục của app
+
+import React, { 
+  createContext, 
+  useCallback, 
+  useContext, 
+  useEffect, 
+  useState 
+} from 'react';
+
 import {
   clearAuthSession,
   getAuthSession,
   getToken,
   setAuthSession,
 } from '@fluxify/shared/lib';
+
 import { authService } from '../../../shared/api/authService';
 
 const AuthContext = createContext();
@@ -13,7 +23,7 @@ const CUSTOMER_ROLE = 'customer';
 export function AuthProvider({ children }) {
   const [showModal, setShowModal] = useState(false);
   const [isLoggedIn, setIsLoggedInState] = useState(Boolean(getToken()));
-  const [isHydrating, setIsHydrating] = useState(true);
+  const [isHydrating, setIsHydrating] = useState(true); //Kiem tra session
   const [user, setUser] = useState(() => {
     const snapshot = getAuthSession();
     if (!snapshot.userId) {
@@ -63,38 +73,43 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const syncCurrentUser = useCallback(async () => {
-    if (!getToken()) {
-      setUser(null);
-      setIsLoggedInState(false);
-      setIsHydrating(false);
-      return;
-    }
-
-    try {
-      const me = await authService.getCurrentUser();
-      if (me?.role !== CUSTOMER_ROLE) {
-        clearAuthSession();
+  //Khôi phục phiên đăng nhập khi app mở hoặc reload
+  const syncCurrentUser = useCallback(
+    async () => {
+      //TH1: Khong co token
+      if (!getToken()) {
         setUser(null);
         setIsLoggedInState(false);
-
-        const merchantAppUrl = import.meta.env.VITE_MERCHANT_APP_URL;
-        if (merchantAppUrl) {
-          window.location.href = merchantAppUrl;
-        }
+        setIsHydrating(false);
         return;
       }
 
-      setUser(me);
-      setIsLoggedInState(true);
-    } catch {
-      clearAuthSession();
-      setUser(null);
-      setIsLoggedInState(false);
-    } finally {
-      setIsHydrating(false);
-    }
-  }, []);
+      //TH2: Co token
+      try {
+        const me = await authService.getCurrentUser();
+        if (me?.role !== CUSTOMER_ROLE) {
+          clearAuthSession();
+          setUser(null);
+          setIsLoggedInState(false);
+
+          //TH4: role không phải customer
+          const merchantAppUrl = import.meta.env.VITE_MERCHANT_APP_URL;
+          if (merchantAppUrl) {
+            window.location.href = merchantAppUrl;
+          }
+          return;
+        }
+
+        setUser(me);
+        setIsLoggedInState(true);
+        } catch {
+        clearAuthSession();
+        setUser(null);
+        setIsLoggedInState(false);
+      } finally {
+        setIsHydrating(false);
+      }
+   }, []);
 
   useEffect(() => {
     syncCurrentUser();

@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { useLogin } from '../../../../../features/auth/model/useLogin';
 import Input from '../../../../../shared/ui/Input';
 import PasswordInput from '../../../../../shared/ui/PasswordInput';
-import Checkbox from '../../../../../shared/ui/Checkbox';
 import Button from '../../../../../shared/ui/Button';
 
 export default function Login() {
@@ -94,14 +93,14 @@ export default function Login() {
 
           {/* Form Section */}
           <form className="space-y-5" onSubmit={handleSubmit}>
-            <Input
+            {/* <Input
               label="Subdomain"
               id="subdomain"
               name="subdomain"
               value={formData.subdomain}
               onChange={handleChange}
               placeholder="pbl3-shop"
-            />
+            /> */}
 
             <Input
               label="Email"
@@ -122,20 +121,10 @@ export default function Login() {
               placeholder="••••••••"
             />
 
-            <div className="flex items-center justify-between py-1">
-              <Checkbox
-                id="rememberMe"
-                name="rememberMe"
-                checked={formData.rememberMe}
-                onChange={handleChange}
-                label="Remember me"
-              />
-
-              <div className="text-sm">
-                <a className="font-medium text-[#1754cf] hover:underline" href="#">
-                  Forgot password?
-                </a>
-              </div>
+            <div className="flex justify-end py-1">
+              <a className="font-medium text-[#1754cf] hover:underline text-sm" href="#">
+                Forgot password?
+              </a>
             </div>
 
             <Button

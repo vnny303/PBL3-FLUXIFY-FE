@@ -1,3 +1,4 @@
+//Quản lý session đăng nhập ở frontend
 const STORAGE_KEYS = {
   TOKEN: "tenant_token",
   USER_ID: "userId",
@@ -7,6 +8,7 @@ const STORAGE_KEYS = {
   EMAIL: "auth_email",
 };
 
+//Kiểm tra xem code hiện tại có đang chạy ở môi trường có window.localStorage hay không.
 const canUseStorage = () => typeof window !== "undefined" && !!window.localStorage;
 
 const read = (key) => {
@@ -28,13 +30,14 @@ const write = (key, value) => {
 };
 
 const pickTenantFromResponse = (authResponse) => {
+  //customer auth
   if (authResponse?.tenantId) {
     return {
       tenantId: authResponse.tenantId,
       subdomain: authResponse.subdomain || null,
     };
   }
-
+  //merchant auth
   if (Array.isArray(authResponse?.tenants) && authResponse.tenants.length > 0) {
     const firstTenant = authResponse.tenants[0];
     return {
@@ -64,6 +67,7 @@ export const clearAuthSession = () => {
   });
 };
 
+//luu session 
 export const setAuthSession = (authResponse) => {
   if (!authResponse) {
     return;
