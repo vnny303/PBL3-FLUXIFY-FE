@@ -8,6 +8,9 @@ export const createApiClient = ({
 }) => {
   const instance = axios.create({
     baseURL,
+    headers: {
+    "Content-Type": "application/json",
+    },
   });
 
   // Request interceptor

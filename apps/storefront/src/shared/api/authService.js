@@ -1,19 +1,52 @@
-import { createAuthService } from '@fluxify/shared/api';
-import axiosClient from './axiosClient';
+//Call API
 
-const authBasePath = import.meta.env.VITE_AUTH_BASE_PATH || '/api/auth';
-const service = createAuthService(axiosClient, { authBasePath });
+import axiosClient from "./axiosClient";
+import {
+  clearAuthSession,
+} from "@fluxify/shared/lib";
+
+export const getTenantBySubdomain = async (subdomain) => {
+  return axiosClient.get(
+    `/api/tenants/subdomain/${encodeURIComponent(subdomain)}`
+  );
+};
+
+export const registerCustomer = async ({ email, password, subdomain }) => {
+  return axiosClient.post(
+    `/api/auth/customer/register?subdomain=${encodeURIComponent(subdomain)}`,
+    {
+      email,
+      password,
+    }
+  );
+};
+
+export const loginCustomer = async ({ email, password, subdomain }) => {
+  return axiosClient.post(
+    `/api/auth/customer/login?subdomain=${encodeURIComponent(subdomain)}`,
+    {
+      email,
+      password,
+    }
+  );
+};
+
+export const getCurrentUser = async () => {
+  return axiosClient.get("/api/auth/me");
+};
+
+export const logout = async () => {
+  try {
+    await axiosClient.post("/api/auth/logout");
+  } finally {
+    clearAuthSession();
+  }
+};
 
 export const authService = {
-    registerCustomer: async ({ subdomain, email, password }) =>
-        service.registerCustomer({ subdomain, email, password }),
-
-    loginCustomer: async ({ subdomain, email, password }) =>
-        service.loginCustomer({ subdomain, email, password }),
-
-    logout: async () => service.logout(),
-
-    getCurrentUser: async () => service.getCurrentUser(),
-
-    getTenantBySubdomain: async (subdomain) => service.getTenantBySubdomain(subdomain),
+  registerCustomer,
+  loginCustomer,
+  logout,
+  getCurrentUser,
+  getTenantBySubdomain,
 };
