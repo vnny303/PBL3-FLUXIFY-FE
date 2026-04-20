@@ -19,8 +19,25 @@ const featuredProducts = products.slice(0, 4);
 
 export default function Home() {
   const { handleQuickAdd, setSelectedProduct } = useAppContext();
-  const { content, theme } = useStorefrontConfig();
+  const { content, theme, isLoadingTenant, tenantError } = useStorefrontConfig();
   const navigate = useNavigate();
+
+  if (isLoadingTenant) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" style={{ borderColor: theme.colors.primary, borderBottomColor: 'transparent' }}></div>
+      </div>
+    );
+  }
+
+  if (tenantError) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-[60vh] px-4 text-center">
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4">{tenantError}</h1>
+        <p className="text-slate-500">Vui lòng kiểm tra lại đường dẫn cửa hàng.</p>
+      </div>
+    );
+  }
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
