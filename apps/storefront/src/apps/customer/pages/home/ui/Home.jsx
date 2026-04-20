@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../../../app/providers/AppContext';
 import ProductCard from '../../../../../entities/product/ui/ProductCard';
 import { products, categories } from '../../../../../shared/lib/data';
+import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 
 // Category images for the "Shop by Category" section
 const CATEGORY_IMAGES = {
@@ -18,26 +19,42 @@ const featuredProducts = products.slice(0, 4);
 
 export default function Home() {
   const { handleQuickAdd, setSelectedProduct } = useAppContext();
+  const { content, theme } = useStorefrontConfig();
   const navigate = useNavigate();
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <section className="relative overflow-hidden rounded-xl bg-slate-900 mb-16">
-        <div className="absolute inset-0 opacity-40 mix-blend-overlay">
-          <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1600&q=80")' }}></div>
+        <div
+          className="absolute inset-0 mix-blend-overlay"
+          style={{ opacity: content.home.heroOverlayOpacity }}
+        >
+          <div
+            className="w-full h-full bg-cover bg-center"
+            style={{
+              backgroundImage: `url("${content.home.heroImageUrl}")`,
+            }}
+          ></div>
         </div>
+
         <div className="relative px-8 py-12 md:py-20 flex flex-col items-center text-center max-w-3xl mx-auto">
           <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
-            Modern Shopping for Modern Stores
+            {content.home.title}
           </h1>
           <p className="text-base md:text-lg text-slate-300 mb-8 leading-relaxed">
-            Experience high-end e-commerce with our minimal, SaaS-grade storefront solution. Curated for those who appreciate design.
+            {content.home.subtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button onClick={() => navigate('/shop')} className="bg-primary hover:opacity-90 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-primary/30 transition-all transform hover:scale-105">
+            <button
+              onClick={() => navigate('/shop')}
+              style={{
+                backgroundColor: theme.colors.primary,
+                borderRadius: `${theme.layout.borderRadius}px`,
+              }}
+              className="hover:opacity-90 text-white px-8 py-3 font-bold text-lg shadow-lg transition-all transform hover:scale-105"
+            >
               Shop Now
             </button>
-            
           </div>
         </div>
       </section>
@@ -45,10 +62,15 @@ export default function Home() {
       <section className="mb-20">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-slate-900">Featured Products</h2>
-            <p className="text-slate-500 mt-2">The latest arrivals and community favorites.</p>
+            <h2 className="text-3xl font-bold text-slate-900">
+              {content.home.featuredTitle}
+            </h2>
+            <p className="text-slate-500 mt-2">{content.home.featuredSubtitle}</p>
           </div>
-          <button onClick={() => navigate('/shop')} className="text-primary font-semibold hover:underline flex items-center gap-1">
+          <button
+            onClick={() => navigate('/shop')}
+            className="text-primary font-semibold hover:underline flex items-center gap-1"
+          >
             View all <ArrowRight className=" text-sm" />
           </button>
         </div>

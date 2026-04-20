@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 import { Search, Bell, ShoppingBag, ShoppingCart, MapPin, Settings, LogOut, User, Heart, X, Package, Menu } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -17,6 +18,23 @@ export default function Header() {
   const notifRef = useRef(null);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const searchRef = useRef(null);
+  const { content, theme } = useStorefrontConfig();
+
+  const headerTheme = theme?.components?.header || {
+    background: theme?.colors?.background || '#ffffff',
+    text: theme?.colors?.text || '#111827',
+  };
+
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const backgroundColor = theme?.colors?.background || '#f6f6f8';
+  const textColor = theme?.colors?.text || '#0f172a';
+  const radius = `${theme?.layout?.borderRadius || 12}px`;
+  const softRadius = `${Math.max((theme?.layout?.borderRadius || 12) - 4, 8)}px`;
+
+  const navLinkStyle = (isActive) => ({
+    color: isActive ? theme?.colors?.primary || '#1754cf' : headerTheme.text,
+    borderBottomColor: isActive ? theme?.colors?.primary || '#1754cf' : 'transparent',
+  });
 
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
@@ -45,23 +63,43 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
+    <header
+      className="sticky top-0 z-50 w-full backdrop-blur-md"
+      style={{
+        backgroundColor: `${headerTheme.background}CC`,
+        borderBottom: `1px solid ${primaryColor}1A`,
+        fontFamily: theme?.typography?.fontFamily || 'Inter',
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-8">
           <div className="flex items-center gap-2 shrink-0 cursor-pointer">
-            <Link to="/" className="flex items-center gap-2 text-primary">
+            <Link to="/" className="flex items-center gap-2" style={{ color: theme?.colors?.primary || '#1754cf' }}>
               <svg className="w-8 h-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                 <path clipRule="evenodd" d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" fillRule="evenodd"></path>
                 <path clipRule="evenodd" d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263ZM25.354 2.29885C24.4788 1.98402 23.5212 1.98402 22.646 2.29885L4.98454 8.65208C3.7939 9.08038 3 10.2097 3 11.475V34.3663C3 36.0196 4.01719 37.5026 5.55962 38.098L22.9197 44.7987C23.6149 45.0671 24.3851 45.0671 25.0803 44.7987L42.4404 38.098C43.9828 37.5026 45 36.0196 45 34.3663V11.475C45 10.2097 44.2061 9.08038 43.0155 8.65208L25.354 2.29885Z" fill="currentColor" fillRule="evenodd"></path>
               </svg>
-              <span className="text-xl font-bold tracking-tight text-slate-900 uppercase">Fluxify</span>
+              <span
+                className="text-xl font-bold tracking-tight uppercase"
+                style={{ color: headerTheme.text }}
+              >{content?.general?.siteName || 'Fluxify'}</span>
             </Link>
           </div>
           <nav className="hidden lg:flex items-center gap-8">
-            <Link to="/" className={`text-sm font-semibold transition-colors ${location.pathname === '/' ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>Home</Link>
-            <Link to="/shop" className={`text-sm font-semibold transition-colors ${location.pathname.includes('/shop') ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>Shop / Products</Link>
-            <Link to="/about" className={`text-sm font-semibold transition-colors ${location.pathname.includes('/about') ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>About Us</Link>
-            <Link to="/contact" className={`text-sm font-semibold transition-colors ${location.pathname.includes('/contact') ? 'text-primary border-b-2 border-primary pb-0.5' : 'text-slate-600 hover:text-primary'}`}>Contact</Link>
+            {content?.header?.navLinks?.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className="text-sm font-semibold transition-colors border-b-2 pb-0.5"
+                style={navLinkStyle(
+                  link.path === '/'
+                    ? location.pathname === '/'
+                    : location.pathname.includes(link.path)
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
           <div className="hidden md:flex flex-1 max-w-sm justify-end" ref={searchRef}>
             <div className="relative w-full max-w-xs">
