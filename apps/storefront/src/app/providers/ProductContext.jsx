@@ -14,7 +14,7 @@ export function ProductProvider({ children }) {
   const { tenantId } = useStorefrontTenant();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [isLoadingInventory, setIsLoadingInventory] = useState(true); // default true mostly so it doesn't blink mock, wait, let's start at false and only set true if tenantId exists
+  const [isLoadingInventory, setIsLoadingInventory] = useState(false);
   const [inventoryError, setInventoryError] = useState(null);
 
   useEffect(() => {
