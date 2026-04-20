@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../../../app/providers/AppContext';
 import ProductCard from '../../../../../entities/product/ui/ProductCard';
-import { products, categories } from '../../../../../shared/lib/data';
+
 import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 
 // Category images for the "Shop by Category" section
@@ -14,11 +14,10 @@ const CATEGORY_IMAGES = {
   'cat-004': 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80',
 };
 
-// Featured products: first 4 unique products
-const featuredProducts = products.slice(0, 4);
+
 
 export default function Home() {
-  const { handleQuickAdd, setSelectedProduct } = useAppContext();
+  const { handleQuickAdd, setSelectedProduct, products, categories, isLoadingInventory, inventoryError } = useAppContext();
   const { content, theme, isLoadingTenant, tenantError } = useStorefrontConfig();
   const navigate = useNavigate();
 
@@ -92,46 +91,70 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((item) => (
-            <ProductCard
-              key={item.id}
-              product={item}
-              onQuickAdd={handleQuickAdd}
-              onCardClick={() => {
-                setSelectedProduct(item);
-                navigate(`/product/${item.id}`);
-              }}
-            />
-          ))}
-        </div>
+        {isLoadingInventory ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" style={{ borderColor: theme.colors.primary, borderBottomColor: 'transparent' }}></div>
+          </div>
+        ) : inventoryError ? (
+          <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
+            {inventoryError}
+          </div>
+        ) : products.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products.slice(0, 4).map((item) => (
+              <ProductCard
+                key={item.id}
+                product={item}
+                onQuickAdd={handleQuickAdd}
+                onCardClick={() => {
+                  setSelectedProduct(item);
+                  navigate(`/product/${item.id}`);
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
+            Chưa có sản phẩm nổi bật nào.
+          </div>
+        )}
       </section>
 
       <section className="mb-20">
         <h2 className="text-3xl font-bold text-slate-900 mb-8">Shop by Category</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {categories.filter(c => c.isActive).map((cat) => {
-            const catProducts = products.filter(p => p.categoryId === cat.id);
-            return (
-              <button
-                key={cat.id}
-                onClick={() => navigate('/shop')}
-                className="group relative block aspect-[4/5] overflow-hidden rounded-xl bg-slate-200 w-full text-left"
-              >
-                <img
-                  alt={cat.name}
-                  src={CATEGORY_IMAGES[cat.id] || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=600&q=80'}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
-                <div className="absolute bottom-6 left-6">
-                  <h3 className="text-xl font-bold text-white">{cat.name}</h3>
-                  <p className="text-sm text-slate-300">{catProducts.length}+ Items</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        {isLoadingInventory ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" style={{ borderColor: theme.colors.primary, borderBottomColor: 'transparent' }}></div>
+          </div>
+        ) : categories.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {categories.filter(c => c.isActive !== false).map((cat) => {
+              const catProducts = products.filter(p => p.categoryId === cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => navigate('/shop')}
+                  className="group relative block aspect-[4/5] overflow-hidden rounded-xl bg-slate-200 w-full text-left"
+                >
+                  <img
+                    alt={cat.name}
+                    src={CATEGORY_IMAGES[cat.id] || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=600&q=80'}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+                  <div className="absolute bottom-6 left-6">
+                    <h3 className="text-xl font-bold text-white">{cat.name}</h3>
+                    <p className="text-sm text-slate-300">{catProducts.length}+ Items</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
+            Chưa có danh mục nào.
+          </div>
+        )}
       </section>
     </main>
   );
