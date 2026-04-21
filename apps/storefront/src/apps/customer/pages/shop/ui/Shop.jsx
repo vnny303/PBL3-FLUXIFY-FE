@@ -1,18 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../../../app/providers/AppContext';
 import { SORT_OPTIONS } from '../../../../../shared/lib/constants';
-import { categories, products } from '../../../../../shared/lib/data';
 import { useShopFilters } from '../../../../../features/product-filter/model/useShopFilters';
 import ProductCard from '../../../../../entities/product/ui/ProductCard';
 
-// Collect all unique sizes across all products
-const allSizes = [...new Set(products.flatMap(p => p.attributes?.sizes || []))];
+
 
 export default function Shop() {
-  const { setSelectedProduct, handleQuickAdd, searchQuery, setSearchQuery } = useAppContext();
+  const { setSelectedProduct, handleQuickAdd, searchQuery, setSearchQuery, products, categories, isLoadingInventory, inventoryError } = useAppContext();
   const navigate = useNavigate();
+
+  const allSizes = useMemo(() => {
+    return [...new Set(products.flatMap(p => {
+      const sizes = p.attributes?.sizes || p.attributes?.size || [];
+      return Array.isArray(sizes) ? sizes : [sizes];
+    }))];
+  }, [products]);
 
   const {
     sortBy, setSortBy,
@@ -23,7 +28,7 @@ export default function Shop() {
     currentPage, totalPages, handlePageChange,
     filteredProducts, currentProducts,
     gridTopRef,
-  } = useShopFilters();
+  } = useShopFilters({ products });
 
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef(null);
@@ -241,7 +246,15 @@ export default function Shop() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {currentProducts.length === 0 ? (
+            {isLoadingInventory ? (
+              <div className="col-span-full py-12 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" style={{ borderBottomColor: 'transparent' }}></div>
+              </div>
+            ) : inventoryError ? (
+              <div className="col-span-full py-12 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
+                {inventoryError}
+              </div>
+            ) : currentProducts.length === 0 ? (
               <div className="col-span-full py-12 text-center text-slate-500">
                 <p>No products found matching your active filters.</p>
               </div>

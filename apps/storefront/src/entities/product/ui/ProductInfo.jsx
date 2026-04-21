@@ -13,19 +13,19 @@ function getColorSwatch(colorName) {
   return COLOR_MAP[colorName?.toLowerCase()] || null;
 }
 
-export default function ProductInfo({ product, selectedAttributes, setSelectedAttributes }) {
+export default function ProductInfo({ product, selectedSku, selectedAttributes, setSelectedAttributes }) {
   if (!product) return null;
 
   const attrs = product.attributes || {};
   const attrEntries = Object.entries(attrs); // e.g. [['colors', [...]], ['sizes', [...]], ['fabrics', [...]]]
 
-  // Find the matching SKU price for the currently selected attributes
-  const skuAttrKey = (skuAttrs) =>
-    Object.entries(skuAttrs).every(([k, v]) => selectedAttributes[k] === v);
-  const matchingSku = product.skus?.find(s => skuAttrKey(s.attributes));
-  const displayPrice = matchingSku
-    ? `$${matchingSku.price.toFixed(2)}`
-    : `$${product.price?.toFixed(2) ?? '0.00'}`;
+  const displayPrice = selectedSku
+    ? `$${selectedSku.price.toFixed(2)}`
+    : typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price || '$0.00';
+
+  const isAvailable = selectedSku ? selectedSku.stock > 0 : product.isInStock;
+  const stockText = isAvailable ? "IN STOCK" : "OUT OF STOCK";
+  const stockStyle = isAvailable ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700";
 
   const handleSelect = (attrKey, value) => {
     setSelectedAttributes(prev => ({ ...prev, [attrKey]: value }));
@@ -34,7 +34,9 @@ export default function ProductInfo({ product, selectedAttributes, setSelectedAt
   return (
     <>
       <div className="flex items-center gap-3 mb-4">
-        <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full uppercase tracking-wider">IN STOCK</span>
+        <span className={`px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${stockStyle}`}>
+          {stockText}
+        </span>
         <div className="flex items-center text-amber-400 text-sm">
           <Star className="text-sm" fill="currentColor" />
           <Star className="text-sm" fill="currentColor" />

@@ -21,20 +21,43 @@ const normalizeSku = (sku) => ({
     skuCode: sku.skuCode,
     price: sku.price,
     stock: sku.stock,
+    imgUrl: sku.imgUrl || sku.image,
     attributes: safeParseJson(sku.attributes, {}),
 });
 
-const normalizeProduct = (product) => ({
-    id: product.id,
-    name: product.name,
-    description: product.description,
-    categoryId: product.categoryId,
-    basePrice: product.basePrice,
-    images: safeParseJson(product.images, []),
-    attributes: safeParseJson(product.attributes, {}),
-    skus: Array.isArray(product.skus) ? product.skus.map(normalizeSku) : [],
-    variants: Array.isArray(product.variants) ? product.variants : [],
-});
+const normalizeProduct = (product) => {
+    // The backend uses imgUrls, not images
+    const rawImages = product.imgUrls || product.images;
+    const imagesArray = Array.isArray(rawImages) ? rawImages : safeParseJson(rawImages, []);
+    
+    // The backend uses productSkus, not skus
+    const rawSkus = product.productSkus || product.skus;
+    const skus = Array.isArray(rawSkus) ? rawSkus.map(normalizeSku) : [];
+    
+    let price = product.basePrice ?? product.price ?? 0;
+    let stock = 0;
+    
+    if (skus.length > 0) {
+        price = Math.min(...skus.map(s => s.price));
+        stock = skus.reduce((sum, s) => sum + (s.stock || 0), 0);
+    }
+
+    return {
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        categoryId: product.categoryId,
+        basePrice: product.basePrice,
+        images: imagesArray,
+        image: imagesArray[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80', // generic fallback placeholder
+        price: price,
+        stock: stock,
+        isInStock: stock > 0 || skus.length === 0, // if no skus, assume base item is available unless specified
+        attributes: safeParseJson(product.attributes, {}),
+        skus: skus,
+        variants: Array.isArray(product.variants) ? product.variants : [],
+    };
+};
 
 export const productService = {
     // GET /api/tenants/{tenantId}/products?categoryId=uuid&page=1&pageSize=20

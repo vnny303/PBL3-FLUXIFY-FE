@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 
-export default function ProductImageGallery({ product, isLoggedIn, isWishlisted, toggleWishlist, onLoginRedirect }) {
-  // Collect all images: product imgUrls + any extra per-sku imgUrls not already in the list
-  const productImgs = product?.imgUrls || (product?.img ? [product.img] : []);
+export default function ProductImageGallery({ product, selectedSku, isLoggedIn, isWishlisted, toggleWishlist, onLoginRedirect }) {
+  // Collect all images: product images + any extra per-sku imgUrls not already in the list
+  const productImgs = product?.images || (product?.image ? [product.image] : []);
   const skuImgs = (product?.skus || [])
-    .map(s => s.imgUrl)
+    .map(s => s.image || s.imgUrl)
     .filter(url => url && !productImgs.includes(url));
   const allImages = [...productImgs, ...skuImgs];
 
   const [activeIdx, setActiveIdx] = useState(0);
 
-  // Reset when product changes
+  // Default selection when product changes
   useEffect(() => { setActiveIdx(0); }, [product?.id]);
+
+  // Jump to SKU image if selected
+  useEffect(() => {
+    if (selectedSku) {
+      const skuImage = selectedSku.image || selectedSku.imgUrl;
+      if (skuImage) {
+        const targetIdx = allImages.findIndex(img => img === skuImage);
+        if (targetIdx !== -1) setActiveIdx(targetIdx);
+      }
+    }
+  }, [selectedSku, allImages]);
 
   const mainImage = allImages[activeIdx] || 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000';
 
