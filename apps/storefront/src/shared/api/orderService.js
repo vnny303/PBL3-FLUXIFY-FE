@@ -20,10 +20,10 @@ export const orderService = {
         return extractItems(response);
     },
 
-    // GET /api/tenants/{tenantId}/customers/{customerId}/orders
-    getCustomerOrders: async (tenantId, customerId, filters = {}) => {
+    // GET /api/customer/orders
+    getCustomerOrders: async (filters = {}) => {
         const query = new URLSearchParams(filters).toString();
-        const response = await axiosClient.get(`/api/tenants/${tenantId}/customers/${customerId}/orders${query ? `?${query}` : ''}`);
+        const response = await axiosClient.get(`/api/customer/orders${query ? `?${query}` : ''}`);
         return extractItems(response);
     },
 

@@ -21,7 +21,7 @@ export default function AccountPage() {
   const [ordersError, setOrdersError] = useState(null);
 
   const fetchCustomerOrders = useCallback(async () => {
-    if (!isLoggedIn || !tenantId || !user?.userId) {
+    if (!isLoggedIn) {
       setOrders([]);
       return;
     }
@@ -30,7 +30,7 @@ export default function AccountPage() {
     setOrdersError(null);
 
     try {
-      const response = await orderService.getCustomerOrders(tenantId, user.userId, {
+      const response = await orderService.getCustomerOrders({
         page: 1,
         pageSize: 50,
         sortBy: 'createdAt',
@@ -43,7 +43,7 @@ export default function AccountPage() {
     } finally {
       setIsLoadingOrders(false);
     }
-  }, [isLoggedIn, tenantId, user?.userId]);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (location.state?.screen) {
