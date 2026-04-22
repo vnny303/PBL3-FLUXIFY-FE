@@ -1,5 +1,10 @@
 import axiosClient from './axiosClient';
 
+const toNumber = (value, fallback = 0) => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : fallback;
+};
+
 const safeParseJson = (str, fallback = []) => {
     if (!str) return fallback;
     if (typeof str !== 'string') return str;
@@ -19,8 +24,8 @@ const normalizeCategory = (category) => ({
 const normalizeSku = (sku) => ({
     id: sku.id,
     skuCode: sku.skuCode,
-    price: sku.price,
-    stock: sku.stock,
+    price: toNumber(sku.price ?? sku.unitPrice, 0),
+    stock: toNumber(sku.stock, 0),
     imgUrl: sku.imgUrl || sku.image,
     attributes: safeParseJson(sku.attributes, {}),
 });
@@ -34,11 +39,18 @@ const normalizeProduct = (product) => {
     const rawSkus = product.productSkus || product.skus;
     const skus = Array.isArray(rawSkus) ? rawSkus.map(normalizeSku) : [];
     
-    let price = product.basePrice ?? product.price ?? 0;
+    let price = toNumber(product.basePrice ?? product.price, 0);
     let stock = 0;
     
     if (skus.length > 0) {
-        price = Math.min(...skus.map(s => s.price));
+        const validSkuPrices = skus
+            .map((sku) => toNumber(sku.price, NaN))
+            .filter((skuPrice) => Number.isFinite(skuPrice) && skuPrice >= 0);
+
+        if (validSkuPrices.length > 0) {
+            price = Math.min(...validSkuPrices);
+        }
+
         stock = skus.reduce((sum, s) => sum + (s.stock || 0), 0);
     }
 
@@ -84,6 +96,9 @@ export const productService = {
     // GET /api/tenants/{tenantId}/categories
     getCategories: async (tenantId) => {
         const response = await axiosClient.get(`/api/tenants/${tenantId}/categories`);
+        if (response && Array.isArray(response.items)) {
+            return response.items.map(normalizeCategory);
+        }
         if (Array.isArray(response)) {
             return response.map(normalizeCategory);
         }

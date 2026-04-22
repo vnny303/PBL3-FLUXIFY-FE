@@ -25,9 +25,12 @@ export default function QuickAddModal() {
 
   const handleAdd = () => {
     if (!isAddDisabled) {
-      const color = selectedAttrs.color || 'Default';
-      const size = selectedAttrs.size || 'Standard';
-      addToCart(quickAddProduct, 1, color, size);
+      const matchedSku = quickAddProduct.skus?.find(sku => {
+        const skuAttrs = sku.attributes || {};
+        return Object.entries(selectedAttrs).every(([k, v]) => skuAttrs[k] === v);
+      });
+
+      addToCart(quickAddProduct, matchedSku || null, 1, selectedAttrs);
       setQuickAddProduct(null);
     }
   };

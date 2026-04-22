@@ -1,21 +1,35 @@
 import axiosClient from './axiosClient';
 
+const extractItems = (response) => {
+    if (Array.isArray(response)) {
+        return response;
+    }
+
+    if (response && Array.isArray(response.items)) {
+        return response.items;
+    }
+
+    return [];
+};
+
 export const orderService = {
     // GET /api/tenants/{tenantId}/orders?customerId=uuid&status=Pending&page=1&pageSize=20
     getOrders: async (tenantId, filters = {}) => {
         const query = new URLSearchParams(filters).toString();
-        return await axiosClient.get(`/api/tenants/${tenantId}/orders${query ? `?${query}` : ''}`);
+        const response = await axiosClient.get(`/api/tenants/${tenantId}/orders${query ? `?${query}` : ''}`);
+        return extractItems(response);
     },
 
     // GET /api/tenants/{tenantId}/customers/{customerId}/orders
     getCustomerOrders: async (tenantId, customerId, filters = {}) => {
         const query = new URLSearchParams(filters).toString();
-        return await axiosClient.get(`/api/tenants/${tenantId}/customers/${customerId}/orders${query ? `?${query}` : ''}`);
+        const response = await axiosClient.get(`/api/tenants/${tenantId}/customers/${customerId}/orders${query ? `?${query}` : ''}`);
+        return extractItems(response);
     },
 
-    // POST /api/tenants/{tenantId}/customers/{customerId}/checkout
-    checkout: async (tenantId, customerId, { address, paymentMethod }) => {
-        return await axiosClient.post(`/api/tenants/${tenantId}/customers/${customerId}/checkout`, {
+    // POST /api/customer/orders/checkout
+    checkout: async ({ address, paymentMethod }) => {
+        return axiosClient.post('/api/customer/orders/checkout', {
             address,
             paymentMethod,
         });

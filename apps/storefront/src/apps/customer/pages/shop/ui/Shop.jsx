@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../../../app/providers/AppContext';
-import { SORT_OPTIONS } from '../../../../../shared/lib/constants';
+import { PRICE_RANGE_MAX, SORT_OPTIONS } from '../../../../../shared/lib/constants';
 import { useShopFilters } from '../../../../../features/product-filter/model/useShopFilters';
 import ProductCard from '../../../../../entities/product/ui/ProductCard';
 
@@ -110,17 +110,17 @@ export default function Shop() {
               <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Price Range</h3>
               <div className="px-2">
                 <div className="relative h-1 bg-slate-200 rounded-full mb-6 flex items-center">
-                  <div className="absolute top-0 h-full bg-primary rounded-full" style={{ left: `${Math.max(0, Math.min(100, (priceRange[0] / 500) * 100))}%`, right: `${Math.max(0, Math.min(100, 100 - (priceRange[1] / 500) * 100))}%` }}></div>
+                  <div className="absolute top-0 h-full bg-primary rounded-full" style={{ left: `${Math.max(0, Math.min(100, (priceRange[0] / PRICE_RANGE_MAX) * 100))}%`, right: `${Math.max(0, Math.min(100, 100 - (priceRange[1] / PRICE_RANGE_MAX) * 100))}%` }}></div>
                   <input
                     type="range"
-                    min="0" max="500"
+                    min="0" max={PRICE_RANGE_MAX}
                     value={priceRange[0]}
                     onChange={e => setPriceRange([Math.min(Number(e.target.value), priceRange[1] - 1), priceRange[1]])}
                     className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-sm z-10 focus:outline-none"
                   />
                   <input
                     type="range"
-                    min="0" max="500"
+                    min="0" max={PRICE_RANGE_MAX}
                     value={priceRange[1]}
                     onChange={e => setPriceRange([priceRange[0], Math.max(Number(e.target.value), priceRange[0] + 1)])}
                     className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-sm z-20 focus:outline-none"

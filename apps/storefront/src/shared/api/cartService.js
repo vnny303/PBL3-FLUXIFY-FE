@@ -1,33 +1,33 @@
 import axiosClient from './axiosClient';
 
 export const cartService = {
-    // GET /api/tenants/{tenantId}/customers/{customerId}/cart
+    // GET /api/Cart
     getCart: async (tenantId, customerId) => {
-        return await axiosClient.get(`/api/tenants/${tenantId}/customers/${customerId}/cart`);
+        return axiosClient.get(`/api/Cart`);
     },
 
-    // POST /api/tenants/{tenantId}/customers/{customerId}/cart/items
+    // POST /api/Cart/items
     addToCart: async (tenantId, customerId, { productSkuId, quantity }) => {
-        return await axiosClient.post(`/api/tenants/${tenantId}/customers/${customerId}/cart/items`, {
+        return axiosClient.post(`/api/Cart/items`, {
             productSkuId,
             quantity,
         });
     },
 
-    // PUT /api/tenants/{tenantId}/customers/{customerId}/cart/items/{itemId}
+    // PUT /api/Cart/items/{itemId}
     updateCartItem: async (tenantId, customerId, itemId, { quantity }) => {
-        return await axiosClient.put(`/api/tenants/${tenantId}/customers/${customerId}/cart/items/${itemId}`, {
+        return axiosClient.put(`/api/Cart/items/${itemId}`, {
             quantity,
         });
     },
 
-    // DELETE /api/tenants/{tenantId}/customers/{customerId}/cart/items/{itemId}
+    // DELETE /api/Cart/items/{itemId}
     removeFromCart: async (tenantId, customerId, itemId) => {
-        return await axiosClient.delete(`/api/tenants/${tenantId}/customers/${customerId}/cart/items/${itemId}`);
+        return axiosClient.delete(`/api/Cart/items/${itemId}`);
     },
 
-    // DELETE /api/tenants/{tenantId}/customers/{customerId}/cart/items
+    // DELETE /api/Cart/items
     clearCart: async (tenantId, customerId) => {
-        return await axiosClient.delete(`/api/tenants/${tenantId}/customers/${customerId}/cart/items`);
+        return axiosClient.delete(`/api/Cart/items`);
     },
 };

@@ -6,6 +6,17 @@ import { cartService } from '../../../shared/api/cartService';
 
 const CartContext = createContext();
 
+const safeParseJson = (value, fallback = {}) => {
+  if (!value) return fallback;
+  if (typeof value !== 'string') return value;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
+
 export function CartProvider({ children }) {
   const { isLoggedIn, setShowModal, user } = useAuthContext();
   const { tenantId } = useStorefrontTenant();
@@ -25,17 +36,19 @@ export function CartProvider({ children }) {
     try {
       setIsLoadingCart(true);
       const response = await cartService.getCart(tenantId, user.userId);
-      const items = Array.isArray(response) ? response : (response?.items || []);
+      const items = Array.isArray(response)
+        ? response
+        : (Array.isArray(response?.items) ? response.items : []);
       
       const normalizedItems = items.map(apiItem => ({
         cartId: apiItem.id || apiItem.itemId, // Backend Cart Item ID
-        productId: apiItem.product?.id || apiItem.productId,
+        productId: apiItem.product?.id || apiItem.productId || apiItem.productSku?.productId,
         productSkuId: apiItem.productSkuId || apiItem.productSku?.id || apiItem.product?.id,
         productName: apiItem.product?.name || apiItem.productName || 'Unknown Product',
-        price: apiItem.productSku?.price ?? apiItem.product?.price ?? apiItem.price ?? 0,
+        price: apiItem.productSku?.price ?? apiItem.product?.price ?? apiItem.productPrice ?? apiItem.unitPrice ?? apiItem.price ?? 0,
         quantity: apiItem.quantity || 1,
-        skuAttributes: apiItem.productSku?.attributes || apiItem.skuAttributes || {},
-        image: apiItem.productSku?.imgUrl || apiItem.productSku?.image || apiItem.product?.imgUrls?.[0] || apiItem.product?.images?.[0] || apiItem.image || 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000',
+        skuAttributes: safeParseJson(apiItem.productSku?.attributes || apiItem.skuAttributes, {}),
+        image: apiItem.productSku?.imgUrl || apiItem.skuImgUrl || apiItem.productSku?.image || apiItem.product?.imgUrls?.[0] || apiItem.product?.images?.[0] || apiItem.image || 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000',
       }));
       setCartItems(normalizedItems);
     } catch (error) {
@@ -55,7 +68,7 @@ export function CartProvider({ children }) {
       return;
     }
     
-    const skuId = selectedSku?.id || product.productSkuId || product.id;
+    const skuId = selectedSku?.id || product.skus?.[0]?.id || product.productSkuId || product.id;
 
     // Optimistic Update
     setCartItems(prev => {
@@ -106,7 +119,7 @@ export function CartProvider({ children }) {
     if (String(cartId).startsWith('temp-')) return;
     try {
       await cartService.removeFromCart(tenantId, user.userId, cartId);
-    } catch (error) {
+    } catch {
       toast.error('Lỗi khi xoá sản phẩm');
       setCartItems(previousItems); // Rollback
     }
@@ -120,9 +133,26 @@ export function CartProvider({ children }) {
     if (String(cartId).startsWith('temp-')) return;
     try {
       await cartService.updateCartItem(tenantId, user.userId, cartId, { quantity: newQuantity });
-    } catch (error) {
+    } catch {
       toast.error('Lỗi khi cập nhật số lượng');
       setCartItems(previousItems); // Rollback
+    }
+  };
+
+  const clearCart = async () => {
+    if (!tenantId || !user?.userId) {
+      setCartItems([]);
+      return;
+    }
+
+    const previousItems = [...cartItems];
+    setCartItems([]);
+
+    try {
+      await cartService.clearCart(tenantId, user.userId);
+    } catch {
+      setCartItems(previousItems);
+      toast.error('Lỗi khi làm mới giỏ hàng');
     }
   };
 
@@ -137,8 +167,10 @@ export function CartProvider({ children }) {
     <CartContext.Provider value={{
       showCart, setShowCart,
       showAddToCartPopup, setShowAddToCartPopup,
-      cartItems, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount,
-      lastAddedItem, isLoadingCart
+      cartItems, addToCart, removeFromCart, updateQuantity, clearCart,
+      cartTotal, cartCount,
+      lastAddedItem, isLoadingCart,
+      refreshCart: fetchCart,
     }}>
       {children}
     </CartContext.Provider>
