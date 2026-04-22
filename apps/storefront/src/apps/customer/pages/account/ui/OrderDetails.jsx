@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Loader2, AlertCircle, ChevronDown, CheckCircle } from 'lucide-react';
+import { Loader2, AlertCircle, ChevronDown, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import ReviewModal from '../../../../../features/product-review/ui/ReviewModal';
 import InvoicePrint from '../../../../../entities/order/ui/InvoicePrint';
@@ -12,6 +12,14 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   const { addToCart, setShowCart } = useAppContext();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [orderStatus, setOrderStatus] = useState(order?.status || 'Pending');
+  const [reviewedItems, setReviewedItems] = useState({});
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [buyingItemIds, setBuyingItemIds] = useState({});
+  const [isBuyingWholeOrder, setIsBuyingWholeOrder] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [isReasonDropdownOpen, setIsReasonDropdownOpen] = useState(false);
 
   if (!order) {
     return (
@@ -46,15 +54,6 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     date: orderData.date || (orderData.createdAt ? new Date(orderData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : ''),
     total: orderData.total || (orderData.totalAmount != null ? `$${Number(orderData.totalAmount).toFixed(2)}` : '$0.00'),
   };
-
-  const [orderStatus, setOrderStatus] = useState(normalizedOrder.status || 'Pending');
-  const [reviewedItems, setReviewedItems] = useState({});
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [isCancelling, setIsCancelling] = useState(false);
-  const [buyingItemIds, setBuyingItemIds] = useState({});
-  const [isBuyingWholeOrder, setIsBuyingWholeOrder] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
-  const [isReasonDropdownOpen, setIsReasonDropdownOpen] = useState(false);
 
   const cancellationReasons = [
     { id: 'changed_mind', label: 'Changed my mind' },

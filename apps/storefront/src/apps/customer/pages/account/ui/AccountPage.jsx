@@ -7,13 +7,11 @@ import ProfileSettings from './ProfileSettings';
 import OrderDetails from './OrderDetails';
 import Notifications from './Notifications';
 import { useAppContext } from '../../../../../app/providers/AppContext';
-import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
 import { orderService } from '../../../../../shared/api/orderService';
 
 export default function AccountPage() {
   const location = useLocation();
-  const { isLoggedIn, user } = useAppContext();
-  const { tenantId } = useStorefrontTenant();
+  const { isLoggedIn } = useAppContext();
   const [currentScreen, setCurrentScreen] = useState(location.state?.screen || 'my-orders');
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [orders, setOrders] = useState([]);

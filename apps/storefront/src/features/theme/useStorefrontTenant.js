@@ -6,13 +6,14 @@ let cachedTenantPromise = null;
 let cachedTenantData = null;
 
 export const useStorefrontTenant = () => {
+  const initialSubdomain = getStorefrontSubdomain();
   const [tenantState, setTenantState] = useState({
     tenant: cachedTenantData,
     tenantId: cachedTenantData?.id || null,
     storeName: cachedTenantData?.storeName || null,
-    subdomain: cachedTenantData?.subdomain || null,
-    isLoadingTenant: !cachedTenantData,
-    tenantError: null,
+    subdomain: cachedTenantData?.subdomain || initialSubdomain || null,
+    isLoadingTenant: !cachedTenantData && Boolean(initialSubdomain),
+    tenantError: !cachedTenantData && !initialSubdomain ? 'Không tìm thấy subdomain' : null,
   });
 
   useEffect(() => {
@@ -20,14 +21,12 @@ export const useStorefrontTenant = () => {
       return;
     }
 
-    const subdomain = getStorefrontSubdomain();
-    if (!subdomain) {
-      setTenantState(prev => ({ ...prev, isLoadingTenant: false, tenantError: 'Không tìm thấy subdomain' }));
+    if (!initialSubdomain) {
       return;
     }
 
     if (!cachedTenantPromise) {
-      cachedTenantPromise = authService.getTenantBySubdomain(subdomain)
+      cachedTenantPromise = authService.getTenantBySubdomain(initialSubdomain)
         .then(res => {
           cachedTenantData = res;
           return res;
@@ -52,7 +51,7 @@ export const useStorefrontTenant = () => {
           tenantError: err?.response?.data?.message || 'Không tìm thấy cửa hàng'
         }));
       });
-  }, []);
+  }, [initialSubdomain]);
 
   return tenantState;
 };

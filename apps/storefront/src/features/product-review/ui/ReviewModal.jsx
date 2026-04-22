@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useRef, useEffect } from 'react';
 import { X, Star, Camera, Loader2, AlertCircle } from 'lucide-react';
 

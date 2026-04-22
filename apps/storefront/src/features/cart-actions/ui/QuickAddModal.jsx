@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useAppContext } from '../../../app/providers/AppContext';
 
 export default function QuickAddModal() {
   const { quickAddProduct, setQuickAddProduct, addToCart } = useAppContext();
   const [selectedAttrs, setSelectedAttrs] = useState({});
-
-  useEffect(() => {
-    setSelectedAttrs({});
-  }, [quickAddProduct]);
 
   if (!quickAddProduct) return null;
 
@@ -31,6 +27,7 @@ export default function QuickAddModal() {
       });
 
       addToCart(quickAddProduct, matchedSku || null, 1, selectedAttrs);
+      setSelectedAttrs({});
       setQuickAddProduct(null);
     }
   };
@@ -42,7 +39,7 @@ export default function QuickAddModal() {
       <div className="bg-white rounded-xl max-w-md w-full overflow-hidden shadow-2xl relative">
         <div className="flex justify-between items-center p-4 border-b border-slate-100">
           <h2 className="text-lg font-bold text-slate-900">Select Options</h2>
-          <button onClick={() => setQuickAddProduct(null)} className="p-1 hover:bg-slate-100 rounded-full transition-colors">
+          <button onClick={() => { setSelectedAttrs({}); setQuickAddProduct(null); }} className="p-1 hover:bg-slate-100 rounded-full transition-colors">
             <X className="text-slate-500 w-5 h-5" />
           </button>
         </div>

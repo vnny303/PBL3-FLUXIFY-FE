@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import CheckoutForm, { CITY_OPTIONS, STATE_OPTIONS } from '../../../../../features/checkout/ui/CheckoutForm';
 import OrderSummary from '../../../../../features/checkout/ui/OrderSummary';
 import { useAppContext } from '../../../../../app/providers/AppContext';
-import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
 import { orderService } from '../../../../../shared/api/orderService';
 
 const formatAddressText = (address) => {
@@ -22,7 +21,6 @@ const formatAddressText = (address) => {
 export default function Checkout() {
   const navigate = useNavigate();
   const { isLoggedIn, user, cartItems, cartTotal, refreshCart } = useAppContext();
-  const { tenantId } = useStorefrontTenant();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [street, setStreet] = useState('');

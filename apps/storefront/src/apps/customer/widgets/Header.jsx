@@ -26,10 +26,6 @@ export default function Header() {
   };
 
   const primaryColor = theme?.colors?.primary || '#1754cf';
-  const backgroundColor = theme?.colors?.background || '#f6f6f8';
-  const textColor = theme?.colors?.text || '#0f172a';
-  const radius = `${theme?.layout?.borderRadius || 12}px`;
-  const softRadius = `${Math.max((theme?.layout?.borderRadius || 12) - 4, 8)}px`;
 
   const navLinkStyle = (isActive) => ({
     color: isActive ? theme?.colors?.primary || '#1754cf' : headerTheme.text,

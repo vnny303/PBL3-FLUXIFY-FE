@@ -1,9 +1,15 @@
-import React, { useContext } from 'react';
-import { AuthProvider, useAuthContext } from '../../entities/user/model/AuthContext';
-import { CartProvider, useCartContext } from '../../entities/cart/model/CartContext';
-import { WishlistProvider, useWishlistContext } from './WishlistContext';
-import { SearchProvider, useSearchContext } from './SearchContext';
-import { ProductProvider, useProductContext } from './ProductContext';
+/* eslint-disable react-refresh/only-export-components */
+import React from 'react';
+import { AuthProvider } from '../../entities/user/model/AuthContext';
+import { useAuthContext } from '../../entities/user/model/authContext';
+import { CartProvider } from '../../entities/cart/model/CartContext';
+import { useCartContext } from '../../entities/cart/model/cartContext';
+import { WishlistProvider } from './WishlistContext';
+import { useWishlistContext } from './wishlistContext';
+import { SearchProvider } from './SearchContext';
+import { useSearchContext } from './searchContext';
+import { ProductProvider } from './ProductContext';
+import { useProductContext } from './productContext';
 
 export function AppProvider({ children }) {
   return (

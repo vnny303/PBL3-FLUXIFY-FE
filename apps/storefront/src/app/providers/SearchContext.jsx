@@ -1,9 +1,15 @@
-import React, { createContext, useState, useContext } from 'react';
-
-const SearchContext = createContext();
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setSearchQuery as setSearchQueryAction } from '../store/slices/searchSlice';
+import { SearchContext } from './searchContext';
 
 export function SearchProvider({ children }) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const dispatch = useDispatch();
+  const searchQuery = useSelector((state) => state.search.searchQuery);
+
+  const setSearchQuery = (query) => {
+    dispatch(setSearchQueryAction(query));
+  };
 
   return (
     <SearchContext.Provider value={{ searchQuery, setSearchQuery }}>
@@ -11,5 +17,3 @@ export function SearchProvider({ children }) {
     </SearchContext.Provider>
   );
 }
-
-export const useSearchContext = () => useContext(SearchContext);

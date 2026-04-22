@@ -1,10 +1,17 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
-import { useAuthContext } from '../../user/model/AuthContext';
+import { useAuthContext } from '../../user/model/authContext';
 import { useStorefrontTenant } from '../../../features/theme/useStorefrontTenant';
 import { cartService } from '../../../shared/api/cartService';
-
-const CartContext = createContext();
+import {
+  setCartItems as setCartItemsAction,
+  setIsLoadingCart as setIsLoadingCartAction,
+  setLastAddedItem as setLastAddedItemAction,
+  setShowAddToCartPopup as setShowAddToCartPopupAction,
+  setShowCart as setShowCartAction,
+} from '../../../app/store/slices/cartSlice';
+import { CartContext } from './cartContext';
 
 const safeParseJson = (value, fallback = {}) => {
   if (!value) return fallback;
@@ -20,22 +27,33 @@ const safeParseJson = (value, fallback = {}) => {
 export function CartProvider({ children }) {
   const { isLoggedIn, setShowModal, user } = useAuthContext();
   const { tenantId } = useStorefrontTenant();
-  
-  const [showCart, setShowCart] = useState(false);
-  const [showAddToCartPopup, setShowAddToCartPopup] = useState(false);
-  const [cartItems, setCartItems] = useState([]);
-  const [lastAddedItem, setLastAddedItem] = useState(null);
-  const [isLoadingCart, setIsLoadingCart] = useState(false);
+  const dispatch = useDispatch();
+  const {
+    showCart,
+    showAddToCartPopup,
+    cartItems,
+    lastAddedItem,
+    isLoadingCart,
+  } = useSelector((state) => state.cart);
+
+  const setShowCart = useCallback(
+    (value) => dispatch(setShowCartAction(value)),
+    [dispatch]
+  );
+  const setShowAddToCartPopup = useCallback(
+    (value) => dispatch(setShowAddToCartPopupAction(value)),
+    [dispatch]
+  );
 
   // Re-sync with Backend
   const fetchCart = useCallback(async () => {
     if (!isLoggedIn || !user?.userId || !tenantId) {
-      setCartItems([]);
+      dispatch(setCartItemsAction([]));
       return;
     }
     try {
-      setIsLoadingCart(true);
-      const response = await cartService.getCart(tenantId, user.userId);
+      dispatch(setIsLoadingCartAction(true));
+      const response = await cartService.getCart();
       const items = Array.isArray(response)
         ? response
         : (Array.isArray(response?.items) ? response.items : []);
@@ -50,13 +68,13 @@ export function CartProvider({ children }) {
         skuAttributes: safeParseJson(apiItem.productSku?.attributes || apiItem.skuAttributes, {}),
         image: apiItem.productSku?.imgUrl || apiItem.skuImgUrl || apiItem.productSku?.image || apiItem.product?.imgUrls?.[0] || apiItem.product?.images?.[0] || apiItem.image || 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000',
       }));
-      setCartItems(normalizedItems);
+      dispatch(setCartItemsAction(normalizedItems));
     } catch (error) {
       console.error("Failed to fetch cart:", error);
     } finally {
-      setIsLoadingCart(false);
+      dispatch(setIsLoadingCartAction(false));
     }
-  }, [isLoggedIn, user?.userId, tenantId]);
+  }, [dispatch, isLoggedIn, user?.userId, tenantId]);
 
   useEffect(() => {
     fetchCart();
@@ -71,15 +89,18 @@ export function CartProvider({ children }) {
     const skuId = selectedSku?.id || product.skus?.[0]?.id || product.productSkuId || product.id;
 
     // Optimistic Update
-    setCartItems(prev => {
-      const existing = prev.find(item => item.productSkuId === skuId);
-      if (existing) {
-        return prev.map(item => item === existing ? { ...item, quantity: item.quantity + quantity } : item);
-      }
-      
+    const existing = cartItems.find((item) => item.productSkuId === skuId);
+    let optimisticItems = cartItems;
+    if (existing) {
+      optimisticItems = cartItems.map((item) =>
+        item.productSkuId === skuId
+          ? { ...item, quantity: item.quantity + quantity }
+          : item
+      );
+    } else {
       const price = selectedSku?.price ?? product.price ?? 0;
       const parsedPrice = typeof price === 'number' ? price : parseFloat(price.replace('$', '')) || 0;
-      
+
       const cartItem = {
         cartId: `temp-${Date.now()}`,
         id: product.id,
@@ -91,19 +112,21 @@ export function CartProvider({ children }) {
         skuAttributes: selectedAttributes,
         image: selectedSku?.imgUrl || selectedSku?.image || product.image || product.imgUrls?.[0],
       };
-      return [cartItem, ...prev];
-    });
-    
-    setLastAddedItem({ ...product, quantity, attributes: selectedAttributes });
+      optimisticItems = [cartItem, ...cartItems];
+    }
+
+    dispatch(setCartItemsAction(optimisticItems));
+
+    dispatch(setLastAddedItemAction({ ...product, quantity, attributes: selectedAttributes }));
     if (showPopup) {
-      setShowAddToCartPopup(true);
+      dispatch(setShowAddToCartPopupAction(true));
     } else {
       toast.success('Đã thêm vào giỏ hàng!');
     }
 
     // Server Sync
     try {
-      await cartService.addToCart(tenantId, user.userId, { productSkuId: skuId, quantity });
+      await cartService.addToCart({ productSkuId: skuId, quantity });
       fetchCart(); // Refetch to get true ID
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng');
@@ -113,45 +136,51 @@ export function CartProvider({ children }) {
 
   const removeFromCart = async (cartId) => {
     const previousItems = [...cartItems];
-    setCartItems(prev => prev.filter(item => item.cartId !== cartId));
+    dispatch(setCartItemsAction(cartItems.filter((item) => item.cartId !== cartId)));
     toast.info('Đã xoá sản phẩm khỏi giỏ hàng');
 
     if (String(cartId).startsWith('temp-')) return;
     try {
-      await cartService.removeFromCart(tenantId, user.userId, cartId);
+      await cartService.removeFromCart(cartId);
     } catch {
       toast.error('Lỗi khi xoá sản phẩm');
-      setCartItems(previousItems); // Rollback
+      dispatch(setCartItemsAction(previousItems)); // Rollback
     }
   };
 
   const updateQuantity = async (cartId, newQuantity) => {
     if (newQuantity < 1) return;
     const previousItems = [...cartItems];
-    setCartItems(prev => prev.map(item => item.cartId === cartId ? { ...item, quantity: newQuantity } : item));
+    dispatch(
+      setCartItemsAction(
+        cartItems.map((item) =>
+          item.cartId === cartId ? { ...item, quantity: newQuantity } : item
+        )
+      )
+    );
 
     if (String(cartId).startsWith('temp-')) return;
     try {
-      await cartService.updateCartItem(tenantId, user.userId, cartId, { quantity: newQuantity });
+      await cartService.updateCartItem(cartId, { quantity: newQuantity });
     } catch {
       toast.error('Lỗi khi cập nhật số lượng');
-      setCartItems(previousItems); // Rollback
+      dispatch(setCartItemsAction(previousItems)); // Rollback
     }
   };
 
   const clearCart = async () => {
     if (!tenantId || !user?.userId) {
-      setCartItems([]);
+      dispatch(setCartItemsAction([]));
       return;
     }
 
     const previousItems = [...cartItems];
-    setCartItems([]);
+    dispatch(setCartItemsAction([]));
 
     try {
-      await cartService.clearCart(tenantId, user.userId);
+      await cartService.clearCart();
     } catch {
-      setCartItems(previousItems);
+      dispatch(setCartItemsAction(previousItems));
       toast.error('Lỗi khi làm mới giỏ hàng');
     }
   };
@@ -176,5 +205,3 @@ export function CartProvider({ children }) {
     </CartContext.Provider>
   );
 }
-
-export const useCartContext = () => useContext(CartContext);

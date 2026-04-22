@@ -1,20 +1,25 @@
-import React, { createContext, useState, useContext } from 'react';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
-
-const WishlistContext = createContext();
+import {
+  addWishlistItem,
+  removeWishlistItem,
+} from '../store/slices/wishlistSlice';
+import { WishlistContext } from './wishlistContext';
 
 export function WishlistProvider({ children }) {
-  const [wishlistItems, setWishlistItems] = useState([]);
+  const dispatch = useDispatch();
+  const wishlistItems = useSelector((state) => state.wishlist.wishlistItems);
 
   const wishlistCount = wishlistItems.length;
 
   const toggleWishlist = (product) => {
     const exists = wishlistItems.some((item) => item.id === product.id);
     if (exists) {
-      setWishlistItems((prev) => prev.filter((item) => item.id !== product.id));
+      dispatch(removeWishlistItem(product.id));
       toast.info('Removed from wishlist.');
     } else {
-      setWishlistItems((prev) => [product, ...prev]);
+      dispatch(addWishlistItem(product));
       toast.success('Added to wishlist! ❤️');
     }
   };
@@ -27,5 +32,3 @@ export function WishlistProvider({ children }) {
     </WishlistContext.Provider>
   );
 }
-
-export const useWishlistContext = () => useContext(WishlistContext);

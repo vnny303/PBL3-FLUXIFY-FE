@@ -53,13 +53,13 @@ export default function OrderStatusTimeline({ orderStatus, currentIndex, progres
                 { label: 'Processing', Icon: Package, date: 'Oct 13' },
                 { label: 'Shipped', Icon: Truck, date: 'Expected Oct 14' },
                 { label: 'Delivered', Icon: CheckCircle, date: 'Est. Oct 16' },
-              ].map(({ label, Icon, date }, i) => (
-                <div key={label} className="flex flex-col items-center gap-2">
+              ].map((step, i) => (
+                <div key={step.label} className="flex flex-col items-center gap-2">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 transition-colors duration-500 ${currentIndex >= i ? 'bg-primary text-white shadow-sm shadow-primary/30' : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-400'}`}>
-                    <Icon className="w-4 h-4" />
+                    {React.createElement(step.Icon, { className: 'w-4 h-4' })}
                   </div>
-                  <span className={`text-xs font-bold ${currentIndex >= i ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>{label}</span>
-                  <span className="text-[10px] text-slate-500">{date}</span>
+                  <span className={`text-xs font-bold ${currentIndex >= i ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>{step.label}</span>
+                  <span className="text-[10px] text-slate-500">{step.date}</span>
                 </div>
               ))}
             </div>
