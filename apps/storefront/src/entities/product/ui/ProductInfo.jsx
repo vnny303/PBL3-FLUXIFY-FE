@@ -38,12 +38,13 @@ export default function ProductInfo({ product, selectedSku, selectedAttributes, 
           {stockText}
         </span>
         <div className="flex items-center text-amber-400 text-sm">
-          <Star className="text-sm" fill="currentColor" />
-          <Star className="text-sm" fill="currentColor" />
-          <Star className="text-sm" fill="currentColor" />
-          <Star className="text-sm" fill="currentColor" />
-          <StarHalf className="text-sm" fill="currentColor" />
-          <span className="text-slate-500 text-xs ml-2">(128 reviews)</span>
+          {Array.from({ length: 5 }).map((_, i) => {
+            const rating = product.averageRating || 0;
+            if (i < Math.floor(rating)) return <Star key={i} className="text-sm" fill="currentColor" />;
+            if (i < rating) return <StarHalf key={i} className="text-sm" fill="currentColor" />;
+            return <Star key={i} className="text-sm text-slate-300" />;
+          })}
+          <span className="text-slate-500 text-xs ml-2">({product.numReviews || 0} reviews)</span>
         </div>
       </div>
 

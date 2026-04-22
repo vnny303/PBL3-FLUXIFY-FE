@@ -123,7 +123,7 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <ProductTabs />
+      <ProductTabs product={product} />
     </main>
   );
 }
