@@ -13,18 +13,20 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const orderData = order || {
-    id: '#FLX-8829',
-    date: 'Oct 12, 2023',
-    total: '$242.50',
-    status: 'Pending',
-    paymentMethod: 'BankTransfer',
-    orderItems: [
-      { id: 'item-1', productSkuId: 'sku-1', productName: 'Premium Headphones', skuAttributes: { color: 'Space Gray', size: 'Wireless' }, image: 'https://picsum.photos/seed/product1/200/300', unitPrice: 199.00 },
-      { id: 'item-2', productSkuId: 'sku-2', productName: 'Cotton T-Shirt', skuAttributes: { color: 'Arctic White', size: 'Large' }, image: 'https://picsum.photos/seed/product2/200/300', unitPrice: 25.00 },
-    ],
-    totalAmount: 242.50,
-  };
+  if (!order) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-10 min-h-[400px]">
+        <AlertCircle className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No Order Selected</h2>
+        <p className="text-slate-500 dark:text-slate-400 text-center">Please select an order from the list to view its details.</p>
+        <button onClick={() => setCurrentScreen('my-orders')} className="mt-6 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors">
+          View My Orders
+        </button>
+      </div>
+    );
+  }
+
+  const orderData = order;
 
   // Normalize order items: support both BE format (orderItems) and legacy format (items)
   const normalizedItems = (orderData.orderItems || orderData.items || []).map(item => ({

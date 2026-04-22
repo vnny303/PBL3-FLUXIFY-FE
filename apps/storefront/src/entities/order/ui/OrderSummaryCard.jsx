@@ -2,6 +2,45 @@ import React from 'react';
 import { MapPin, CreditCard, Building } from 'lucide-react';
 
 export default function OrderSummaryCard({ order }) {
+  const getAddressLines = () => {
+    if (!order.shippingAddress) return ['Address not provided'];
+    if (typeof order.shippingAddress === 'string') {
+      return order.shippingAddress.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    const { name, street, city, state, zip, country } = order.shippingAddress;
+    return [
+      name,
+      street,
+      [city, state, zip].filter(Boolean).join(', '),
+      country
+    ].filter(Boolean);
+  };
+
+  const addressLines = getAddressLines();
+
+  const calculateSubtotal = () => {
+    return order.items.reduce((sum, item) => {
+      let price = 0;
+      if (typeof item.price === 'string') {
+        price = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
+      } else if (typeof item.price === 'number') {
+        price = item.price;
+      }
+      return sum + (price * (item.quantity || 1));
+    }, 0);
+  };
+
+  const subtotal = calculateSubtotal();
+  let totalNum = 0;
+  if (typeof order.total === 'string') {
+    totalNum = parseFloat(order.total.replace(/[^0-9.]/g, '')) || 0;
+  } else if (typeof order.totalAmount === 'number') {
+    totalNum = order.totalAmount;
+  }
+  
+  const diff = Math.max(0, totalNum - subtotal);
+  const taxAndShipping = diff > 0 ? diff : 0;
+
   return (
     <div className="space-y-6">
       {/* Shipping Details */}
@@ -12,10 +51,11 @@ export default function OrderSummaryCard({ order }) {
             Shipping Address
           </h3>
           <div className="text-sm text-slate-600 dark:text-slate-400">
-            <p className="font-bold text-slate-900 dark:text-white mb-1">Alex Thompson</p>
-            <p>123 Maple St.</p>
-            <p>Springfield, IL 62704</p>
-            <p>United States</p>
+            {addressLines.map((line, idx) => (
+              <p key={idx} className={idx === 0 ? "font-bold text-slate-900 dark:text-white mb-1" : ""}>
+                {line}
+              </p>
+            ))}
           </div>
           <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
             <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tracking Info</h4>
@@ -35,7 +75,9 @@ export default function OrderSummaryCard({ order }) {
             <Building className="w-4 h-4" />
           </div>
           <div>
-            <p className="font-medium text-slate-900 dark:text-white">{order.paymentMethod}</p>
+            <p className="font-medium text-slate-900 dark:text-white">
+              {order.paymentMethod === 'BankTransfer' ? 'Bank Transfer' : (order.paymentMethod || 'N/A')}
+            </p>
           </div>
         </div>
       </div>
@@ -46,15 +88,11 @@ export default function OrderSummaryCard({ order }) {
         <div className="space-y-3 text-sm">
           <div className="flex justify-between text-slate-600 dark:text-slate-400">
             <span>Subtotal</span>
-            <span className="font-medium text-slate-900 dark:text-white">$224.00</span>
+            <span className="font-medium text-slate-900 dark:text-white">${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-slate-600 dark:text-slate-400">
-            <span>Shipping</span>
-            <span className="font-medium text-emerald-600 dark:text-emerald-400">Free</span>
-          </div>
-          <div className="flex justify-between text-slate-600 dark:text-slate-400">
-            <span>Estimated Tax</span>
-            <span className="font-medium text-slate-900 dark:text-white">$18.50</span>
+            <span>Shipping & Tax</span>
+            <span className="font-medium text-slate-900 dark:text-white">${taxAndShipping.toFixed(2)}</span>
           </div>
           <div className="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
             <span className="font-bold text-slate-900 dark:text-white text-base">Total</span>
