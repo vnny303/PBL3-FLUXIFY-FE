@@ -5,10 +5,8 @@ import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig
 export default function ProductCard({ product, onQuickAdd, onCardClick }) {
   const { theme } = useStorefrontConfig();
 
-  // imgUrls is an array; fall back to legacy img/image fields for compatibility
-  const imageSrc = product.imgUrls?.[0] || product.image || product.img;
-  const displayPrice =
-    typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price;
+  const imageSrc = product.image;
+  const displayPrice = typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price;
 
   const handleQuickAddClick = (event) => {
     event.stopPropagation();

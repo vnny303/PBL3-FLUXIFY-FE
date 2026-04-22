@@ -1,6 +1,15 @@
 import React from 'react';
 
-export default function OrderSummary({ shippingFee, isProcessing, onPlaceOrder }) {
+const parsePrice = (value) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return parseFloat(value.replace('$', '')) || 0;
+  return 0;
+};
+
+export default function OrderSummary({ cartItems = [], cartSubtotal = 0, shippingFee, isProcessing, onPlaceOrder }) {
+  const taxAmount = cartSubtotal * 0.08;
+  const totalAmount = cartSubtotal + shippingFee + taxAmount;
+
   return (
     <div className="lg:w-[40%]">
       <div className="sticky top-24 space-y-6">
@@ -8,37 +17,34 @@ export default function OrderSummary({ shippingFee, isProcessing, onPlaceOrder }
           <div className="p-6">
             <h2 className="text-lg font-semibold mb-6">Order Summary</h2>
             <div className="space-y-4 mb-8">
-              <div className="flex gap-4">
-                <div className="relative shrink-0">
-                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700">
-                    <img alt="Product" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC91t2pyJhSgPheIcTraxnx_IjtORdtH6oV0njyzm5RsucG_oA25OZHAhomnuFVGw1w0_oFQngyUYEsKRGo-uLWoAHyf6MKLw-Ii7Z2Gid4g1i5Lj94_cyXAb8B9pXi6ZBHJJVjSgeJjiywcZ1XZesq8brYS5i43e8LeXLhgBdNqrFIJ8g01k5GpUjr3zoOWy4dBs6P-llGq1LXbshi4LBwqxb-cM2EQqEK7M_CL9qsxZHLazlOblBWj7s-4-TFAYFevg3v-CAw5lU" />
+              {cartItems.length === 0 ? (
+                <p className="text-sm text-slate-500">Không có sản phẩm trong giỏ hàng.</p>
+              ) : (
+                cartItems.map((item) => (
+                  <div key={item.cartId} className="flex gap-4">
+                    <div className="relative shrink-0">
+                      <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700">
+                        <img alt={item.productName} className="w-full h-full object-cover" src={item.image} />
+                      </div>
+                      <span className="absolute -top-2 -right-2 bg-slate-800 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{item.quantity}</span>
+                    </div>
+                    <div className="grow">
+                      <h3 className="text-sm font-medium">{item.productName}</h3>
+                      <p className="text-xs text-slate-500">
+                        {Object.entries(item.skuAttributes || {})
+                          .map(([key, value]) => `${key}: ${value}`)
+                          .join(' | ') || 'Standard'}
+                      </p>
+                      <p className="text-sm font-semibold mt-1">${parsePrice(item.price).toFixed(2)}</p>
+                    </div>
                   </div>
-                  <span className="absolute -top-2 -right-2 bg-slate-800 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">1</span>
-                </div>
-                <div className="grow">
-                  <h3 className="text-sm font-medium">Premium Cotton Tee</h3>
-                  <p className="text-xs text-slate-500">Size: M | Color: Black</p>
-                  <p className="text-sm font-semibold mt-1">$45.00</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="relative shrink-0">
-                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700">
-                    <img alt="Product" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUNGxlIRTXReW9Q9Yd7wIDeQYzzIhyh5ScKTqXgrBfJLJh706M2rcsnjwaDTvntmOrsdsAER5sUc7PvLYGPQ0chtoSg9AGgncSe5DF17gqSDfB-cSvI45M8xQMcOjCohW1q3Y3yUxsijLJsgy8E_AvExiwbjwXHJo-HUVuW6CghKFTyr3txOm4dalp5AeFpJbjQJX-NMU_8V2MgUuMktB9CZIDuTVQMeEIbje1W6rRm5mbFUb768GrIQEChIGLRuxY-pEOkUeP0E8" />
-                  </div>
-                  <span className="absolute -top-2 -right-2 bg-slate-800 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">1</span>
-                </div>
-                <div className="grow">
-                  <h3 className="text-sm font-medium">Hydrating Face Cream</h3>
-                  <p className="text-xs text-slate-500">50ml | All Skin Types</p>
-                  <p className="text-sm font-semibold mt-1">$32.00</p>
-                </div>
-              </div>
+                ))
+              )}
             </div>
             <div className="space-y-3 pt-6 border-t border-slate-100 dark:border-slate-800">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Subtotal</span>
-                <span className="font-medium">$77.00</span>
+                <span className="font-medium">${cartSubtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Shipping</span>
@@ -46,16 +52,16 @@ export default function OrderSummary({ shippingFee, isProcessing, onPlaceOrder }
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Estimated Tax</span>
-                <span className="font-medium">$6.16</span>
+                <span className="font-medium">${taxAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-xl font-bold pt-3 border-t border-slate-100 dark:border-slate-800">
                 <span>Total</span>
-                <span className="text-primary">${(77.00 + shippingFee + 6.16).toFixed(2)}</span>
+                <span className="text-primary">${totalAmount.toFixed(2)}</span>
               </div>
             </div>
             <div className="mt-8 space-y-4">
               {!isProcessing ? (
-                <button onClick={onPlaceOrder} className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3">
+                <button onClick={onPlaceOrder} disabled={cartItems.length === 0} className="w-full bg-primary hover:bg-primary/90 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3">
                   Place Order
                 </button>
               ) : (

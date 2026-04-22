@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from '../../../widgets/Sidebar';
 import MyOrders from './MyOrders';
@@ -6,88 +6,44 @@ import SavedAddresses from './SavedAddresses';
 import ProfileSettings from './ProfileSettings';
 import OrderDetails from './OrderDetails';
 import Notifications from './Notifications';
-
-// Mock data for orders matching BE response format
-const mockOrders = [
-  {
-    id: 'ord-001',
-    tenantId: 'tenant-demo',
-    customerId: 'cust-001',
-    address: '123 Đường ABC, Quận 1, TP.HCM',
-    status: 'Pending',
-    paymentMethod: 'COD',
-    paymentStatus: 'Pending',
-    totalAmount: 82.07,
-    createdAt: '2024-10-24T00:00:00Z',
-    orderItems: [
-      { id: 'orderitem-001', productSkuId: 'sku-001', productName: 'T-Shirt', quantity: 2, unitPrice: 25.00, image: 'https://picsum.photos/seed/shirt1/100/100' },
-      { id: 'orderitem-002', productSkuId: 'sku-002', productName: 'Jeans', quantity: 1, unitPrice: 32.07, image: 'https://picsum.photos/seed/jeans1/100/100' },
-    ],
-  },
-  {
-    id: 'ord-002',
-    tenantId: 'tenant-demo',
-    customerId: 'cust-001',
-    address: '456 Đường XYZ, Quận 3, TP.HCM',
-    status: 'Delivered',
-    paymentMethod: 'BankTransfer',
-    paymentStatus: 'Paid',
-    totalAmount: 145.50,
-    createdAt: '2024-09-12T00:00:00Z',
-    orderItems: [
-      { id: 'orderitem-003', productSkuId: 'sku-003', productName: 'Sneakers', quantity: 1, unitPrice: 145.50, image: 'https://picsum.photos/seed/shoes1/100/100' },
-    ],
-  },
-  {
-    id: 'ord-003',
-    tenantId: 'tenant-demo',
-    customerId: 'cust-001',
-    address: '789 Đường DEF, Quận 7, TP.HCM',
-    status: 'Delivered',
-    paymentMethod: 'COD',
-    paymentStatus: 'Paid',
-    totalAmount: 45.00,
-    createdAt: '2024-08-05T00:00:00Z',
-    orderItems: [
-      { id: 'orderitem-004', productSkuId: 'sku-004', productName: 'Cap', quantity: 1, unitPrice: 20.00, image: 'https://picsum.photos/seed/cap1/100/100' },
-      { id: 'orderitem-005', productSkuId: 'sku-005', productName: 'Socks', quantity: 2, unitPrice: 12.50, image: 'https://picsum.photos/seed/socks1/100/100' },
-    ],
-  },
-  {
-    id: 'ord-004',
-    tenantId: 'tenant-demo',
-    customerId: 'cust-001',
-    address: '321 Đường GHI, Quận 10, TP.HCM',
-    status: 'Delivered',
-    paymentMethod: 'BankTransfer',
-    paymentStatus: 'Paid',
-    totalAmount: 210.99,
-    createdAt: '2024-07-18T00:00:00Z',
-    orderItems: [
-      { id: 'orderitem-006', productSkuId: 'sku-006', productName: 'Jacket', quantity: 1, unitPrice: 150.00, image: 'https://picsum.photos/seed/jacket1/100/100' },
-      { id: 'orderitem-007', productSkuId: 'sku-007', productName: 'Boots', quantity: 1, unitPrice: 60.99, image: 'https://picsum.photos/seed/boots1/100/100' },
-    ],
-  },
-  {
-    id: 'ord-005',
-    tenantId: 'tenant-demo',
-    customerId: 'cust-001',
-    address: '654 Đường JKL, Quận 1, TP.HCM',
-    status: 'Delivered',
-    paymentMethod: 'MoMo',
-    paymentStatus: 'Paid',
-    totalAmount: 35.50,
-    createdAt: '2024-06-30T00:00:00Z',
-    orderItems: [
-      { id: 'orderitem-008', productSkuId: 'sku-008', productName: 'Sunglasses', quantity: 1, unitPrice: 35.50, image: 'https://picsum.photos/seed/sunglasses1/100/100' },
-    ],
-  },
-];
+import { useAppContext } from '../../../../../app/providers/AppContext';
+import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
+import { orderService } from '../../../../../shared/api/orderService';
 
 export default function AccountPage() {
   const location = useLocation();
+  const { isLoggedIn, user } = useAppContext();
+  const { tenantId } = useStorefrontTenant();
   const [currentScreen, setCurrentScreen] = useState(location.state?.screen || 'my-orders');
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState(null);
+
+  const fetchCustomerOrders = useCallback(async () => {
+    if (!isLoggedIn || !tenantId || !user?.userId) {
+      setOrders([]);
+      return;
+    }
+
+    setIsLoadingOrders(true);
+    setOrdersError(null);
+
+    try {
+      const response = await orderService.getCustomerOrders(tenantId, user.userId, {
+        page: 1,
+        pageSize: 50,
+        sortBy: 'createdAt',
+        sortDir: 'desc',
+      });
+      setOrders(Array.isArray(response) ? response : []);
+    } catch (error) {
+      setOrders([]);
+      setOrdersError(error?.response?.data?.message || 'Không thể tải danh sách đơn hàng');
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, [isLoggedIn, tenantId, user?.userId]);
 
   useEffect(() => {
     if (location.state?.screen) {
@@ -95,20 +51,50 @@ export default function AccountPage() {
     }
   }, [location.state]);
 
+  useEffect(() => {
+    fetchCustomerOrders();
+  }, [fetchCustomerOrders]);
+
+  const selectedOrder = useMemo(() => {
+    if (orders.length === 0) {
+      return null;
+    }
+
+    return orders.find((order) => order.id === selectedOrderId) || orders[0];
+  }, [orders, selectedOrderId]);
+
   const renderScreen = () => {
     switch (currentScreen) {
       case 'my-orders':
-        return <MyOrders setCurrentScreen={setCurrentScreen} setSelectedOrderId={setSelectedOrderId} orders={mockOrders} />;
+        return (
+          <MyOrders
+            setCurrentScreen={setCurrentScreen}
+            setSelectedOrderId={setSelectedOrderId}
+            orders={orders}
+            isLoading={isLoadingOrders}
+            error={ordersError}
+            onRetry={fetchCustomerOrders}
+          />
+        );
       case 'saved-addresses':
         return <SavedAddresses />;
       case 'profile-settings':
         return <ProfileSettings />;
       case 'order-details':
-        return <OrderDetails setCurrentScreen={setCurrentScreen} order={mockOrders.find(o => o.id === selectedOrderId) || mockOrders[0]} />;
+        return <OrderDetails key={selectedOrder?.id || 'empty-order'} setCurrentScreen={setCurrentScreen} order={selectedOrder} />;
       case 'notifications':
         return <Notifications />;
       default:
-        return <MyOrders setCurrentScreen={setCurrentScreen} setSelectedOrderId={setSelectedOrderId} orders={mockOrders} />;
+        return (
+          <MyOrders
+            setCurrentScreen={setCurrentScreen}
+            setSelectedOrderId={setSelectedOrderId}
+            orders={orders}
+            isLoading={isLoadingOrders}
+            error={ordersError}
+            onRetry={fetchCustomerOrders}
+          />
+        );
     }
   };
 

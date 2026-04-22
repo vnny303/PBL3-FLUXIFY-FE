@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ArrowLeft, Loader2, AlertCircle, ChevronDown, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import ReviewModal from '../../../../../features/product-review/ui/ReviewModal';
@@ -54,10 +54,6 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   const [cancelReason, setCancelReason] = useState('');
   const [isReasonDropdownOpen, setIsReasonDropdownOpen] = useState(false);
 
-  useEffect(() => {
-    if (order?.status) setOrderStatus(order.status);
-  }, [order?.status]);
-
   const cancellationReasons = [
     { id: 'changed_mind', label: 'Changed my mind' },
     { id: 'found_cheaper', label: 'Found a cheaper alternative' },
@@ -69,6 +65,12 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   const getVariantDetails = (variant) => {
     const parts = variant ? variant.split('•') : [];
     return { size: parts[0]?.trim() || 'Standard', color: parts[1]?.trim() || 'Default' };
+  };
+
+  const toNumericPrice = (value) => {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') return parseFloat(value.replace('$', '')) || 0;
+    return 0;
   };
 
   const handleWriteReview = (product) => { setSelectedProduct(product); setIsReviewModalOpen(true); };
@@ -87,7 +89,29 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     setBuyingItemIds(prev => ({ ...prev, [idx]: true }));
     setTimeout(() => {
       const { size, color } = getVariantDetails(item.variant);
-      addToCart({ ...item, id: item.id || item.name || `product-${idx}`, name: item.name || 'Product', price: item.price || '$35.00', image: item.image || `https://picsum.photos/seed/product${idx}/200/300` }, 1, color, size, false);
+      const skuAttributes = item.skuAttributes || { size, color };
+      const unitPrice = toNumericPrice(item.price);
+
+      addToCart(
+        {
+          id: item.productSkuId || item.id || `product-${idx}`,
+          productSkuId: item.productSkuId || item.id || `product-${idx}`,
+          productName: item.name || 'Product',
+          name: item.name || 'Product',
+          price: unitPrice,
+          image: item.image || `https://picsum.photos/seed/product${idx}/200/300`,
+        },
+        {
+          id: item.productSkuId || item.id || `product-${idx}`,
+          price: unitPrice,
+          imgUrl: item.image,
+          attributes: skuAttributes,
+        },
+        1,
+        skuAttributes,
+        false
+      );
+
       setShowCart(true);
       setBuyingItemIds(prev => ({ ...prev, [idx]: false }));
     }, 500);
@@ -98,7 +122,28 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     setTimeout(() => {
       normalizedOrder.items.forEach((item, idx) => {
         const { size, color } = getVariantDetails(item.variant);
-        addToCart({ ...item, id: item.id || item.name || `product-${idx}`, name: item.name || 'Product', price: item.price || '$35.00', image: item.image || `https://picsum.photos/seed/product${idx}/200/300` }, 1, color, size, false);
+        const skuAttributes = item.skuAttributes || { size, color };
+        const unitPrice = toNumericPrice(item.price);
+
+        addToCart(
+          {
+            id: item.productSkuId || item.id || `product-${idx}`,
+            productSkuId: item.productSkuId || item.id || `product-${idx}`,
+            productName: item.name || 'Product',
+            name: item.name || 'Product',
+            price: unitPrice,
+            image: item.image || `https://picsum.photos/seed/product${idx}/200/300`,
+          },
+          {
+            id: item.productSkuId || item.id || `product-${idx}`,
+            price: unitPrice,
+            imgUrl: item.image,
+            attributes: skuAttributes,
+          },
+          item.quantity || 1,
+          skuAttributes,
+          false
+        );
       });
       setShowCart(true);
       setIsBuyingWholeOrder(false);

@@ -1,11 +1,29 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import CheckoutForm, { CITY_OPTIONS, STATE_OPTIONS } from '../../../../../features/checkout/ui/CheckoutForm';
 import OrderSummary from '../../../../../features/checkout/ui/OrderSummary';
+import { useAppContext } from '../../../../../app/providers/AppContext';
+import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
+import { orderService } from '../../../../../shared/api/orderService';
+
+const formatAddressText = (address) => {
+  return [
+    address?.street,
+    address?.city,
+    address?.state,
+    address?.zip,
+    address?.country,
+  ]
+    .filter(Boolean)
+    .join(', ');
+};
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const { isLoggedIn, user, cartItems, cartTotal, refreshCart } = useAppContext();
+  const { tenantId } = useStorefrontTenant();
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
@@ -16,15 +34,21 @@ export default function Checkout() {
   const [addresses, setAddresses] = useState([]);
 
   const [contactInfo, setContactInfo] = useState({
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '+1 (555) 000-1234'
+    name: user?.email?.split('@')?.[0] || 'Guest Customer',
+    email: user?.email || 'guest@example.com',
+    phone: '',
   });
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isSavingContact, setIsSavingContact] = useState(false);
   const [editContactForm, setEditContactForm] = useState({ ...contactInfo });
   const [isAddingNewAddress, setIsAddingNewAddress] = useState(true);
   const [addressErrors, setAddressErrors] = useState({});
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/checkout' } });
+    }
+  }, [isLoggedIn, navigate]);
 
   const validateAddress = () => {
     const errors = {};
@@ -74,35 +98,102 @@ export default function Checkout() {
     }
   };
 
-  const handlePlaceOrder = () => {
-    if (selectedAddress === 'new') {
-      if (!validateAddress()) { setIsAddingNewAddress(true); return; }
+  const handlePlaceOrder = async () => {
+    if (!isLoggedIn) {
+      toast.error('Vui lòng đăng nhập để checkout');
+      return;
     }
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      let finalAddress = null;
-      if (selectedAddress === 'new') {
-        finalAddress = {
-          name: contactInfo.name, street,
-          city: CITY_OPTIONS.find(o => o.value === city)?.label || city,
-          state: STATE_OPTIONS.find(o => o.value === state)?.label || state,
-          zip: '62704', country: 'United States'
-        };
-      } else {
-        const addr = addresses.find(a => a.id === selectedAddress);
-        if (addr) finalAddress = { name: contactInfo.name, street: addr.street, city: addr.city, state: addr.state, zip: addr.zip, country: addr.country };
+
+    if (cartItems.length === 0) {
+      toast.error('Giỏ hàng đang trống, không thể checkout');
+      return;
+    }
+
+    let shippingAddress;
+    if (selectedAddress === 'new') {
+      if (!validateAddress()) {
+        setIsAddingNewAddress(true);
+        return;
       }
-      const orderData = {
-        shippingAddress: finalAddress,
-        payment: {
-          methodName: paymentMethod === 'bank' ? 'Bank Transfer' : 'Cash on Delivery (COD)',
-          transactionId: paymentMethod === 'bank' ? 'TXN-' + Math.floor(Math.random() * 10000000) : 'N/A'
-        }
+
+      shippingAddress = {
+        name: contactInfo.name,
+        street,
+        city: CITY_OPTIONS.find(o => o.value === city)?.label || city,
+        state: STATE_OPTIONS.find(o => o.value === state)?.label || state,
+        zip: '00000',
+        country: 'United States',
       };
+    } else {
+      const addr = addresses.find(a => a.id === selectedAddress);
+      if (!addr) {
+        toast.error('Địa chỉ giao hàng không hợp lệ');
+        return;
+      }
+
+      shippingAddress = {
+        name: contactInfo.name,
+        street: addr.street,
+        city: addr.city,
+        state: addr.state,
+        zip: addr.zip,
+        country: addr.country,
+      };
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const apiPaymentMethod = paymentMethod === 'bank' ? 'BankTransfer' : 'COD';
+
+      const checkoutResponse = await orderService.checkout({
+        address: formatAddressText(shippingAddress),
+        paymentMethod: apiPaymentMethod,
+      });
+
+      await refreshCart();
+
+      const fallbackOrderItems = cartItems.map((item) => ({
+        id: item.cartId,
+        productSkuId: item.productSkuId,
+        productName: item.productName,
+        quantity: item.quantity,
+        unitPrice: item.price,
+        image: item.image,
+        skuAttributes: item.skuAttributes,
+      }));
+
+      setIsProcessing(false);
+
+      const orderData = {
+        ...checkoutResponse,
+        id: checkoutResponse?.id || `ORDER-${Date.now()}`,
+        createdAt: checkoutResponse?.createdAt || new Date().toISOString(),
+        status: checkoutResponse?.status || 'Pending',
+        paymentMethod: checkoutResponse?.paymentMethod || apiPaymentMethod,
+        paymentStatus: checkoutResponse?.paymentStatus || 'Pending',
+        totalAmount: checkoutResponse?.totalAmount ?? (cartTotal + shippingFee),
+        orderItems: Array.isArray(checkoutResponse?.orderItems) && checkoutResponse.orderItems.length > 0
+          ? checkoutResponse.orderItems
+          : fallbackOrderItems,
+        shippingAddress,
+        payment: {
+          methodName: apiPaymentMethod === 'BankTransfer' ? 'Bank Transfer' : 'Cash on Delivery (COD)',
+          transactionId: checkoutResponse?.transactionId || 'N/A',
+        },
+      };
+
       toast.success('Đặt hàng thành công!');
-      navigate('/order-confirmation', { state: { orderData } });
-    }, 2000);
+      if (orderData.id) {
+        navigate('/order-confirmation', { state: { orderData } });
+        return;
+      }
+
+      navigate('/account', { state: { screen: 'my-orders' } });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Checkout thất bại, vui lòng thử lại');
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -134,6 +225,8 @@ export default function Checkout() {
           setPaymentMethod={setPaymentMethod}
         />
         <OrderSummary
+          cartItems={cartItems}
+          cartSubtotal={cartTotal}
           shippingFee={shippingFee}
           isProcessing={isProcessing}
           onPlaceOrder={handlePlaceOrder}

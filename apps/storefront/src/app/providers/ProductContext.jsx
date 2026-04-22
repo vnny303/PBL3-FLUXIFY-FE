@@ -60,13 +60,22 @@ export function ProductProvider({ children }) {
   }, [tenantId]);
 
 
-  const handleQuickAdd = (product) => {
-    const attrs = product.attributes || {};
+  const handleQuickAdd = async (product) => {
+    let productWithSkus = product;
+    if (!productWithSkus.skus || productWithSkus.skus.length === 0) {
+      try {
+        productWithSkus = await productService.getProductById(tenantId, product.id);
+      } catch (error) {
+        console.error("Failed to fetch product details for quick add:", error);
+      }
+    }
+
+    const attrs = productWithSkus.attributes || {};
     const hasSelectableAttrs = Object.values(attrs).some(v => Array.isArray(v) && v.length > 0);
     if (hasSelectableAttrs) {
-      setQuickAddProduct(product);
+      setQuickAddProduct(productWithSkus);
     } else {
-      addToCart(product);
+      addToCart(productWithSkus, productWithSkus.skus?.[0]);
     }
   };
 

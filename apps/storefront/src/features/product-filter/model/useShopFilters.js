@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { products } from '../../../shared/lib/data';
 import { useAppContext } from '../../../app/providers/AppContext';
 import { ITEMS_PER_PAGE, SORT_OPTIONS, PRICE_RANGE_MIN, PRICE_RANGE_MAX } from '../../../shared/lib/constants';
 
-export function useShopFilters() {
+export function useShopFilters({ products = [] } = {}) {
   const { searchQuery } = useAppContext();
 
   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0]);
@@ -23,11 +22,12 @@ export function useShopFilters() {
     let result = products.filter((product) => {
       const inPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.categoryId);
-      // Check sizes from product.attributes.sizes
-      const productSizes = product.attributes?.sizes || [];
+      // Check sizes from product.attributes.sizes or sizes directly
+      const productSizes = product.attributes?.sizes || product.attributes?.size || [];
+      const normalizedSizes = Array.isArray(productSizes) ? productSizes : [productSizes];
       const matchesSize =
         selectedSizes.length === 0 ||
-        productSizes.some((s) => selectedSizes.includes(s));
+        normalizedSizes.some((s) => selectedSizes.includes(s));
       const matchesSearch =
         !q ||
         product.name.toLowerCase().includes(q) ||
@@ -41,7 +41,7 @@ export function useShopFilters() {
     else if (sortBy === 'Best Selling') result.sort((a, b) => a.id.localeCompare(b.id));
 
     return result;
-  }, [priceRange, selectedCategories, selectedSizes, sortBy, searchQuery]);
+  }, [products, priceRange, selectedCategories, selectedSizes, sortBy, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
   const currentProducts = filteredProducts.slice(

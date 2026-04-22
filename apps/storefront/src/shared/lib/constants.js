@@ -3,7 +3,7 @@ export const ITEMS_PER_PAGE = 12;
 
 // ─── Price Filter ─────────────────────────────────────────────────────────────
 export const PRICE_RANGE_MIN = 0;
-export const PRICE_RANGE_MAX = 500;
+export const PRICE_RANGE_MAX = 500000;
 
 // ─── Sort Options ─────────────────────────────────────────────────────────────
 export const SORT_OPTIONS = [

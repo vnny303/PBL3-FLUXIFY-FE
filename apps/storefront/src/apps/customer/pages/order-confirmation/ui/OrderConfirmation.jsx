@@ -1,10 +1,46 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+const parsePrice = (value) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return parseFloat(value.replace('$', '')) || 0;
+  return 0;
+};
+
+const formatMoney = (value) => `$${parsePrice(value).toFixed(2)}`;
+
+const formatDate = (value) => {
+  if (!value) return '';
+
+  try {
+    return new Date(value).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return '';
+  }
+};
+
 export default function OrderConfirmation() {
   const location = useLocation();
   const navigate = useNavigate();
-  const orderData = location.state?.orderData;
+  const orderData = location.state?.orderData || {};
+
+  const orderItems = Array.isArray(orderData.orderItems) ? orderData.orderItems : [];
+  const subtotal = orderItems.reduce((sum, item) => {
+    const unitPrice = parsePrice(item.unitPrice ?? item.price);
+    const quantity = item.quantity || 1;
+    return sum + unitPrice * quantity;
+  }, 0);
+  const shippingFee = parsePrice(orderData.shippingFee ?? 5);
+  const taxAmount = parsePrice(orderData.taxAmount ?? subtotal * 0.08);
+  const totalAmount = parsePrice(orderData.totalAmount ?? (subtotal + shippingFee + taxAmount));
+
+  const shippingAddress = orderData.shippingAddress;
+  const paymentName = orderData.payment?.methodName || orderData.paymentMethod || 'N/A';
+  const paymentTransaction = orderData.payment?.transactionId || 'N/A';
 
   const handleContinueShopping = () => navigate('/shop');
 
@@ -16,10 +52,10 @@ export default function OrderConfirmation() {
         </div>
         <h1 className="text-4xl font-black tracking-tight mb-2">Thank you for your order!</h1>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Order #FLX-98234-3D</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Order {orderData.id || 'N/A'}</p>
           <span className="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full"></span>
-          <p className="text-slate-500 dark:text-slate-400">Oct 24, 2023</p>
-          <span className="px-3 py-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold uppercase tracking-wider rounded-full ml-2">Confirmed</span>
+          <p className="text-slate-500 dark:text-slate-400">{formatDate(orderData.createdAt) || 'Just now'}</p>
+          <span className="px-3 py-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold uppercase tracking-wider rounded-full ml-2">{orderData.status || 'Pending'}</span>
         </div>
       </div>
 
@@ -30,32 +66,25 @@ export default function OrderConfirmation() {
               <h3 className="text-lg font-bold">Order Items</h3>
             </div>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              <div className="p-6 flex items-center gap-6">
-                <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden shrink-0">
-                  <img alt="Premium Cotton Tee" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6I9G5_P1T_Ntxos4Rkn1Bw3iCA2BIFuQVuq9HyyhqRwco0Gdnv-MSeWh7gFLPQOw5WBkqBBScS-gG_ahXviMUyc0Ddx0uSP15MCNmf0VfH7GJEmkpVcglIZthlds1HWqJLi7fkxi4f9YE-4uEnODfUS-NA9r1GfJLx8U57-fkL2rZwTecFFgYV5HtOPS7IjYjwrAwp93cFLgIsmrhqmunrKpXzJAaImZnLTpYVJujO8pmYaHLgvsASCOt23lv6jQgCUlOqthQtX8" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-slate-900 dark:text-white">Premium Cotton Tee</h4>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Size: M | Color: Black</p>
-                  <p className="text-sm font-medium mt-1">Qty: 1</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-slate-900 dark:text-white">$45.00</p>
-                </div>
-              </div>
-              <div className="p-6 flex items-center gap-6">
-                <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden shrink-0">
-                  <img alt="Hydrating Face Cream" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkN9mNpUCEpNVXGXz582_fR_fBqsus361eO4tWFH3MEoR35d4tcqR75Eua44rtzUt4BWqajvfoQI5DUSy8bk4Z5fgAYOhkRFIgEG1ITRhHdsF592cH68xUq3r_RDSqHX2CnxgX6s2shCdBcswNsTzWfnNR8z9ZOfa4z64hPDD_8jjk7VRR1R3dmq96zsRsHS5WlxHl_RAQrAEn28cTQs7K5nMnk0RItGDew1JvyexEztex2ks-R0GDJuL3CYqkNvyCqPCObupSxfU" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-slate-900 dark:text-white">Hydrating Face Cream</h4>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">50ml</p>
-                  <p className="text-sm font-medium mt-1">Qty: 1</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-slate-900 dark:text-white">$32.00</p>
-                </div>
-              </div>
+              {orderItems.length === 0 ? (
+                <div className="p-6 text-sm text-slate-500">Không có thông tin chi tiết sản phẩm trong đơn.</div>
+              ) : (
+                orderItems.map((item, index) => (
+                  <div key={item.id || index} className="p-6 flex items-center gap-6">
+                    <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden shrink-0">
+                      <img alt={item.productName || item.name || 'Product'} className="w-full h-full object-cover" src={item.image || 'https://picsum.photos/seed/order-item/120/120'} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-slate-900 dark:text-white">{item.productName || item.name || `SKU ${item.productSkuId || ''}`}</h4>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">SKU: {item.productSkuId || 'N/A'}</p>
+                      <p className="text-sm font-medium mt-1">Qty: {item.quantity || 1}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-slate-900 dark:text-white">{formatMoney(item.unitPrice ?? item.price)}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -66,20 +95,20 @@ export default function OrderConfirmation() {
                 <h3 className="font-bold">Shipping Address</h3>
               </div>
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {orderData?.shippingAddress?.name || <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-4 w-24 rounded inline-block"></span>}
+                {shippingAddress?.name || <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-4 w-24 rounded inline-block"></span>}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                {orderData?.shippingAddress?.street || <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-3 w-32 rounded inline-block mt-1"></span>}
+                {shippingAddress?.street || orderData.address || <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-3 w-32 rounded inline-block mt-1"></span>}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                {orderData?.shippingAddress ? (
-                  `${orderData.shippingAddress.city}, ${orderData.shippingAddress.state} ${orderData.shippingAddress.zip}`
+                {shippingAddress ? (
+                  `${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zip}`
                 ) : (
                   <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-3 w-40 rounded inline-block mt-1"></span>
                 )}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                {orderData?.shippingAddress?.country || <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-3 w-20 rounded inline-block mt-1"></span>}
+                {shippingAddress?.country || <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-3 w-20 rounded inline-block mt-1"></span>}
               </p>
             </div>
             <div className="p-6">
@@ -93,10 +122,10 @@ export default function OrderConfirmation() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-slate-900 dark:text-white">
-                    {orderData?.payment?.methodName || <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-4 w-24 rounded inline-block"></span>}
+                    {paymentName || <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-4 w-24 rounded inline-block"></span>}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Transaction ID: {orderData?.payment?.transactionId || <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-3 w-20 rounded inline-block"></span>}
+                    Transaction ID: {paymentTransaction || <span className="animate-pulse bg-slate-200 dark:bg-slate-700 h-3 w-20 rounded inline-block"></span>}
                   </p>
                 </div>
               </div>
@@ -110,19 +139,19 @@ export default function OrderConfirmation() {
             <div className="space-y-4">
                <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>Subtotal</span>
-                <span className="font-medium text-slate-900 dark:text-white">$77.00</span>
+                <span className="font-medium text-slate-900 dark:text-white">{formatMoney(subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>Shipping</span>
-                <span className="font-medium text-slate-900 dark:text-white">$5.00</span>
+                <span className="font-medium text-slate-900 dark:text-white">{formatMoney(shippingFee)}</span>
               </div>
               <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400 pb-4 border-b border-slate-100 dark:border-slate-800">
                 <span>Tax (8%)</span>
-                <span className="font-medium text-slate-900 dark:text-white">$6.16</span>
+                <span className="font-medium text-slate-900 dark:text-white">{formatMoney(taxAmount)}</span>
               </div>
               <div className="flex justify-between items-center pt-2">
                 <span className="text-base font-bold text-slate-900 dark:text-white">Order Total</span>
-                <span className="text-2xl font-black text-primary">$88.16</span>
+                <span className="text-2xl font-black text-primary">{formatMoney(totalAmount)}</span>
               </div>
             </div>
             <div className="mt-8 flex flex-col gap-3">

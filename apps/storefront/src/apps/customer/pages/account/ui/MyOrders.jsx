@@ -1,8 +1,33 @@
 import { useState } from 'react';
 import { CheckCircle, Clock, ArrowRight, ShoppingCart } from 'lucide-react';
 
-export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders = [] }) {
+export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders = [], isLoading = false, error = null, onRetry }) {
   const [showAll, setShowAll] = useState(false);
+
+  if (isLoading) {
+    return (
+      <section className="flex-1 space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">My Orders</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Loading your orders...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="flex-1 space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">My Orders</h2>
+          <p className="text-red-500 mt-1">{error}</p>
+        </div>
+        <button onClick={onRetry} className="px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors">
+          Retry
+        </button>
+      </section>
+    );
+  }
 
   const displayedOrders = showAll ? orders : orders.slice(0, 2);
 
