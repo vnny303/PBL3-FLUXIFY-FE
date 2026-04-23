@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../../../../../app/providers/AppContext';
+import { useAppContext } from '../../../../../app/providers/useAppContext';
 import { PRICE_RANGE_MAX, SORT_OPTIONS } from '../../../../../shared/lib/constants';
 import { useShopFilters } from '../../../../../features/product-filter/model/useShopFilters';
 import ProductCard from '../../../../../entities/product/ui/ProductCard';

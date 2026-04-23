@@ -2,12 +2,12 @@ import axiosClient from './axiosClient';
 
 export const cartService = {
     // GET /api/Cart
-    getCart: async (tenantId, customerId) => {
+    getCart: async () => {
         return axiosClient.get(`/api/Cart`);
     },
 
     // POST /api/Cart/items
-    addToCart: async (tenantId, customerId, { productSkuId, quantity }) => {
+    addToCart: async ({ productSkuId, quantity }) => {
         return axiosClient.post(`/api/Cart/items`, {
             productSkuId,
             quantity,
@@ -15,19 +15,19 @@ export const cartService = {
     },
 
     // PUT /api/Cart/items/{itemId}
-    updateCartItem: async (tenantId, customerId, itemId, { quantity }) => {
+    updateCartItem: async (itemId, { quantity }) => {
         return axiosClient.put(`/api/Cart/items/${itemId}`, {
             quantity,
         });
     },
 
     // DELETE /api/Cart/items/{itemId}
-    removeFromCart: async (tenantId, customerId, itemId) => {
+    removeFromCart: async (itemId) => {
         return axiosClient.delete(`/api/Cart/items/${itemId}`);
     },
 
     // DELETE /api/Cart/items
-    clearCart: async (tenantId, customerId) => {
+    clearCart: async () => {
         return axiosClient.delete(`/api/Cart/items`);
     },
 };

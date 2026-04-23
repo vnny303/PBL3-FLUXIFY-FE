@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useAppContext } from '../../../../../app/providers/AppContext';
+import React, { useMemo, useState } from 'react';
+import { useAppContext } from '../../../../../app/providers/useAppContext';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
 import { productService } from '../../../../../shared/api/productService';
 
@@ -18,48 +19,34 @@ export default function ProductDetail() {
 
   const [quantity, setQuantity] = useState(1);
   const [selectedAttributes, setSelectedAttributes] = useState({});
-  
-  const [product, setProduct] = useState(null);
-  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
-  const [productError, setProductError] = useState(null);
 
-  useEffect(() => {
-    if (!id || !tenantId) return;
+  // Dùng Redux catalog làm initialData — hiện ngay không cần loader
+  const cachedProduct = useMemo(
+    () => products?.find((p) => String(p.id) === String(id)) || undefined,
+    [products, id]
+  );
 
-    // Cache-first checkout
-    const cachedProduct = products?.find(p => String(p.id) === String(id));
-    if (cachedProduct) {
-      setProduct(cachedProduct);
-      setIsLoadingProduct(false);
+  const {
+    data: product,
+    isLoading: isLoadingProduct,
+    error: productErrorObj,
+  } = useQuery({
+    queryKey: ['product', id],
+    queryFn: () => productService.getProductById(tenantId, id),
+    enabled: !!id && !!tenantId,
+    initialData: cachedProduct,   // Dùng cache Redux làm placeholder khi chưa fetch xong
+    staleTime: 0,                 // Luôn refetch để lấy SKU đầy đủ từ detail endpoint
+  });
 
-      // Silent fetch for deeper details (if backend omits skus on listing)
-      productService.getProductById(tenantId, id)
-        .then(res => setProduct(res))
-        .catch(err => console.error("Silent refetch failed:", err));
-      return;
-    }
-
-    // Explicit fetch if no cache
-    setIsLoadingProduct(true);
-    setProductError(null);
-
-    productService.getProductById(tenantId, id)
-      .then(res => {
-        setProduct(res);
-      })
-      .catch(err => {
-        setProductError(err?.response?.data?.message || 'Không tìm thấy sản phẩm');
-      })
-      .finally(() => {
-        setIsLoadingProduct(false);
-      });
-  }, [id, tenantId, products]);
+  const productError = productErrorObj?.response?.data?.message
+    || productErrorObj?.message
+    || null;
 
   // Derived SKU logic
-  const skuAttrKeyMatch = (skuAttrs) => {
-    return Object.entries(skuAttrs).every(([k, v]) => selectedAttributes[k] === v);
-  };
-  const selectedSku = product?.skus?.find(s => skuAttrKeyMatch(s.attributes)) || null;
+  const skuAttrKeyMatch = (skuAttrs) =>
+    Object.entries(skuAttrs).every(([k, v]) => selectedAttributes[k] === v);
+
+  const selectedSku = product?.skus?.find((s) => skuAttrKeyMatch(s.attributes)) || null;
 
   const handleLoginRedirect = () => {
     navigate('/login', { state: { from: location } });
@@ -68,16 +55,20 @@ export default function ProductDetail() {
   if (isLoadingProduct && !product) {
     return (
       <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-20 flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" style={{ borderBottomColor: 'transparent' }}></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" style={{ borderBottomColor: 'transparent' }} />
       </main>
     );
   }
 
-  if (productError || !product) {
+  if (!product) {
     return (
       <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <h1 className="text-2xl font-bold text-slate-800 mb-4">{productError || 'Không tìm thấy sản phẩm'}</h1>
-        <button onClick={() => navigate('/shop')} className="text-primary font-semibold hover:underline">Quay lại cửa hàng</button>
+        <h1 className="text-2xl font-bold text-slate-800 mb-4">
+          {productError || 'Không tìm thấy sản phẩm'}
+        </h1>
+        <button onClick={() => navigate('/shop')} className="text-primary font-semibold hover:underline">
+          Quay lại cửa hàng
+        </button>
       </main>
     );
   }
@@ -88,7 +79,9 @@ export default function ProductDetail() {
       <nav className="flex text-sm text-slate-500 mb-8">
         <button onClick={() => navigate('/shop')} className="hover:text-slate-900">Store</button>
         <span className="mx-2">›</span>
-        <button onClick={() => navigate('/shop')} className="hover:text-slate-900">{product.categoryId || 'Products'}</button>
+        <button onClick={() => navigate('/shop')} className="hover:text-slate-900">
+          {product.categoryId || 'Products'}
+        </button>
         <span className="mx-2">›</span>
         <span className="text-slate-900 font-medium">{product.name}</span>
       </nav>
@@ -103,7 +96,6 @@ export default function ProductDetail() {
           onLoginRedirect={handleLoginRedirect}
         />
 
-        {/* Right: Product Info & Actions */}
         <div className="w-full lg:w-1/2">
           <ProductInfo
             product={product}
@@ -111,7 +103,6 @@ export default function ProductDetail() {
             selectedAttributes={selectedAttributes}
             setSelectedAttributes={setSelectedAttributes}
           />
-
           <ProductActions
             product={product}
             selectedSku={selectedSku}

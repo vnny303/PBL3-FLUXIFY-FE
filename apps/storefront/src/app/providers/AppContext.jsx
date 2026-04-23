@@ -1,9 +1,9 @@
-import React, { useContext } from 'react';
-import { AuthProvider, useAuthContext } from '../../entities/user/model/AuthContext';
-import { CartProvider, useCartContext } from '../../entities/cart/model/CartContext';
-import { WishlistProvider, useWishlistContext } from './WishlistContext';
-import { SearchProvider, useSearchContext } from './SearchContext';
-import { ProductProvider, useProductContext } from './ProductContext';
+import React from 'react';
+import { AuthProvider } from '../../entities/user/model/AuthContext.jsx';
+import { CartProvider } from '../../entities/cart/model/CartContext.jsx';
+import { WishlistProvider } from './WishlistContext.jsx';
+import { SearchProvider } from './SearchContext.jsx';
+import { ProductProvider } from './ProductContext.jsx';
 
 export function AppProvider({ children }) {
   return (
@@ -18,19 +18,3 @@ export function AppProvider({ children }) {
     </AuthProvider>
   );
 }
-
-export const useAppContext = () => {
-  const auth = useAuthContext();
-  const cart = useCartContext();
-  const wishlist = useWishlistContext();
-  const search = useSearchContext();
-  const product = useProductContext();
-
-  return {
-    ...auth,
-    ...cart,
-    ...wishlist,
-    ...search,
-    ...product,
-  };
-};

@@ -1,65 +1,66 @@
 //Bộ nhớ đăng nhập toàn cục của app
 
 import React, { 
-  createContext, 
   useCallback, 
-  useContext, 
   useEffect, 
-  useState 
 } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 import {
   clearAuthSession,
-  getAuthSession,
   getToken,
   setAuthSession,
 } from '@fluxify/shared/lib';
 
 import { authService } from '../../../shared/api/authService';
+import {
+  clearUser,
+  setIsHydrating as setIsHydratingAction,
+  setIsLoggedIn as setIsLoggedInAction,
+  setShowModal as setShowModalAction,
+  setUser as setUserAction,
+} from '../../../app/store/slices/authSlice';
+import { AuthContext } from './authContext';
 
-const AuthContext = createContext();
 const CUSTOMER_ROLE = 'customer';
 
-export function AuthProvider({ children }) {
-  const [showModal, setShowModal] = useState(false);
-  const [isLoggedIn, setIsLoggedInState] = useState(Boolean(getToken()));
-  const [isHydrating, setIsHydrating] = useState(true); //Kiem tra session
-  const [user, setUser] = useState(() => {
-    const snapshot = getAuthSession();
-    if (!snapshot.userId) {
-      return null;
-    }
+const mapAuthResponseToUser = (authResponse) => ({
+  userId: authResponse?.userId || null,
+  email: authResponse?.email || null,
+  role: authResponse?.role || null,
+  tenantId:
+    authResponse?.tenantId ||
+    authResponse?.tenants?.[0]?.tenantId ||
+    null,
+});
 
-    return {
-      userId: snapshot.userId,
-      email: snapshot.email,
-      role: snapshot.role,
-      tenantId: snapshot.tenantId,
-    };
-  });
+export function AuthProvider({ children }) {
+  const dispatch = useDispatch();
+  const { showModal, isLoggedIn, isHydrating, user } = useSelector(
+    (state) => state.auth
+  );
+
+  const setShowModal = useCallback(
+    (value) => {
+      dispatch(setShowModalAction(value));
+    },
+    [dispatch]
+  );
 
   const setIsLoggedIn = useCallback((value) => {
     const nextValue = Boolean(value);
-    setIsLoggedInState(nextValue);
+    dispatch(setIsLoggedInAction(nextValue));
     if (!nextValue) {
       clearAuthSession();
-      setUser(null);
+      dispatch(clearUser());
     }
-  }, []);
+  }, [dispatch]);
 
   const applyAuthResponse = useCallback((authResponse) => {
     setAuthSession(authResponse);
-    setIsLoggedInState(true);
-    setUser({
-      userId: authResponse?.userId || null,
-      email: authResponse?.email || null,
-      role: authResponse?.role || null,
-      tenantId:
-        authResponse?.tenantId ||
-        authResponse?.tenants?.[0]?.tenantId ||
-        null,
-    });
-  }, []);
+    dispatch(setIsLoggedInAction(true));
+    dispatch(setUserAction(mapAuthResponseToUser(authResponse)));
+  }, [dispatch]);
 
   const logout = useCallback(async () => {
     try {
@@ -68,19 +69,16 @@ export function AuthProvider({ children }) {
       // No-op: logout is client-side token cleanup first
     } finally {
       clearAuthSession();
-      setUser(null);
-      setIsLoggedInState(false);
+      dispatch(clearUser());
     }
-  }, []);
+  }, [dispatch]);
 
   //Khôi phục phiên đăng nhập khi app mở hoặc reload
   const syncCurrentUser = useCallback(
     async () => {
       //TH1: Khong co token
       if (!getToken()) {
-        setUser(null);
-        setIsLoggedInState(false);
-        setIsHydrating(false);
+        dispatch(clearUser());
         return;
       }
 
@@ -89,8 +87,7 @@ export function AuthProvider({ children }) {
         const me = await authService.getCurrentUser();
         if (me?.role !== CUSTOMER_ROLE) {
           clearAuthSession();
-          setUser(null);
-          setIsLoggedInState(false);
+          dispatch(clearUser());
 
           //TH4: role không phải customer
           const merchantAppUrl = import.meta.env.VITE_MERCHANT_APP_URL;
@@ -100,16 +97,15 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        setUser(me);
-        setIsLoggedInState(true);
+        dispatch(setUserAction(me));
+        dispatch(setIsLoggedInAction(true));
         } catch {
         clearAuthSession();
-        setUser(null);
-        setIsLoggedInState(false);
+        dispatch(clearUser());
       } finally {
-        setIsHydrating(false);
+        dispatch(setIsHydratingAction(false));
       }
-   }, []);
+   }, [dispatch]);
 
   useEffect(() => {
     syncCurrentUser();
@@ -134,5 +130,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
-export const useAuthContext = () => useContext(AuthContext);

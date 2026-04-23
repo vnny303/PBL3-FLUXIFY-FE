@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Package, MapPin, Settings, LogOut, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useAppContext } from '../../../app/providers/AppContext';
+import { useAppContext } from '../../../app/providers/useAppContext';
 
 export default function Sidebar({ currentScreen, setCurrentScreen }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);

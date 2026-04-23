@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { useAppContext } from '../../../app/providers/AppContext';
+import { useState, useMemo, useRef } from 'react';
+import { useAppContext } from '../../../app/providers/useAppContext';
 import { ITEMS_PER_PAGE, SORT_OPTIONS, PRICE_RANGE_MIN, PRICE_RANGE_MAX } from '../../../shared/lib/constants';
 
 export function useShopFilters({ products = [] } = {}) {
@@ -12,10 +12,15 @@ export function useShopFilters({ products = [] } = {}) {
   const [currentPage, setCurrentPage] = useState(1);
   const gridTopRef = useRef(null);
 
-  // Reset page when any filter changes
-  useEffect(() => {
+  const updateSortBy = (value) => {
     setCurrentPage(1);
-  }, [priceRange, selectedCategories, selectedSizes, sortBy, searchQuery]);
+    setSortBy(value);
+  };
+
+  const updatePriceRange = (value) => {
+    setCurrentPage(1);
+    setPriceRange(value);
+  };
 
   const filteredProducts = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -61,6 +66,7 @@ export function useShopFilters({ products = [] } = {}) {
   };
 
   const clearFilters = () => {
+    setCurrentPage(1);
     setPriceRange([PRICE_RANGE_MIN, PRICE_RANGE_MAX]);
     setSelectedCategories([]);
     setSelectedSizes([]);
@@ -68,12 +74,14 @@ export function useShopFilters({ products = [] } = {}) {
   };
 
   const toggleCategory = (categoryId) => {
+    setCurrentPage(1);
     setSelectedCategories((prev) =>
       prev.includes(categoryId) ? prev.filter((c) => c !== categoryId) : [...prev, categoryId],
     );
   };
 
   const toggleSize = (size) => {
+    setCurrentPage(1);
     setSelectedSizes((prev) =>
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
     );
@@ -81,8 +89,8 @@ export function useShopFilters({ products = [] } = {}) {
 
   return {
     // Filter state
-    sortBy, setSortBy,
-    priceRange, setPriceRange,
+    sortBy, setSortBy: updateSortBy,
+    priceRange, setPriceRange: updatePriceRange,
     selectedCategories, toggleCategory,
     selectedSizes, toggleSize,
     clearFilters,

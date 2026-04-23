@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, UserPlus } from 'lucide-react';
-import { useAppContext } from '../../app/providers/AppContext';
+import { useAppContext } from '../../app/providers/useAppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Modal() {

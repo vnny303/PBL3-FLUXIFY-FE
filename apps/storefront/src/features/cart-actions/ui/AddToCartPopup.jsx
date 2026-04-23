@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { X, Check, ArrowRight } from 'lucide-react';
-import { useAppContext } from '../../../app/providers/AppContext';
+import { useAppContext } from '../../../app/providers/useAppContext';
 
 export default function AddToCartPopup() {
   const { showAddToCartPopup, setShowAddToCartPopup, setShowCart, lastAddedItem, cartTotal } = useAppContext();

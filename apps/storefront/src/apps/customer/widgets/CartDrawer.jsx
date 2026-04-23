@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Trash2, Minus, Plus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../../../app/providers/AppContext';
+import { useAppContext } from '../../../app/providers/useAppContext';
 
 export default function CartDrawer() {
   const { showCart, setShowCart, cartItems, removeFromCart, updateQuantity, cartTotal, cartCount } = useAppContext();
