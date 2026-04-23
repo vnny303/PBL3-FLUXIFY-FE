@@ -133,7 +133,7 @@ export default function Home() {
               return (
                 <button
                   key={cat.id}
-                  onClick={() => navigate('/shop')}
+                  onClick={() => navigate('/shop', { state: { categoryId: cat.id } })}
                   className="group relative block aspect-[4/5] overflow-hidden rounded-xl bg-slate-200 w-full text-left"
                 >
                   <img
