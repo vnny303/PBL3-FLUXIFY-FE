@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { useAppContext } from '../../../app/providers/AppContext';
+import { useAppContext } from '../../../app/providers/useAppContext';
 
 export default function QuickAddModal() {
   const { quickAddProduct, setQuickAddProduct, addToCart } = useAppContext();

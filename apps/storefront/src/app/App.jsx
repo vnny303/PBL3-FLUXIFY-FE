@@ -22,7 +22,7 @@ import Modal from '../shared/ui/Modal';
 import CartDrawer from '../apps/customer/widgets/CartDrawer';
 import AddToCartPopup from '../features/cart-actions/ui/AddToCartPopup';
 import QuickAddModal from '../features/cart-actions/ui/QuickAddModal';
-import { useAppContext } from './providers/AppContext';
+import { useAppContext } from './providers/useAppContext';
 
 const MainLayout = () => {
   const { showModal } = useAppContext();

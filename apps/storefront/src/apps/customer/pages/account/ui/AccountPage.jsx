@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import Sidebar from '../../../widgets/Sidebar';
 import MyOrders from './MyOrders';
 import SavedAddresses from './SavedAddresses';
 import ProfileSettings from './ProfileSettings';
 import OrderDetails from './OrderDetails';
 import Notifications from './Notifications';
-import { useAppContext } from '../../../../../app/providers/AppContext';
+import { useAppContext } from '../../../../../app/providers/useAppContext';
 import { orderService } from '../../../../../shared/api/orderService';
 
 export default function AccountPage() {
@@ -14,34 +15,27 @@ export default function AccountPage() {
   const { isLoggedIn } = useAppContext();
   const [currentScreen, setCurrentScreen] = useState(location.state?.screen || 'my-orders');
   const [selectedOrderId, setSelectedOrderId] = useState(null);
-  const [orders, setOrders] = useState([]);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-  const [ordersError, setOrdersError] = useState(null);
 
-  const fetchCustomerOrders = useCallback(async () => {
-    if (!isLoggedIn) {
-      setOrders([]);
-      return;
-    }
+  const {
+    data: orders = [],
+    isLoading: isLoadingOrders,
+    error: ordersErrorObj,
+    refetch: fetchCustomerOrders,
+  } = useQuery({
+    queryKey: ['customer-orders'],
+    queryFn: () => orderService.getCustomerOrders({
+      page: 1,
+      pageSize: 50,
+      sortBy: 'createdAt',
+      sortDir: 'desc',
+    }),
+    enabled: isLoggedIn,
+    select: (data) => Array.isArray(data) ? data : [],
+  });
 
-    setIsLoadingOrders(true);
-    setOrdersError(null);
-
-    try {
-      const response = await orderService.getCustomerOrders({
-        page: 1,
-        pageSize: 50,
-        sortBy: 'createdAt',
-        sortDir: 'desc',
-      });
-      setOrders(Array.isArray(response) ? response : []);
-    } catch (error) {
-      setOrders([]);
-      setOrdersError(error?.response?.data?.message || 'Không thể tải danh sách đơn hàng');
-    } finally {
-      setIsLoadingOrders(false);
-    }
-  }, [isLoggedIn]);
+  const ordersError = ordersErrorObj?.response?.data?.message
+    || ordersErrorObj?.message
+    || null;
 
   useEffect(() => {
     if (location.state?.screen) {
@@ -49,15 +43,8 @@ export default function AccountPage() {
     }
   }, [location.state]);
 
-  useEffect(() => {
-    fetchCustomerOrders();
-  }, [fetchCustomerOrders]);
-
   const selectedOrder = useMemo(() => {
-    if (orders.length === 0) {
-      return null;
-    }
-
+    if (orders.length === 0) return null;
     return orders.find((order) => order.id === selectedOrderId) || orders[0];
   }, [orders, selectedOrderId]);
 
@@ -79,7 +66,13 @@ export default function AccountPage() {
       case 'profile-settings':
         return <ProfileSettings />;
       case 'order-details':
-        return <OrderDetails key={selectedOrder?.id || 'empty-order'} setCurrentScreen={setCurrentScreen} order={selectedOrder} />;
+        return (
+          <OrderDetails
+            key={selectedOrder?.id || 'empty-order'}
+            setCurrentScreen={setCurrentScreen}
+            order={selectedOrder}
+          />
+        );
       case 'notifications':
         return <Notifications />;
       default:

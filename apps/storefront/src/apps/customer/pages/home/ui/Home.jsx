@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../../../../../app/providers/AppContext';
+import { useAppContext } from '../../../../../app/providers/useAppContext';
 import ProductCard from '../../../../../entities/product/ui/ProductCard';
 
 import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';

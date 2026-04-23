@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useAppContext } from '../../../../../app/providers/AppContext';
+import React, { useMemo, useState } from 'react';
+import { useAppContext } from '../../../../../app/providers/useAppContext';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
 import { productService } from '../../../../../shared/api/productService';
 
@@ -18,81 +19,56 @@ export default function ProductDetail() {
 
   const [quantity, setQuantity] = useState(1);
   const [selectedAttributes, setSelectedAttributes] = useState({});
-  
-  const [product, setProduct] = useState(null);
-  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
-  const [productError, setProductError] = useState(null);
 
+  // Dùng Redux catalog làm initialData — hiện ngay không cần loader
   const cachedProduct = useMemo(
-    () => products?.find((p) => String(p.id) === String(id)) || null,
+    () => products?.find((p) => String(p.id) === String(id)) || undefined,
     [products, id]
   );
-  const productMatchesCurrentId = product && String(product.id) === String(id);
-  const resolvedProduct = productMatchesCurrentId ? product : cachedProduct;
 
-  useEffect(() => {
-    if (!id || !tenantId) return;
+  const {
+    data: product,
+    isLoading: isLoadingProduct,
+    error: productErrorObj,
+  } = useQuery({
+    queryKey: ['product', id],
+    queryFn: () => productService.getProductById(tenantId, id),
+    enabled: !!id && !!tenantId,
+    initialData: cachedProduct,   // Dùng cache Redux làm placeholder khi chưa fetch xong
+    staleTime: 0,                 // Luôn refetch để lấy SKU đầy đủ từ detail endpoint
+  });
 
-    if (cachedProduct) {
-      // Silent fetch for deeper details (if backend omits skus on listing)
-      productService.getProductById(tenantId, id)
-        .then(res => setProduct(res))
-        .catch(err => console.error("Silent refetch failed:", err));
-      return;
-    }
-
-    let cancelled = false;
-
-    const fetchProduct = async () => {
-      setIsLoadingProduct(true);
-      setProductError(null);
-
-      try {
-        const res = await productService.getProductById(tenantId, id);
-        if (!cancelled) {
-          setProduct(res);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setProductError(err?.response?.data?.message || 'Không tìm thấy sản phẩm');
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingProduct(false);
-        }
-      }
-    };
-
-    fetchProduct();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id, tenantId, cachedProduct]);
+  const productError = productErrorObj?.response?.data?.message
+    || productErrorObj?.message
+    || null;
 
   // Derived SKU logic
-  const skuAttrKeyMatch = (skuAttrs) => {
-    return Object.entries(skuAttrs).every(([k, v]) => selectedAttributes[k] === v);
-  };
-  const selectedSku = resolvedProduct?.skus?.find(s => skuAttrKeyMatch(s.attributes)) || null;
+  const skuAttrKeyMatch = (skuAttrs) =>
+    Object.entries(skuAttrs).every(([k, v]) => selectedAttributes[k] === v);
+
+  const selectedSku = product?.skus?.find((s) => skuAttrKeyMatch(s.attributes)) || null;
 
   const handleLoginRedirect = () => {
     navigate('/login', { state: { from: location } });
   };
 
-  if (isLoadingProduct && !resolvedProduct) {
+  if (isLoadingProduct && !product) {
     return (
       <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-20 flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" style={{ borderBottomColor: 'transparent' }}></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" style={{ borderBottomColor: 'transparent' }} />
       </main>
     );
   }
 
-  if (!resolvedProduct) {
+  if (!product) {
     return (
       <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <h1 className="text-2xl font-bold text-slate-800 mb-4">{productError || 'Không tìm thấy sản phẩm'}</h1>
-        <button onClick={() => navigate('/shop')} className="text-primary font-semibold hover:underline">Quay lại cửa hàng</button>
+        <h1 className="text-2xl font-bold text-slate-800 mb-4">
+          {productError || 'Không tìm thấy sản phẩm'}
+        </h1>
+        <button onClick={() => navigate('/shop')} className="text-primary font-semibold hover:underline">
+          Quay lại cửa hàng
+        </button>
       </main>
     );
   }
@@ -103,14 +79,16 @@ export default function ProductDetail() {
       <nav className="flex text-sm text-slate-500 mb-8">
         <button onClick={() => navigate('/shop')} className="hover:text-slate-900">Store</button>
         <span className="mx-2">›</span>
-        <button onClick={() => navigate('/shop')} className="hover:text-slate-900">{resolvedProduct.categoryId || 'Products'}</button>
+        <button onClick={() => navigate('/shop')} className="hover:text-slate-900">
+          {product.categoryId || 'Products'}
+        </button>
         <span className="mx-2">›</span>
-        <span className="text-slate-900 font-medium">{resolvedProduct.name}</span>
+        <span className="text-slate-900 font-medium">{product.name}</span>
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
         <ProductImageGallery
-          product={resolvedProduct}
+          product={product}
           selectedSku={selectedSku}
           isLoggedIn={isLoggedIn}
           isWishlisted={isWishlisted}
@@ -118,17 +96,15 @@ export default function ProductDetail() {
           onLoginRedirect={handleLoginRedirect}
         />
 
-        {/* Right: Product Info & Actions */}
         <div className="w-full lg:w-1/2">
           <ProductInfo
-            product={resolvedProduct}
+            product={product}
             selectedSku={selectedSku}
             selectedAttributes={selectedAttributes}
             setSelectedAttributes={setSelectedAttributes}
           />
-
           <ProductActions
-            product={resolvedProduct}
+            product={product}
             selectedSku={selectedSku}
             quantity={quantity}
             setQuantity={setQuantity}
@@ -138,7 +114,7 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <ProductTabs product={resolvedProduct} />
+      <ProductTabs product={product} />
     </main>
   );
 }

@@ -13,6 +13,13 @@ dist-ssr
 *.local
 package-lock.json
 
+# Environment files — chứa secrets/config nhạy cảm, không commit
+.env
+.env.production
+.env.staging
+# Chỉ .env.example được commit (không có giá trị thật)
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -24,7 +31,7 @@ package-lock.json
 *.sln
 *.sw?
 
-FE-current-structure
-FE-integration-architecture
-THỐNG NHẤT API (1)
-implementation_plan
+.FE-current-structure
+.FE-integration-architecture
+.THỐNG NHẤT API (2)
+.implementation_plan

@@ -3,7 +3,7 @@ import { Loader2, AlertCircle, ChevronDown, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import ReviewModal from '../../../../../features/product-review/ui/ReviewModal';
 import InvoicePrint from '../../../../../entities/order/ui/InvoicePrint';
-import { useAppContext } from '../../../../../app/providers/AppContext';
+import { useAppContext } from '../../../../../app/providers/useAppContext';
 import OrderItemList from '../../../../../entities/order/ui/OrderItemList';
 import OrderStatusTimeline from '../../../../../entities/order/ui/OrderStatusTimeline';
 import OrderSummaryCard from '../../../../../entities/order/ui/OrderSummaryCard';

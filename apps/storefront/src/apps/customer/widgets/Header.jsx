@@ -3,13 +3,21 @@ import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig
 import { Search, Bell, ShoppingBag, ShoppingCart, MapPin, Settings, LogOut, User, Heart, X, Package, Menu } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useAppContext } from '../../../app/providers/AppContext';
-import { products } from '../../../shared/lib/data';
+import { useAppContext } from '../../../app/providers/useAppContext';
 import { useNotifications } from '../../../entities/notification/model/useNotifications';
 import { ROUTES, ACCOUNT_SCREENS } from '../../../shared/lib/constants';
-
 export default function Header() {
-  const { setShowModal, isLoggedIn, logout, setShowCart, cartCount, wishlistCount, searchQuery, setSearchQuery } = useAppContext();
+  const { 
+    setShowModal, 
+    isLoggedIn, 
+    logout, 
+    setShowCart, 
+    cartCount, 
+    wishlistCount, 
+    searchQuery, 
+    setSearchQuery,
+    products 
+  } = useAppContext();
   const location = useLocation();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);

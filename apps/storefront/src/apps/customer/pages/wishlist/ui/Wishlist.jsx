@@ -1,10 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingCart, Trash2, ShoppingBag } from 'lucide-react';
-import { useAppContext } from '../../../../../app/providers/AppContext';
-import { categories } from '../../../../../shared/lib/data';
-
+import { useAppContext } from '../../../../../app/providers/useAppContext';
 export default function Wishlist() {
-  const { wishlistItems, toggleWishlist, addToCart } = useAppContext();
+  const { wishlistItems, toggleWishlist, addToCart, categories } = useAppContext();
   const navigate = useNavigate();
 
   const getCategoryName = (categoryId) =>

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { useAppContext } from '../../../app/providers/AppContext';
+import { useAppContext } from '../../../app/providers/useAppContext';
 import { ITEMS_PER_PAGE, SORT_OPTIONS, PRICE_RANGE_MIN, PRICE_RANGE_MAX } from '../../../shared/lib/constants';
 
 export function useShopFilters({ products = [] } = {}) {

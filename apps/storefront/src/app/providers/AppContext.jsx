@@ -1,15 +1,9 @@
-/* eslint-disable react-refresh/only-export-components */
 import React from 'react';
-import { AuthProvider } from '../../entities/user/model/AuthContext';
-import { useAuthContext } from '../../entities/user/model/authContext';
-import { CartProvider } from '../../entities/cart/model/CartContext';
-import { useCartContext } from '../../entities/cart/model/cartContext';
-import { WishlistProvider } from './WishlistContext';
-import { useWishlistContext } from './wishlistContext';
-import { SearchProvider } from './SearchContext';
-import { useSearchContext } from './searchContext';
-import { ProductProvider } from './ProductContext';
-import { useProductContext } from './productContext';
+import { AuthProvider } from '../../entities/user/model/AuthContext.jsx';
+import { CartProvider } from '../../entities/cart/model/CartContext.jsx';
+import { WishlistProvider } from './WishlistContext.jsx';
+import { SearchProvider } from './SearchContext.jsx';
+import { ProductProvider } from './ProductContext.jsx';
 
 export function AppProvider({ children }) {
   return (
@@ -24,19 +18,3 @@ export function AppProvider({ children }) {
     </AuthProvider>
   );
 }
-
-export const useAppContext = () => {
-  const auth = useAuthContext();
-  const cart = useCartContext();
-  const wishlist = useWishlistContext();
-  const search = useSearchContext();
-  const product = useProductContext();
-
-  return {
-    ...auth,
-    ...cart,
-    ...wishlist,
-    ...search,
-    ...product,
-  };
-};

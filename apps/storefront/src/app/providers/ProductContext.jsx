@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
 import { useCartContext } from '../../entities/cart/model/cartContext';
 import { useStorefrontTenant } from '../../features/theme/useStorefrontTenant';
 import { productService } from '../../shared/api/productService';
 import { ProductContext } from './productContext';
 import {
-  fetchInventory,
-  resetInventory,
   setQuickAddProduct as setQuickAddProductAction,
   setSelectedProduct as setSelectedProductAction,
 } from '../store/slices/productSlice';
@@ -14,33 +13,46 @@ import {
 export function ProductProvider({ children }) {
   const { addToCart } = useCartContext();
   const dispatch = useDispatch();
-  const {
-    selectedProduct,
-    quickAddProduct,
-    products,
-    categories,
-    isLoadingInventory,
-    inventoryError,
-  } = useSelector((state) => state.product);
-
+  const { selectedProduct, quickAddProduct } = useSelector((state) => state.product);
   const { tenantId } = useStorefrontTenant();
 
-  useEffect(() => {
-    if (!tenantId) {
-      dispatch(resetInventory());
-      return;
-    }
+  // Fetch products — thay AsyncThunk
+  const {
+    data: products = [],
+    isLoading: isLoadingProducts,
+    error: productsError,
+  } = useQuery({
+    queryKey: ['inventory-products', tenantId],
+    queryFn: () => productService.getProducts(tenantId),
+    enabled: !!tenantId,
+    staleTime: 60_000, // Cache 60 giây — catalog không thay đổi thường xuyên
+  });
 
-    dispatch(fetchInventory(tenantId));
-  }, [dispatch, tenantId]);
+  // Fetch categories — thay AsyncThunk
+  const {
+    data: categories = [],
+    isLoading: isLoadingCategories,
+    error: categoriesError,
+  } = useQuery({
+    queryKey: ['inventory-categories', tenantId],
+    queryFn: () => productService.getCategories(tenantId),
+    enabled: !!tenantId,
+    staleTime: 60_000,
+  });
 
-  const setSelectedProduct = (product) => {
-    dispatch(setSelectedProductAction(product));
-  };
+  const isLoadingInventory = isLoadingProducts || isLoadingCategories;
 
-  const setQuickAddProduct = (product) => {
-    dispatch(setQuickAddProductAction(product));
-  };
+  const inventoryError = (() => {
+    const pFail = !!productsError;
+    const cFail = !!categoriesError;
+    if (pFail && cFail) return 'Không thể tải danh mục và sản phẩm';
+    if (cFail) return 'Không thể tải danh mục';
+    if (pFail) return 'Không thể tải sản phẩm';
+    return null;
+  })();
+
+  const setSelectedProduct = (product) => dispatch(setSelectedProductAction(product));
+  const setQuickAddProduct = (product) => dispatch(setQuickAddProductAction(product));
 
   const handleQuickAdd = async (product) => {
     let productWithSkus = product;
@@ -48,12 +60,12 @@ export function ProductProvider({ children }) {
       try {
         productWithSkus = await productService.getProductById(tenantId, product.id);
       } catch (error) {
-        console.error("Failed to fetch product details for quick add:", error);
+        console.error('Failed to fetch product details for quick add:', error);
       }
     }
 
     const attrs = productWithSkus.attributes || {};
-    const hasSelectableAttrs = Object.values(attrs).some(v => Array.isArray(v) && v.length > 0);
+    const hasSelectableAttrs = Object.values(attrs).some((v) => Array.isArray(v) && v.length > 0);
     if (hasSelectableAttrs) {
       dispatch(setQuickAddProductAction(productWithSkus));
     } else {

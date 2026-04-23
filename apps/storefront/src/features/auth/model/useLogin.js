@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useMutation } from '@tanstack/react-query';
 import { authService } from '../../../shared/api/authService';
-import { useAppContext } from '../../../app/providers/AppContext';
+import { useAppContext } from '../../../app/providers/useAppContext';
+import { getStorefrontSubdomain } from '../../../shared/lib/getStorefrontSubdomain';
 
 export const useLogin = () => {
   const navigate = useNavigate();
@@ -10,123 +12,73 @@ export const useLogin = () => {
   const redirectTimeoutRef = useRef(null);
   const { applyAuthResponse } = useAppContext();
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formError, setFormError] = useState(null); // Lỗi validation phía client
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  useEffect(() => {
-    return () => {
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (error) setError(null);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (isLoading) return;
-
-    const envSubdomain = (import.meta.env.VITE_STOREFRONT_SUBDOMAIN || '')
-      .trim()
-      .toLowerCase();
-
-    const host = window.location.hostname || '';
-    const hostSubdomain =
-      host && host !== 'localhost' && host.includes('.')
-        ? host.split('.')[0].toLowerCase()
-        : '';
-
-    const subdomain = envSubdomain || hostSubdomain;
+  // ─── Validation ───────────────────────────────────────────────────────────
+  const validate = () => {
+    const subdomain = getStorefrontSubdomain();
     const email = formData.email.trim().toLowerCase();
     const password = formData.password;
 
-    if (!email || !password) {
-      setError('Please fill in all required fields.');
-      return;
-    }
+    if (!email || !password) return { error: 'Please fill in all required fields.' };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Please enter a valid email address.' };
+    if (!/^[a-z0-9-]{3,50}$/.test(subdomain)) return { error: 'Storefront subdomain chưa được cấu hình hợp lệ.' };
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address.');
-      return;
-    }
+    return { subdomain, email, password };
+  };
 
-    const subdomainRegex = /^[a-z0-9-]{3,50}$/;
-    if (!subdomainRegex.test(subdomain)) {
-      setError('Storefront subdomain chưa được cấu hình hợp lệ.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setIsSuccess(false);
-
-    try {
-      const response = await authService.loginCustomer({
-        subdomain,
-        email,
-        password,
-      });
-
-      setIsSuccess(true);
+  // ─── useMutation ──────────────────────────────────────────────────────────
+  const { mutate: login, isPending: isLoading, isSuccess } = useMutation({
+    mutationFn: ({ subdomain, email, password }) =>
+      authService.loginCustomer({ subdomain, email, password }),
+    onSuccess: (response) => {
       applyAuthResponse(response);
       toast.success('Đăng nhập thành công!');
-
       setFormData((prev) => ({ ...prev, password: '' }));
 
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
-      }
-
+      if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
       redirectTimeoutRef.current = setTimeout(() => {
         const from = location.state?.from?.pathname || '/';
         navigate(from, { replace: true });
       }, 1000);
-    } catch (err) {
+    },
+    onError: (err) => {
       const status = err.response?.status;
       let errorMessage;
-
       if (status === 401) {
         errorMessage = 'Email hoặc password không chính xác.';
       } else if (status === 400) {
-        errorMessage =
-          err.response?.data?.message ||
-          'Store không tồn tại hoặc dữ liệu không hợp lệ.';
+        errorMessage = err.response?.data?.message || 'Store không tồn tại hoặc dữ liệu không hợp lệ.';
       } else {
-        errorMessage =
-          err.response?.data?.message ||
-          err.message ||
-          'Invalid email or password. Please try again.';
+        errorMessage = err.response?.data?.message || err.message || 'Invalid email or password. Please try again.';
       }
-
-      setError(errorMessage);
+      setFormError(errorMessage);
       toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+
+  // ─── Handlers ─────────────────────────────────────────────────────────────
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (formError) setFormError(null);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (isLoading) return;
+
+    const result = validate();
+    if (result.error) { setFormError(result.error); return; }
+
+    login(result);
   };
 
   return {
     formData,
     isLoading,
-    error,
+    error: formError,
     isSuccess,
     handleChange,
     handleSubmit,
