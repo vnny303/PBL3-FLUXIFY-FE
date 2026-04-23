@@ -1,59 +1,137 @@
 import { useState, useMemo, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAppContext } from '../../../app/providers/useAppContext';
-import { ITEMS_PER_PAGE, SORT_OPTIONS, PRICE_RANGE_MIN, PRICE_RANGE_MAX } from '../../../shared/lib/constants';
+import { useStorefrontTenant } from '../../theme/useStorefrontTenant';
+import { productService } from '../../../shared/api/productService';
+import {
+  ITEMS_PER_PAGE,
+  SORT_OPTIONS,
+  PRICE_RANGE_MIN,
+  PRICE_RANGE_MAX,
+} from '../../../shared/lib/constants';
 
-export function useShopFilters({ products = [] } = {}) {
+/**
+ * Map UI sort option → API query params
+ * API hỗ trợ sortBy: "name" | "categoryId" | "id"  và sortDir: "asc" | "desc"
+ * Price sort không có trong API → giữ client-side (clientSort)
+ */
+const getSortParams = (sortBy) => {
+  switch (sortBy) {
+    case 'Price: Low to High':
+      return { apiSortBy: 'name', apiSortDir: 'asc', clientSort: 'price-asc' };
+    case 'Price: High to Low':
+      return { apiSortBy: 'name', apiSortDir: 'asc', clientSort: 'price-desc' };
+    case 'Newest Arrivals':
+      return { apiSortBy: 'id', apiSortDir: 'desc', clientSort: null };
+    case 'Best Selling':
+      return { apiSortBy: 'id', apiSortDir: 'asc', clientSort: null };
+    default:
+      return { apiSortBy: 'name', apiSortDir: 'asc', clientSort: null };
+  }
+};
+
+export function useShopFilters() {
   const { searchQuery } = useAppContext();
+  const { tenantId } = useStorefrontTenant();
+  const location = useLocation();
 
+  // ─── Server-side filter state ────────────────────────────────────────────────
+  // Khởi tạo từ location.state nếu được navigate từ trang Home (Shop by Category)
+  const initialCategoryId = location.state?.categoryId;
+  const [selectedCategories, setSelectedCategories] = useState(
+    initialCategoryId ? [initialCategoryId] : []
+  );
+
+  // ─── Client-side filter state ────────────────────────────────────────────────
   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0]);
   const [priceRange, setPriceRange] = useState([PRICE_RANGE_MIN, PRICE_RANGE_MAX]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const gridTopRef = useRef(null);
 
-  const updateSortBy = (value) => {
-    setCurrentPage(1);
-    setSortBy(value);
-  };
+  // ─── Build API query params ───────────────────────────────────────────────────
+  const { apiSortBy, apiSortDir, clientSort } = getSortParams(sortBy);
 
-  const updatePriceRange = (value) => {
-    setCurrentPage(1);
-    setPriceRange(value);
-  };
+  const apiFilters = useMemo(() => {
+    const params = {};
 
+    // categoryId: chỉ gửi lên API nếu chọn đúng 1 category
+    // (API spec không hỗ trợ multi-categoryId)
+    if (selectedCategories.length === 1) {
+      params.categoryId = selectedCategories[0];
+    }
+
+    // search: gửi lên server để tìm theo name + description
+    if (searchQuery && searchQuery.trim()) {
+      params.search = searchQuery.trim();
+    }
+
+    // sortBy + sortDir: theo spec Products query params
+    params.sortBy = apiSortBy;
+    params.sortDir = apiSortDir;
+
+    return params;
+  }, [selectedCategories, searchQuery, apiSortBy, apiSortDir]);
+
+  // ─── Fetch products từ API với filters ───────────────────────────────────────
+  // Query key thay đổi → TanStack Query tự động refetch
+  const {
+    data: serverProducts = [],
+    isLoading: isLoadingProducts,
+    error: productsError,
+  } = useQuery({
+    queryKey: ['shop-products', tenantId, apiFilters],
+    queryFn: () => productService.getProducts(tenantId, apiFilters),
+    enabled: !!tenantId,
+    staleTime: 30_000, // 30 giây
+  });
+
+  // ─── Client-side post-filter ───────────────────────────────────────────────
+  // Price range và Size không được API hỗ trợ → filter trên kết quả server trả về
+  // Nếu chọn nhiều hơn 1 category → cũng cần lọc client-side
   const filteredProducts = useMemo(() => {
-    const q = searchQuery.toLowerCase();
-    let result = products.filter((product) => {
-      const inPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
-      const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.categoryId);
-      // Check sizes from product.attributes.sizes or sizes directly
-      const productSizes = product.attributes?.sizes || product.attributes?.size || [];
-      const normalizedSizes = Array.isArray(productSizes) ? productSizes : [productSizes];
+    let result = serverProducts.filter((product) => {
+      // Price range filter (client-side vì API không hỗ trợ)
+      const inPriceRange =
+        product.price >= priceRange[0] && product.price <= priceRange[1];
+
+      // Multi-category filter (client-side khi chọn 2+ categories)
+      const matchesCategory =
+        selectedCategories.length <= 1 || // 0 hoặc 1: đã xử lý ở API
+        selectedCategories.includes(product.categoryId);
+
+      // Size filter (client-side vì API không hỗ trợ)
+      const productSizes =
+        product.attributes?.sizes || product.attributes?.size || [];
+      const normalizedSizes = Array.isArray(productSizes)
+        ? productSizes
+        : [productSizes];
       const matchesSize =
         selectedSizes.length === 0 ||
         normalizedSizes.some((s) => selectedSizes.includes(s));
-      const matchesSearch =
-        !q ||
-        product.name.toLowerCase().includes(q) ||
-        (product.description && product.description.toLowerCase().includes(q));
-      return inPriceRange && matchesCategory && matchesSize && matchesSearch;
+
+      return inPriceRange && matchesCategory && matchesSize;
     });
 
-    if (sortBy === 'Price: Low to High') result.sort((a, b) => a.price - b.price);
-    else if (sortBy === 'Price: High to Low') result.sort((a, b) => b.price - a.price);
-    else if (sortBy === 'Newest Arrivals') result.sort((a, b) => b.id.localeCompare(a.id));
-    else if (sortBy === 'Best Selling') result.sort((a, b) => a.id.localeCompare(b.id));
+    // Price sort (client-side vì API chưa hỗ trợ sortBy=price)
+    if (clientSort === 'price-asc') {
+      result = [...result].sort((a, b) => a.price - b.price);
+    } else if (clientSort === 'price-desc') {
+      result = [...result].sort((a, b) => b.price - a.price);
+    }
 
     return result;
-  }, [products, priceRange, selectedCategories, selectedSizes, sortBy, searchQuery]);
+  }, [serverProducts, priceRange, selectedCategories, selectedSizes, clientSort]);
 
+  // ─── Pagination (client-side trên kết quả đã filter) ─────────────────────
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
   const currentProducts = filteredProducts.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
 
+  // ─── Handlers ────────────────────────────────────────────────────────────────
   const handlePageChange = (page) => {
     setCurrentPage(page);
     if (gridTopRef.current) {
@@ -65,18 +143,12 @@ export function useShopFilters({ products = [] } = {}) {
     }
   };
 
-  const clearFilters = () => {
-    setCurrentPage(1);
-    setPriceRange([PRICE_RANGE_MIN, PRICE_RANGE_MAX]);
-    setSelectedCategories([]);
-    setSelectedSizes([]);
-    setSortBy(SORT_OPTIONS[0]);
-  };
-
   const toggleCategory = (categoryId) => {
     setCurrentPage(1);
     setSelectedCategories((prev) =>
-      prev.includes(categoryId) ? prev.filter((c) => c !== categoryId) : [...prev, categoryId],
+      prev.includes(categoryId)
+        ? prev.filter((c) => c !== categoryId)
+        : [...prev, categoryId],
     );
   };
 
@@ -85,6 +157,24 @@ export function useShopFilters({ products = [] } = {}) {
     setSelectedSizes((prev) =>
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
     );
+  };
+
+  const clearFilters = () => {
+    setCurrentPage(1);
+    setPriceRange([PRICE_RANGE_MIN, PRICE_RANGE_MAX]);
+    setSelectedCategories([]);
+    setSelectedSizes([]);
+    setSortBy(SORT_OPTIONS[0]);
+  };
+
+  const updateSortBy = (value) => {
+    setCurrentPage(1);
+    setSortBy(value);
+  };
+
+  const updatePriceRange = (value) => {
+    setCurrentPage(1);
+    setPriceRange(value);
   };
 
   return {
@@ -98,8 +188,11 @@ export function useShopFilters({ products = [] } = {}) {
     currentPage, totalPages, handlePageChange,
     // Derived data
     filteredProducts, currentProducts,
+    // Loading / Error
+    isLoadingProducts,
+    productsError,
     // Ref
     gridTopRef,
   };
 }
-
+  

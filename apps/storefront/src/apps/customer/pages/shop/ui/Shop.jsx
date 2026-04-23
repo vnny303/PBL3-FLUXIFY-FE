@@ -9,15 +9,9 @@ import ProductCard from '../../../../../entities/product/ui/ProductCard';
 
 
 export default function Shop() {
-  const { setSelectedProduct, handleQuickAdd, searchQuery, setSearchQuery, products, categories, isLoadingInventory, inventoryError } = useAppContext();
+  // categories vẫn lấy từ context (global, không phụ thuộc filter)
+  const { setSelectedProduct, handleQuickAdd, searchQuery, setSearchQuery, categories } = useAppContext();
   const navigate = useNavigate();
-
-  const allSizes = useMemo(() => {
-    return [...new Set(products.flatMap(p => {
-      const sizes = p.attributes?.sizes || p.attributes?.size || [];
-      return Array.isArray(sizes) ? sizes : [sizes];
-    }))];
-  }, [products]);
 
   const {
     sortBy, setSortBy,
@@ -27,8 +21,16 @@ export default function Shop() {
     clearFilters,
     currentPage, totalPages, handlePageChange,
     filteredProducts, currentProducts,
+    isLoadingProducts, productsError,
     gridTopRef,
-  } = useShopFilters({ products });
+  } = useShopFilters();
+
+  const allSizes = useMemo(() => {
+    return [...new Set(filteredProducts.flatMap(p => {
+      const sizes = p.attributes?.sizes || p.attributes?.size || [];
+      return Array.isArray(sizes) ? sizes : [sizes];
+    }))];
+  }, [filteredProducts]);
 
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef(null);
@@ -246,13 +248,13 @@ export default function Shop() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {isLoadingInventory ? (
+            {isLoadingProducts ? (
               <div className="col-span-full py-12 flex justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" style={{ borderBottomColor: 'transparent' }}></div>
               </div>
-            ) : inventoryError ? (
+            ) : productsError ? (
               <div className="col-span-full py-12 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
-                {inventoryError}
+                Không thể tải sản phẩm. Vui lòng thử lại.
               </div>
             ) : currentProducts.length === 0 ? (
               <div className="col-span-full py-12 text-center text-slate-500">
