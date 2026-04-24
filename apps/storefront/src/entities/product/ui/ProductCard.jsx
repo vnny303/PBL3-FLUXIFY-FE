@@ -113,7 +113,7 @@ export default function ProductCard({ product, onQuickAdd, onCardClick }) {
       </div>
 
       {/* Content Section */}
-      <div className="p-5 flex flex-col h-[180px]">
+      <div className="p-5 flex flex-col flex-1 min-h-[200px]">
         {product.cat && (
           <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">
             {product.cat}
