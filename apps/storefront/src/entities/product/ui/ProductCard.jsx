@@ -43,15 +43,26 @@ export default function ProductCard({ product, onQuickAdd, onCardClick }) {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute top-3 left-3">
-          <span
-            className="px-2 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider"
-            style={{
-              backgroundColor: productCardTheme.badge,
-              borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
-            }}
-          >
-            In Stock
-          </span>
+          {product.isInStock ? (
+            <span
+              className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm"
+              style={{
+                backgroundColor: productCardTheme.badge,
+                borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
+              }}
+            >
+              In Stock
+            </span>
+          ) : (
+            <span
+              className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm bg-red-500"
+              style={{
+                borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
+              }}
+            >
+              Out of Stock
+            </span>
+          )}
         </div>
       </div>
 

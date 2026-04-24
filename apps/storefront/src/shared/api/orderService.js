@@ -28,12 +28,25 @@ export const orderService = {
     },
 
     // POST /api/customer/orders/checkout
+    // checkout: async ({ address, paymentMethod }) => {
+    //     return axiosClient.post('/api/customer/orders/checkout', {
+    //         address,
+    //         paymentMethod,
+    //     });
+    // },
+
     checkout: async ({ address, paymentMethod }) => {
-        return axiosClient.post('/api/customer/orders/checkout', {
+        const response = await axiosClient.post(
+        '/api/customer/orders/checkout',
+        {
             address,
             paymentMethod,
-        });
+        }
+        );
+
+        return response.data;
     },
+
 
     // PUT /api/tenants/{tenantId}/orders/{id}/status
     updateOrderStatus: async (tenantId, orderId, { status }) => {

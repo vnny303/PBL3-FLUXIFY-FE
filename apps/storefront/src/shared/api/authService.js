@@ -27,6 +27,7 @@ export const loginCustomer = async ({ email, password, subdomain }) => {
     {
       email,
       password,
+      subdomain
     }
   );
 };
@@ -43,10 +44,15 @@ export const logout = async () => {
   }
 };
 
+export const updateCustomer = async (customerId, data) => {
+  return axiosClient.put(`/api/auth/customers/${customerId}`, data);
+};
+
 export const authService = {
   registerCustomer,
   loginCustomer,
   logout,
   getCurrentUser,
   getTenantBySubdomain,
+  updateCustomer,
 };

@@ -1,19 +1,26 @@
-import { useState, useRef } from 'react';
-import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { useState, useRef, useMemo } from 'react';
+import { Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useMutation } from '@tanstack/react-query';
+import { useAppContext } from '../../../../../app/providers/useAppContext';
+import { authService } from '../../../../../shared/api/authService';
 
 export default function ProfileSettings() {
+  const { user } = useAppContext();
   const [confirmAction, setConfirmAction] = useState(null);
   
-  const [profileForm, setProfileForm] = useState({
-    firstName: 'Alex',
-    lastName: 'Thompson',
-    phone: '+1 555-0198'
-  });
+  const initialProfileState = useMemo(() => ({
+    firstName: user?.email?.split('@')[0] || '',
+    lastName: '',
+    phone: '',
+    email: user?.email || ''
+  }), [user]);
+
+  const [profileForm, setProfileForm] = useState(initialProfileState);
   const [profileErrors, setProfileErrors] = useState({});
 
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
+    currentPassword: '', // API doesn't actually check current password in PUT, but we keep it for UI
     newPassword: '',
     confirmPassword: ''
   });
@@ -22,8 +29,34 @@ export default function ProfileSettings() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [photoUrl, setPhotoUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuDwTiP1PXmP8RGuJOK4_Z_PyVhQU1M3dR1iFvEWtpsgmWaKWKyOvGKRX2_vGoESn78NR2YqGoYHq1Sw7Vy4rduWTrKc4bdwvqTm95EnWErL3O-A6_pnu94uEJWlc75OSIj1pH3EXz6hAieGJ0SPs_59hr5m6lDklRByRENzQCkkGid036Ayicyry0DWpdNLU2Zos3N82NAMhivrYi9gi0Pls6dCFcoRmQMh0HogQiDIJkTPXkfu1FIcYMd4cOddaqJd8v2LLzHCgzg");
+  
+  const photoUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDwTiP1PXmP8RGuJOK4_Z_PyVhQU1M3dR1iFvEWtpsgmWaKWKyOvGKRX2_vGoESn78NR2YqGoYHq1Sw7Vy4rduWTrKc4bdwvqTm95EnWErL3O-A6_pnu94uEJWlc75OSIj1pH3EXz6hAieGJ0SPs_59hr5m6lDklRByRENzQCkkGid036Ayicyry0DWpdNLU2Zos3N82NAMhivrYi9gi0Pls6dCFcoRmQMh0HogQiDIJkTPXkfu1FIcYMd4cOddaqJd8v2LLzHCgzg";
   const fileInputRef = useRef(null);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (data) => authService.updateCustomer(user?.userId, data),
+    onSuccess: () => {
+      toast.success('Hồ sơ đã được cập nhật thành công!');
+      setConfirmAction(null);
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Không thể cập nhật hồ sơ');
+      setConfirmAction(null);
+    }
+  });
+
+  const updatePasswordMutation = useMutation({
+    mutationFn: (password) => authService.updateCustomer(user?.userId, { password }),
+    onSuccess: () => {
+      toast.success('Mật khẩu đã được cập nhật thành công!');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setConfirmAction(null);
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Không thể cập nhật mật khẩu');
+      setConfirmAction(null);
+    }
+  });
 
   const handleSaveProfileClick = () => {
     const newErrors = {};
@@ -91,20 +124,13 @@ export default function ProfileSettings() {
                   style={{ backgroundImage: `url('${photoUrl}')` }}
                 ></div>
                 <div className="flex flex-col items-center sm:items-start gap-2 text-center sm:text-left">
-                  <input 
-                    type="file" 
-                    accept="image/jpeg, image/png" 
-                    className="hidden" 
-                    ref={fileInputRef} 
-                    onChange={handlePhotoChange} 
-                  />
                   <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-5 py-2 text-sm font-semibold border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    disabled
+                    className="px-5 py-2 text-sm font-semibold border border-slate-200 dark:border-slate-700 rounded-lg opacity-50 cursor-not-allowed"
                   >
                     Change Photo
                   </button>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">JPG, PNG. Max size 5MB.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Chức năng đổi ảnh đang được phát triển.</p>
                 </div>
               </div>
               
@@ -150,13 +176,13 @@ export default function ProfileSettings() {
                   <div className="relative">
                     <input 
                       type="email" 
-                      defaultValue="alex.t@example.com"
+                      value={user?.email || ''}
                       disabled
                       className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed outline-none" 
                     />
                     <Lock className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-1 italic">Your login email cannot be changed.</p>
+                  <p className="text-[11px] text-slate-500 mt-1 italic">Email dùng để đăng nhập hiện không thể thay đổi.</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number</label>
@@ -180,10 +206,10 @@ export default function ProfileSettings() {
             </div>
             <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
               <button 
-                onClick={handleSaveProfileClick}
-                className="bg-primary hover:bg-primary-hover text-white font-bold py-2.5 px-6 rounded-lg text-sm transition-all shadow-sm"
+                disabled
+                className="bg-slate-300 dark:bg-slate-700 text-white font-bold py-2.5 px-6 rounded-lg text-sm cursor-not-allowed"
               >
-                Save Changes
+                Save Changes (Updating...)
               </button>
             </div>
           </div>
@@ -315,16 +341,18 @@ export default function ProfileSettings() {
               </button>
               <button 
                 onClick={() => {
-                  // Handle actual save/update logic here
                   if (confirmAction === 'save-profile') {
-                    toast.success('Hồ sơ đã được cập nhật thành công!');
+                    updateProfileMutation.mutate({
+                      email: user?.email // Backend only supports email/password for now
+                    });
                   } else {
-                    toast.success('Mật khẩu đã được cập nhật thành công!');
+                    updatePasswordMutation.mutate(passwordForm.newPassword);
                   }
-                  setConfirmAction(null);
                 }}
-                className="flex-1 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-hover transition-colors shadow-sm"
+                disabled={updateProfileMutation.isPending || updatePasswordMutation.isPending}
+                className="flex-1 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-hover transition-colors shadow-sm flex items-center justify-center gap-2"
               >
+                {(updateProfileMutation.isPending || updatePasswordMutation.isPending) && <Loader2 className="w-4 h-4 animate-spin" />}
                 Confirm
               </button>
             </div>
