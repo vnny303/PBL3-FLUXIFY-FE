@@ -1,53 +1,76 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import CheckoutForm, { CITY_OPTIONS, STATE_OPTIONS } from '../../../../../features/checkout/ui/CheckoutForm';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import CheckoutForm from '../../../../../features/checkout/ui/CheckoutForm';
 import OrderSummary from '../../../../../features/checkout/ui/OrderSummary';
 import { useAppContext } from '../../../../../app/providers/useAppContext';
 import { orderService } from '../../../../../shared/api/orderService';
-
-const formatAddressText = (address) =>
-  [address?.street, address?.city, address?.state, address?.zip, address?.country]
-    .filter(Boolean)
-    .join(', ');
+import { addressService } from '../../../../../shared/api/addressService';
 
 export default function Checkout() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isLoggedIn, user, cartItems, cartTotal, refreshCart } = useAppContext();
 
-  const [street, setStreet] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [selectedAddress, setSelectedAddress] = useState('new');
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('bank');
   const [shippingFee, setShippingFee] = useState(5.00);
-  const [addresses, setAddresses] = useState([]);
-  const [addressErrors, setAddressErrors] = useState({});
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
-  const [contactInfo, setContactInfo] = useState({
-    name: user?.email?.split('@')?.[0] || 'Guest Customer',
-    email: user?.email || 'guest@example.com',
-    phone: '',
-  });
-  const [isEditingContact, setIsEditingContact] = useState(false);
-  const [isSavingContact, setIsSavingContact] = useState(false);
-  const [editContactForm, setEditContactForm] = useState({ ...contactInfo });
-  const [isAddingNewAddress, setIsAddingNewAddress] = useState(true);
-
+  // Redirect if not logged in
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/login', { state: { from: '/checkout' } });
     }
   }, [isLoggedIn, navigate]);
 
+  // Fetch saved addresses
+  const { data: addressResponse, isLoading: isLoadingAddresses } = useQuery({
+    queryKey: ['customer-addresses', user?.userId],
+    queryFn: () => addressService.getAddresses(user?.tenantId, user?.userId),
+    enabled: !!user?.userId,
+  });
+
+  const addresses = addressResponse?.data || [];
+
+  // Auto-select default address
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddressId) {
+      const defaultAddr = addresses.find(a => a.isDefault) || addresses[0];
+      setSelectedAddressId(defaultAddr.id);
+    }
+  }, [addresses, selectedAddressId]);
+
+  const selectedAddress = useMemo(() => 
+    addresses.find(a => a.id === selectedAddressId), 
+    [addresses, selectedAddressId]
+  );
+
+  // Mutation for adding new address
+  const { mutate: addAddress, isPending: isAddingAddress } = useMutation({
+    mutationFn: (newAddr) => addressService.createAddress(user?.tenantId, user?.userId, newAddr),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['customer-addresses', user?.userId] });
+      setSelectedAddressId(response.data.id);
+      setIsAddressModalOpen(false);
+      toast.success('Address added successfully');
+    },
+    onError: () => toast.error('Failed to add address')
+  });
+
+  // Build the formatted address string: 
+  // receiverName | phone, streetAddress, ward, district, province, Vietnam
+  const buildFormattedAddress = (addr) => {
+    if (!addr) return '';
+    return `${addr.receiverName} | ${addr.phone}, ${addr.streetAddress}, ${addr.ward}, ${addr.district}, ${addr.province}, ${addr.country}`;
+  };
+
   // ─── useMutation cho checkout ──────────────────────────────────────────────
   const { mutate: placeOrder, isPending: isProcessing } = useMutation({
     mutationFn: ({ address, paymentMethod: pm }) =>
       orderService.checkout({ address, paymentMethod: pm }),
     onSuccess: async (checkoutResponse, { shippingAddress, apiPaymentMethod }) => {
-      // Refresh cart + invalidate orders cache sau khi đặt hàng thành công
       await refreshCart();
       queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
 
@@ -66,12 +89,10 @@ export default function Checkout() {
         id: checkoutResponse?.id || `ORDER-${Date.now()}`,
         createdAt: checkoutResponse?.createdAt || new Date().toISOString(),
         status: checkoutResponse?.status || 'Pending',
-        paymentMethod: checkoutResponse?.paymentMethod || apiPaymentMethod,
-        paymentStatus: checkoutResponse?.paymentStatus || 'Pending',
+        paymentMethod: apiPaymentMethod,
         totalAmount: checkoutResponse?.totalAmount ?? (cartTotal + shippingFee),
-        orderItems:
-          Array.isArray(checkoutResponse?.orderItems) && checkoutResponse.orderItems.length > 0
-            ? checkoutResponse.orderItems
+        orderItems: (checkoutResponse?.orderItems?.length > 0) 
+            ? checkoutResponse.orderItems 
             : fallbackOrderItems,
         shippingAddress,
         payment: {
@@ -88,88 +109,18 @@ export default function Checkout() {
     },
   });
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-  const validateAddress = () => {
-    const errors = {};
-    if (!street.trim()) errors.street = 'Street address is required';
-    if (!city) errors.city = 'City is required';
-    if (!state) errors.state = 'State is required';
-    setAddressErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleEditContact = (e) => {
-    e.preventDefault();
-    setEditContactForm({ ...contactInfo });
-    setIsEditingContact(true);
-  };
-
-  const handleCancelContact = () => setIsEditingContact(false);
-
-  const handleSaveContact = () => {
-    setIsSavingContact(true);
-    setTimeout(() => {
-      setContactInfo({ ...editContactForm });
-      setIsSavingContact(false);
-      setIsEditingContact(false);
-      toast.success('Thông tin liên hệ đã được cập nhật!');
-    }, 1000);
-  };
-
-  const handleSaveNewAddress = () => {
-    if (!validateAddress()) return;
-    const newAddressId = `address_${Date.now()}`;
-    const newAddress = {
-      id: newAddressId,
-      label: `Address ${addresses.length + 1}`,
-      street,
-      city: CITY_OPTIONS.find((o) => o.value === city)?.label || city,
-      state: STATE_OPTIONS.find((o) => o.value === state)?.label || state,
-      zip: '',
-      country: 'United States',
-    };
-    setAddresses([...addresses, newAddress]);
-    setSelectedAddress(newAddressId);
-    setIsAddingNewAddress(false);
-    setStreet(''); setCity(''); setState('');
-    setAddressErrors({});
-    toast.success('Thêm địa chỉ giao hàng thành công!');
-  };
-
   const handlePlaceOrder = () => {
     if (!isLoggedIn) { toast.error('Vui lòng đăng nhập để checkout'); return; }
     if (cartItems.length === 0) { toast.error('Giỏ hàng đang trống, không thể checkout'); return; }
+    if (!selectedAddress) { toast.error('Vui lòng chọn địa chỉ giao hàng'); return; }
 
-    let shippingAddress;
-    if (selectedAddress === 'new') {
-      if (!validateAddress()) { setIsAddingNewAddress(true); return; }
-      shippingAddress = {
-        name: contactInfo.name,
-        street,
-        city: CITY_OPTIONS.find((o) => o.value === city)?.label || city,
-        state: STATE_OPTIONS.find((o) => o.value === state)?.label || state,
-        zip: '00000',
-        country: 'United States',
-      };
-    } else {
-      const addr = addresses.find((a) => a.id === selectedAddress);
-      if (!addr) { toast.error('Địa chỉ giao hàng không hợp lệ'); return; }
-      shippingAddress = {
-        name: contactInfo.name,
-        street: addr.street,
-        city: addr.city,
-        state: addr.state,
-        zip: addr.zip,
-        country: addr.country,
-      };
-    }
-
+    const addressString = buildFormattedAddress(selectedAddress);
     const apiPaymentMethod = paymentMethod === 'bank' ? 'BankTransfer' : 'COD';
+
     placeOrder({
-      address: formatAddressText(shippingAddress),
+      address: addressString,
       paymentMethod: apiPaymentMethod,
-      // context cho onSuccess
-      shippingAddress,
+      shippingAddress: selectedAddress,
       apiPaymentMethod,
     });
   };
@@ -178,29 +129,21 @@ export default function Checkout() {
     <main className="max-w-7xl mx-auto px-6 py-10 w-full grow">
       <div className="flex flex-col lg:flex-row gap-8">
         <CheckoutForm
-          contactInfo={contactInfo}
-          isEditingContact={isEditingContact}
-          isSavingContact={isSavingContact}
-          editContactForm={editContactForm}
-          setEditContactForm={setEditContactForm}
-          handleEditContact={handleEditContact}
-          handleCancelContact={handleCancelContact}
-          handleSaveContact={handleSaveContact}
+          userEmail={user?.email}
           addresses={addresses}
-          selectedAddress={selectedAddress}
-          setSelectedAddress={setSelectedAddress}
-          isAddingNewAddress={isAddingNewAddress}
-          setIsAddingNewAddress={setIsAddingNewAddress}
-          street={street} setStreet={setStreet}
-          city={city} setCity={setCity}
-          state={state} setState={setState}
-          addressErrors={addressErrors}
-          setAddressErrors={setAddressErrors}
-          handleSaveNewAddress={handleSaveNewAddress}
+          selectedAddressId={selectedAddressId}
+          onSelectAddress={setSelectedAddressId}
+          onOpenAddressModal={() => setIsAddressModalOpen(true)}
+          isAddressModalOpen={isAddressModalOpen}
+          onCloseAddressModal={() => setIsAddressModalOpen(false)}
+          onAddAddress={addAddress}
+          isAddingAddress={isAddingAddress}
+          isLoadingAddresses={isLoadingAddresses}
           shippingFee={shippingFee}
           setShippingFee={setShippingFee}
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
+          selectedAddress={selectedAddress}
         />
         <OrderSummary
           cartItems={cartItems}
