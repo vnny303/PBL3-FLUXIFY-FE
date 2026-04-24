@@ -36,11 +36,11 @@ export default function ProfileSettings() {
   const updateProfileMutation = useMutation({
     mutationFn: (data) => authService.updateCustomer(user?.userId, data),
     onSuccess: () => {
-      toast.success('Hồ sơ đã được cập nhật thành công!');
+      toast.success('Profile updated successfully!');
       setConfirmAction(null);
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || 'Không thể cập nhật hồ sơ');
+      toast.error(error?.response?.data?.message || 'Failed to update profile');
       setConfirmAction(null);
     }
   });
@@ -48,12 +48,12 @@ export default function ProfileSettings() {
   const updatePasswordMutation = useMutation({
     mutationFn: (password) => authService.updateCustomer(user?.userId, { password }),
     onSuccess: () => {
-      toast.success('Mật khẩu đã được cập nhật thành công!');
+      toast.success('Password updated successfully!');
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setConfirmAction(null);
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || 'Không thể cập nhật mật khẩu');
+      toast.error(error?.response?.data?.message || 'Failed to update password');
       setConfirmAction(null);
     }
   });
@@ -130,7 +130,7 @@ export default function ProfileSettings() {
                   >
                     Change Photo
                   </button>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Chức năng đổi ảnh đang được phát triển.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Profile photo upload is coming soon.</p>
                 </div>
               </div>
               
@@ -182,7 +182,7 @@ export default function ProfileSettings() {
                     />
                     <Lock className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-1 italic">Email dùng để đăng nhập hiện không thể thay đổi.</p>
+                  <p className="text-[11px] text-slate-500 mt-1 italic">Email used for login cannot be changed currently.</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number</label>

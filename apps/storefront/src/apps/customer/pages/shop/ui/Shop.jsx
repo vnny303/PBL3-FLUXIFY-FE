@@ -9,7 +9,6 @@ import ProductCard from '../../../../../entities/product/ui/ProductCard';
 
 
 export default function Shop() {
-  // categories vẫn lấy từ context (global, không phụ thuộc filter)
   const { setSelectedProduct, handleQuickAdd, searchQuery, setSearchQuery, categories } = useAppContext();
   const navigate = useNavigate();
 
@@ -94,8 +93,8 @@ export default function Shop() {
   }, [sortDropdownRef]);
 
   return (
-    <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+    <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[600px]">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 min-h-[70vh]">
         <aside className="w-full lg:w-64 shrink-0 space-y-8">
           <div className="lg:sticky lg:top-24">
             <div className="flex items-center justify-between mb-6">
@@ -254,7 +253,7 @@ export default function Shop() {
               </div>
             ) : productsError ? (
               <div className="col-span-full py-12 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
-                Không thể tải sản phẩm. Vui lòng thử lại.
+                Failed to load products. Please try again later.
               </div>
             ) : currentProducts.length === 0 ? (
               <div className="col-span-full py-12 text-center text-slate-500">

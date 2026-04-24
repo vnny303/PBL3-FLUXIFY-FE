@@ -1,31 +1,15 @@
 import axiosClient from './axiosClient';
 
+import { INITIAL_ADDRESS_MOCKS } from '../lib/mocks/addressMock';
+
 const IS_MOCK = import.meta.env.VITE_ENABLE_CUSTOMER_ADDRESSES_MOCK === 'true';
 const STORAGE_KEY = 'fluxify_customer_addresses';
-
-const INITIAL_MOCK_DATA = [
-  {
-    id: "mock-addr-1",
-    customerId: null, // Will be filtered out if we enforce customerId, so I'll set it to a flexible check
-    tenantId: null,
-    receiverName: "Nguyen Van A",
-    phone: "0901234567",
-    country: "Vietnam",
-    province: "TP.HCM",
-    district: "Quận 1",
-    ward: "Phường Bến Nghé",
-    streetAddress: "123 Lê Lợi",
-    isDefault: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-];
 
 const getMockAddresses = () => {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) {
-        saveMockAddresses(INITIAL_MOCK_DATA);
-        return INITIAL_MOCK_DATA;
+        saveMockAddresses(INITIAL_ADDRESS_MOCKS);
+        return INITIAL_ADDRESS_MOCKS;
     }
     return JSON.parse(data);
 };

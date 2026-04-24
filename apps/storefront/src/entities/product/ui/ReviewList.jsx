@@ -8,9 +8,9 @@ import { useAppContext } from '../../../app/providers/useAppContext';
 import ConfirmationModal from '../../../shared/ui/ConfirmationModal';
 
 const SORT_OPTIONS = [
-  { label: 'Mới nhất', sortBy: 'createdAt', sortDir: 'desc' },
-  { label: 'Đánh giá cao nhất', sortBy: 'rating', sortDir: 'desc' },
-  { label: 'Đánh giá thấp nhất', sortBy: 'rating', sortDir: 'asc' },
+  { label: 'Newest', sortBy: 'createdAt', sortDir: 'desc' },
+  { label: 'Highest Rating', sortBy: 'rating', sortDir: 'desc' },
+  { label: 'Lowest Rating', sortBy: 'rating', sortDir: 'asc' },
 ];
 
 // ─── Rating Stars Input ────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
     ? new Date(review.createdAt).toLocaleDateString('vi-VN', {
         year: 'numeric', month: 'short', day: 'numeric',
       })
-    : 'Gần đây';
+    : 'Recently';
 
   return (
     <div className="border-b border-slate-100 pb-8">
@@ -55,7 +55,7 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
             <User className="w-5 h-5" />
           </div>
           <div>
-            <span className="font-bold text-slate-900">{review.customerEmail || 'Khách hàng'}</span>
+            <span className="font-bold text-slate-900">{review.customerEmail || 'Customer'}</span>
             <div className="flex text-amber-400 mt-1">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
@@ -74,14 +74,14 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
               <button
                 onClick={() => onEdit(review)}
                 className="text-slate-400 hover:text-primary transition-colors"
-                title="Chỉnh sửa"
+                title="Edit"
               >
                 <Pencil className="w-4 h-4" />
               </button>
               <button
                 onClick={() => onDelete(review.id)}
                 className="text-slate-400 hover:text-red-500 transition-colors"
-                title="Xóa"
+                title="Delete"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -105,16 +105,16 @@ function ReviewForm({ productSkuId, editingReview, onDone }) {
   const createMutation = useMutation({
     mutationFn: () => reviewService.createReview({ productSkuId, rating, comment }),
     onSuccess: () => {
-      toast.success('Đánh giá của bạn đã được gửi!');
+      toast.success('Message sent successfully! We will get back to you soon.');
       queryClient.invalidateQueries({ queryKey: ['reviews', productSkuId] });
       queryClient.invalidateQueries({ queryKey: ['review-summary', productSkuId] });
       onDone();
     },
     onError: (err) => {
       if (err?.response?.status === 409) {
-        toast.error('Bạn đã đánh giá sản phẩm này rồi!');
+        toast.error('You have already reviewed this product.');
       } else {
-        toast.error(err?.response?.data?.message || 'Không thể gửi đánh giá');
+        toast.error(err?.response?.data?.message || 'Failed to submit review');
       }
     },
   });
@@ -122,13 +122,13 @@ function ReviewForm({ productSkuId, editingReview, onDone }) {
   const updateMutation = useMutation({
     mutationFn: () => reviewService.updateReview(editingReview.id, { rating, comment }),
     onSuccess: () => {
-      toast.success('Đánh giá đã được cập nhật!');
+      toast.success('Review updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['reviews', productSkuId] });
       queryClient.invalidateQueries({ queryKey: ['review-summary', productSkuId] });
       onDone();
     },
     onError: (err) => {
-      toast.error(err?.response?.data?.message || 'Không thể cập nhật đánh giá');
+      toast.error(err?.response?.data?.message || 'Failed to update review');
     },
   });
 
@@ -137,7 +137,7 @@ function ReviewForm({ productSkuId, editingReview, onDone }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (rating === 0) {
-      toast.error('Vui lòng chọn số sao!');
+      toast.error('Please select a rating star.');
       return;
     }
     if (editingReview) {
@@ -150,21 +150,21 @@ function ReviewForm({ productSkuId, editingReview, onDone }) {
   return (
     <form onSubmit={handleSubmit} className="bg-slate-50 rounded-xl p-5 mb-8 border border-slate-200">
       <h4 className="font-bold text-slate-900 mb-4">
-        {editingReview ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá'}
+        {editingReview ? 'Edit Review' : 'Write a Review'}
       </h4>
       <div className="mb-4">
-        <label className="text-sm text-slate-600 mb-2 block">Xếp hạng *</label>
+        <label className="text-sm text-slate-600 mb-2 block">Rating *</label>
         <StarInput value={rating} onChange={setRating} disabled={isPending} />
       </div>
       <div className="mb-4">
-        <label className="text-sm text-slate-600 mb-2 block">Nhận xét (tuỳ chọn)</label>
+        <label className="text-sm text-slate-600 mb-2 block">Comment (optional)</label>
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           maxLength={2000}
           rows={3}
           disabled={isPending}
-          placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+          placeholder="Share your experience here..."
           className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-lg resize-none outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50"
         />
         <p className="text-xs text-slate-400 text-right mt-1">{comment.length}/2000</p>
@@ -176,7 +176,7 @@ function ReviewForm({ productSkuId, editingReview, onDone }) {
           className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-lg hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-60"
         >
           {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          {editingReview ? 'Cập nhật' : 'Gửi đánh giá'}
+          {editingReview ? 'Update' : 'Submit Review'}
         </button>
         <button
           type="button"
@@ -184,7 +184,7 @@ function ReviewForm({ productSkuId, editingReview, onDone }) {
           disabled={isPending}
           className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
         >
-          Huỷ
+          Cancel
         </button>
       </div>
     </form>
@@ -204,7 +204,6 @@ export default function ReviewList({ product }) {
   const [reviewIdToDelete, setReviewIdToDelete] = useState(null);
   const sortDropdownRef = useRef(null);
 
-  // Dùng SKU đầu tiên của product để fetch reviews (theo spec: reviews gắn với SKU)
   const firstSkuId = product?.skus?.[0]?.id;
 
   // ── Fetch review list ──────────────────────────────────────────────────────
@@ -234,13 +233,13 @@ export default function ReviewList({ product }) {
   const deleteMutation = useMutation({
     mutationFn: (reviewId) => reviewService.deleteReview(reviewId),
     onSuccess: () => {
-      toast.success('Đã xóa đánh giá!');
+      toast.success('Review deleted successfully!');
       queryClient.invalidateQueries({ queryKey: ['reviews', firstSkuId] });
       queryClient.invalidateQueries({ queryKey: ['review-summary', firstSkuId] });
       setReviewIdToDelete(null);
     },
     onError: () => {
-      toast.error('Không thể xóa đánh giá');
+      toast.error('Failed to delete review');
       setReviewIdToDelete(null);
     },
   });
@@ -288,7 +287,7 @@ export default function ReviewList({ product }) {
   if (!firstSkuId) {
     return (
       <div className="text-center py-12 border border-slate-100 rounded-xl bg-slate-50">
-        <p className="text-slate-500">Sản phẩm này chưa có biến thể để đánh giá.</p>
+        <p className="text-slate-500">This product has no variants to review.</p>
       </div>
     );
   }
@@ -308,7 +307,7 @@ export default function ReviewList({ product }) {
               return <Star key={i} className="w-5 h-5 text-slate-200" />;
             })}
           </div>
-          <p className="text-sm text-slate-500 mb-6">Dựa trên {totalReviews} đánh giá</p>
+          <p className="text-sm text-slate-500 mb-6">Based on {totalReviews} reviews</p>
 
           {/* Rating breakdown bars */}
           {ratingBreakdown.length > 0 && (
@@ -335,11 +334,11 @@ export default function ReviewList({ product }) {
               className="w-full py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 text-sm"
             >
               <Pen className="w-4 h-4" />
-              VIẾT ĐÁNH GIÁ
+              WRITE A REVIEW
             </button>
           ) : (
             <p className="text-sm text-slate-500 text-center italic">
-              Đăng nhập để viết đánh giá
+              Please login to write a review
             </p>
           )}
         </div>
@@ -359,10 +358,10 @@ export default function ReviewList({ product }) {
         {/* Sort bar */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
           <span className="text-sm text-slate-500">
-            {totalReviews} đánh giá
+            {totalReviews} reviews
           </span>
           <div className="flex items-center gap-2 text-sm relative" ref={sortDropdownRef}>
-            <span className="text-slate-500">Sắp xếp:</span>
+            <span className="text-slate-500">Sort by:</span>
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
               className="flex items-center gap-1 font-bold text-slate-900 hover:text-primary transition-colors"
@@ -398,8 +397,8 @@ export default function ReviewList({ product }) {
             </div>
           ) : reviews.length === 0 ? (
             <div className="text-center py-12 border border-slate-100 rounded-xl bg-slate-50">
-              <p className="text-slate-500">Chưa có đánh giá nào cho sản phẩm này.</p>
-              <p className="text-slate-900 font-bold mt-2">Hãy là người đầu tiên chia sẻ!</p>
+              <p className="text-slate-500">No reviews yet for this product.</p>
+              <p className="text-slate-900 font-bold mt-2">Be the first to share your thoughts!</p>
             </div>
           ) : (
             reviews.map((review) => (
@@ -420,10 +419,10 @@ export default function ReviewList({ product }) {
         isOpen={!!reviewIdToDelete}
         onClose={() => setReviewIdToDelete(null)}
         onConfirm={handleDeleteConfirm}
-        title="Xóa đánh giá"
-        message="Bạn có chắc là muốn xóa đánh giá này không? Hành động này không thể hoàn tác."
-        confirmText="Xóa ngay"
-        cancelText="Để sau"
+        title="Confirm Deletion"
+        message="Are you sure you want to perform this action?"
+        confirmText="Confirm"
+        cancelText="Cancel"
         type="danger"
       />
     </div>

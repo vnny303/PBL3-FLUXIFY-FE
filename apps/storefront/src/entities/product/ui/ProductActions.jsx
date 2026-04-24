@@ -2,33 +2,41 @@ import React from 'react';
 import { Minus, Plus, ShoppingBag, Truck, ShieldCheck } from 'lucide-react';
 import { formatVnd } from '../../../shared/lib/formatters';
 
-export default function ProductActions({ product, selectedSku, quantity, setQuantity, selectedAttributes, addToCart }) {
+export default function ProductActions({ product, selectedSku, quantity, setQuantity, selectedOptions, addToCart, optionGroups = [] }) {
   const currentProduct = product || { id: 999, name: 'Product', price: 0 };
 
   const skuPrice = selectedSku?.price ?? currentProduct.price ?? 0;
   const displayPrice = formatVnd(skuPrice);
-  const isAvailable = selectedSku ? selectedSku.stock > 0 : currentProduct.isInStock !== false;
+  
+  const allAttributesSelected = optionGroups.length === Object.keys(selectedOptions).length;
+  
+  // A product is available if it has a selected SKU with stock, OR if it has no SKUs and the base product is in stock
+  const isAvailable = (selectedSku ? selectedSku.stock > 0 : (product?.skus?.length === 0 && product?.isInStock !== false)) && allAttributesSelected;
 
   const handleAddToCart = () => {
-    addToCart(currentProduct, selectedSku, quantity, selectedAttributes);
+    if (!allAttributesSelected) return;
+    addToCart(currentProduct, selectedSku, quantity, selectedOptions);
   };
+
+  const maxStock = selectedSku ? selectedSku.stock : 0;
+  const isAtMax = quantity >= maxStock;
 
   return (
     <>
-      <p className="text-2xl font-bold text-blue-600 mb-4">{displayPrice}</p>
-
       <div className="flex gap-4 mb-8">
         <div className="flex items-center border border-slate-200 rounded-full bg-white">
           <button
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
+            disabled={quantity <= 1}
+            className="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <Minus className="text-sm" />
           </button>
           <span className="w-8 text-center font-bold text-slate-900">{quantity}</span>
           <button
             onClick={() => setQuantity(quantity + 1)}
-            className="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
+            disabled={isAtMax || !allAttributesSelected}
+            className="w-12 h-12 flex items-center justify-center text-slate-500 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <Plus className="text-sm" />
           </button>
@@ -43,7 +51,9 @@ export default function ProductActions({ product, selectedSku, quantity, setQuan
           }`}
         >
           <ShoppingBag className="text-sm" />
-          {isAvailable ? 'Add to Cart' : 'Out of Stock'}
+          {allAttributesSelected 
+            ? (isAvailable ? 'Add to Cart' : 'Out of Stock') 
+            : 'Select Options'}
         </button>
       </div>
 

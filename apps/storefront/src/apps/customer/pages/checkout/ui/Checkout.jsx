@@ -8,6 +8,7 @@ import { useAppContext } from '../../../../../app/providers/useAppContext';
 import { orderService } from '../../../../../shared/api/orderService';
 import { addressService } from '../../../../../shared/api/addressService';
 import { SHIPPING_METHODS } from '../../../../../shared/lib/constants';
+import { createOrderConfirmationFallback } from '../../../../../shared/lib/mocks/orderMock';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -90,34 +91,16 @@ export default function Checkout() {
       // 1. Success: Clear locally (via refresh)
       await refreshCart();
       queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
-
-      // Build items for confirmation page display
-      const fallbackOrderItems = cartItems.map((item) => ({
-        id: item.cartId,
-        productSkuId: item.productSkuId,
-        productName: item.productName,
-        quantity: item.quantity,
-        unitPrice: item.price,
-        image: item.image,
-        skuAttributes: item.skuAttributes,
-      }));
-
-      const orderData = {
-        ...checkoutResponse,
-        id: checkoutResponse?.id || `ORDER-${Date.now()}`,
-        createdAt: checkoutResponse?.createdAt || new Date().toISOString(),
-        status: checkoutResponse?.status || 'Pending',
-        paymentMethod: apiPaymentMethod,
-        totalAmount: checkoutResponse?.totalAmount ?? (cartTotal + shippingFee),
-        orderItems: (checkoutResponse?.orderItems?.length > 0) 
-            ? checkoutResponse.orderItems 
-            : fallbackOrderItems,
-        shippingAddress: finalAddress,
-        payment: {
-          methodName: apiPaymentMethod === 'BankTransfer' ? 'Bank Transfer' : 'Cash on Delivery (COD)',
-          transactionId: checkoutResponse?.transactionId || 'N/A',
-        },
-      };
+      
+      // Use fallback constructor for reload safety and incomplete backend responses
+      const orderData = createOrderConfirmationFallback(
+        checkoutResponse, 
+        cartItems, 
+        cartTotal, 
+        shippingFee, 
+        finalAddress, 
+        apiPaymentMethod
+      );
 
       toast.success('Order placed successfully!');
       

@@ -18,7 +18,7 @@ export default function ProductDetail() {
   const { id } = useParams();
 
   const [quantity, setQuantity] = useState(1);
-  const [selectedAttributes, setSelectedAttributes] = useState({});
+  const [selectedOptions, setSelectedOptions] = useState({});
 
   // Dùng Redux catalog làm initialData — hiện ngay không cần loader
   const cachedProduct = useMemo(
@@ -42,11 +42,64 @@ export default function ProductDetail() {
     || productErrorObj?.message
     || null;
 
-  // Derived SKU logic
-  const skuAttrKeyMatch = (skuAttrs) =>
-    Object.entries(skuAttrs).every(([k, v]) => selectedAttributes[k] === v);
+  // 1. Derive dynamic option groups from SKUs (e.g. { color: ['Red', 'Blue'], size: ['S', 'M'] })
+  const optionGroups = useMemo(() => {
+    if (!product?.skus) return [];
+    const groups = {};
+    product.skus.forEach(sku => {
+      Object.entries(sku.attributes || {}).forEach(([key, value]) => {
+        if (!groups[key]) groups[key] = new Set();
+        groups[key].add(value);
+      });
+    });
+    return Object.entries(groups).map(([key, values]) => ({
+      key: key,
+      label: key.charAt(0).toUpperCase() + key.slice(1),
+      values: Array.from(values)
+    }));
+  }, [product]);
 
-  const selectedSku = product?.skus?.find((s) => skuAttrKeyMatch(s.attributes)) || null;
+  // 2. Resolve selectedSku
+  const selectedSku = useMemo(() => {
+    if (!product?.skus?.length) return null;
+
+    // Case A: Simple product (has SKUs but no variations/attributes)
+    if (optionGroups.length === 0) {
+      return product.skus[0];
+    }
+    
+    // Case B: Variable product - resolve only when all keys are picked
+    const isComplete = optionGroups.every(group => !!selectedOptions[group.key]);
+    if (!isComplete) return null;
+
+    return product.skus.find(sku => 
+      optionGroups.every(group => sku.attributes[group.key] === selectedOptions[group.key])
+    );
+  }, [product, selectedOptions, optionGroups]);
+
+  // 3. Ensure quantity doesn't exceed selected SKU stock
+  React.useEffect(() => {
+    if (selectedSku) {
+      if (quantity > selectedSku.stock) {
+        setQuantity(Math.max(1, selectedSku.stock));
+      } else if (quantity < 1 && selectedSku.stock > 0) {
+        setQuantity(1);
+      }
+    }
+  }, [selectedSku, quantity]);
+
+  // Fetch categories to resolve categoryName from ID
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => productService.getCategories(tenantId),
+    enabled: !!tenantId,
+  });
+
+  const categoryName = useMemo(() => {
+    if (!product?.categoryId || !categories.length) return 'Products';
+    const found = categories.find(c => c.id === product.categoryId);
+    return found ? found.name : 'Products';
+  }, [product?.categoryId, categories]);
 
   const handleLoginRedirect = () => {
     navigate('/login', { state: { from: location } });
@@ -64,10 +117,10 @@ export default function ProductDetail() {
     return (
       <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <h1 className="text-2xl font-bold text-slate-800 mb-4">
-          {productError || 'Không tìm thấy sản phẩm'}
+          {productError || 'Product not found'}
         </h1>
         <button onClick={() => navigate('/shop')} className="text-primary font-semibold hover:underline">
-          Quay lại cửa hàng
+          Back to Shop
         </button>
       </main>
     );
@@ -79,11 +132,11 @@ export default function ProductDetail() {
       <nav className="flex text-sm text-slate-500 mb-8">
         <button onClick={() => navigate('/shop')} className="hover:text-slate-900">Store</button>
         <span className="mx-2">›</span>
-        <button onClick={() => navigate('/shop')} className="hover:text-slate-900">
-          {product.categoryId || 'Products'}
+        <button onClick={() => navigate('/shop', { state: { categoryId: product.categoryId } })} className="hover:text-slate-900">
+          {categoryName}
         </button>
         <span className="mx-2">›</span>
-        <span className="text-slate-900 font-medium">{product.name}</span>
+        <span className="text-slate-900 font-medium truncate max-w-[200px]">{product.name}</span>
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
@@ -100,15 +153,17 @@ export default function ProductDetail() {
           <ProductInfo
             product={product}
             selectedSku={selectedSku}
-            selectedAttributes={selectedAttributes}
-            setSelectedAttributes={setSelectedAttributes}
+            selectedOptions={selectedOptions}
+            setSelectedOptions={setSelectedOptions}
+            optionGroups={optionGroups}
           />
           <ProductActions
             product={product}
             selectedSku={selectedSku}
             quantity={quantity}
             setQuantity={setQuantity}
-            selectedAttributes={selectedAttributes}
+            selectedOptions={selectedOptions}
+            optionGroups={optionGroups}
             addToCart={addToCart}
           />
         </div>

@@ -14,11 +14,8 @@ function getColorSwatch(colorName) {
   return COLOR_MAP[colorName?.toLowerCase()] || null;
 }
 
-export default function ProductInfo({ product, selectedSku, selectedAttributes, setSelectedAttributes }) {
+export default function ProductInfo({ product, selectedSku, selectedOptions, setSelectedOptions, optionGroups }) {
   if (!product) return null;
-
-  const attrs = product.attributes || {};
-  const attrEntries = Object.entries(attrs); // e.g. [['colors', [...]], ['sizes', [...]], ['fabrics', [...]]]
 
   const displayPrice = selectedSku
     ? formatVnd(selectedSku.price)
@@ -28,31 +25,51 @@ export default function ProductInfo({ product, selectedSku, selectedAttributes, 
   const stockText = isAvailable ? "IN STOCK" : "OUT OF STOCK";
   const stockStyle = isAvailable ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700";
 
-  const handleSelect = (attrKey, value) => {
-    setSelectedAttributes(prev => ({ ...prev, [attrKey]: value }));
+  const handleSelect = (key, value) => {
+    setSelectedOptions(prev => ({ ...prev, [key]: value }));
   };
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
         <span className={`px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${stockStyle}`}>
           {stockText}
         </span>
-        <div className="flex items-center text-amber-400 text-sm">
+        {product.isSale && (
+          <span className="px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider bg-red-100 text-red-600">
+            {product.discountLabel || 'Sale'}
+          </span>
+        )}
+        {product.isNew && (
+          <span className="px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider bg-blue-100 text-blue-600">
+            New Arrival
+          </span>
+        )}
+        {product.isBestSeller && (
+          <span className="px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider bg-amber-100 text-amber-600">
+            Best Seller
+          </span>
+        )}
+        <div className="flex items-center text-amber-400 text-sm ml-auto sm:ml-0">
           {Array.from({ length: 5 }).map((_, i) => {
-            const rating = product.averageRating || 0;
-            if (i < Math.floor(rating)) return <Star key={i} className="text-sm" fill="currentColor" />;
-            if (i < rating) return <StarHalf key={i} className="text-sm" fill="currentColor" />;
-            return <Star key={i} className="text-sm text-slate-300" />;
+            const rating = product.rating || 0;
+            if (i < Math.floor(rating)) return <Star key={i} className="w-4 h-4" fill="currentColor" />;
+            if (i < rating) return <StarHalf key={i} className="w-4 h-4" fill="currentColor" />;
+            return <Star key={i} className="w-4 h-4 text-slate-200" />;
           })}
-          <span className="text-slate-500 text-xs ml-2">({product.numReviews || 0} reviews)</span>
+          <span className="text-slate-500 text-xs font-bold ml-2">({product.reviewCount || 0} reviews)</span>
         </div>
       </div>
 
       <h1 className="text-4xl font-black text-slate-900 leading-tight mb-2">{product.name}</h1>
 
-      <div className="flex items-end gap-3 mb-6">
-        <span className="text-3xl font-bold text-slate-900">{displayPrice}</span>
+      <div className="flex items-end gap-4 mb-6">
+        <span className="text-4xl font-extrabold text-blue-600">{displayPrice}</span>
+        {selectedSku && (
+          <span className="text-sm text-slate-500 pb-1.5 font-medium">
+            ({selectedSku.stock} units available)
+          </span>
+        )}
       </div>
 
       {product.description && (
@@ -61,17 +78,14 @@ export default function ProductInfo({ product, selectedSku, selectedAttributes, 
         </div>
       )}
 
-      {/* Dynamic attribute selectors */}
-      {attrEntries.map(([pluralKey, values]) => {
-        // Derive singular key: colors → color, sizes → size, fabrics → fabric
-        const singularKey = pluralKey.endsWith('s') ? pluralKey.slice(0, -1) : pluralKey;
-        const label = pluralKey.charAt(0).toUpperCase() + pluralKey.slice(1);
-        const selected = selectedAttributes[singularKey];
-
-        const isColorAttr = singularKey === 'color';
+      {/* Dynamic option groups derived from SKUs */}
+      {optionGroups.map((group) => {
+        const { key, label, values } = group;
+        const selected = selectedOptions[key];
+        const isColorAttr = key.toLowerCase() === 'color';
 
         return (
-          <div key={pluralKey} className="mb-6">
+          <div key={key} className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs font-bold text-slate-900 uppercase tracking-widest">{label}:</span>
               {selected && <span className="text-sm text-slate-500">{selected}</span>}
@@ -82,31 +96,56 @@ export default function ProductInfo({ product, selectedSku, selectedAttributes, 
                 const isSelected = selected === val;
                 const swatch = isColorAttr ? getColorSwatch(val) : null;
 
+                // Check if this specific option value exists in ANY in-stock SKU
+                // that matches the CURRENTLY selected options of OTHER groups
+                const isOptionDisabled = !product.skus.some(sku => {
+                  if (sku.attributes[key] !== val) return false;
+                  // Must match other selected options
+                  const matchesOthers = Object.entries(selectedOptions).every(([k, v]) => {
+                    if (k === key) return true; // ignore current group key
+                    return sku.attributes[k] === v;
+                  });
+                  return matchesOthers && sku.stock > 0;
+                });
+
                 if (swatch) {
                   return (
                     <button
                       key={val}
                       title={val}
-                      onClick={() => handleSelect(singularKey, val)}
-                      className={`w-9 h-9 rounded-full border-2 transition-all ${
+                      disabled={isOptionDisabled}
+                      onClick={() => handleSelect(key, val)}
+                      className={`w-9 h-9 rounded-full border-2 transition-all relative ${
                         isSelected ? 'border-blue-600 ring-2 ring-blue-100 scale-110' : 'border-transparent hover:border-slate-300'
-                      }`}
+                      } ${isOptionDisabled ? 'opacity-20 cursor-not-allowed grayscale' : ''}`}
                       style={{ backgroundColor: swatch }}
-                    />
+                    >
+                      {isOptionDisabled && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-full h-0.5 bg-slate-400 rotate-45 transform" />
+                        </div>
+                      )}
+                    </button>
                   );
                 }
 
                 return (
                   <button
                     key={val}
-                    onClick={() => handleSelect(singularKey, val)}
-                    className={`px-4 py-2 text-xs font-bold rounded-full border transition-all ${
+                    disabled={isOptionDisabled}
+                    onClick={() => handleSelect(key, val)}
+                    className={`px-4 py-2 text-xs font-bold rounded-full border transition-all relative overflow-hidden ${
                       isSelected
                         ? 'border-blue-600 text-blue-600 bg-blue-50'
                         : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                    }`}
+                    } ${isOptionDisabled ? 'opacity-40 cursor-not-allowed bg-slate-50 text-slate-400 border-slate-100' : ''}`}
                   >
                     {val}
+                    {isOptionDisabled && (
+                      <div className="absolute inset-0 opacity-20 pointer-events-none">
+                         <div className="w-full h-full border-t border-slate-400 -rotate-12 transform scale-150" />
+                      </div>
+                    )}
                   </button>
                 );
               })}

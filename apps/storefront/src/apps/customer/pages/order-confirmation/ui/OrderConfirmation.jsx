@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Copy, CheckCircle2, ShoppingBag, ListChecks, MapPin, CreditCard, Package, AlertCircle } from 'lucide-react';
-import { getBankTransferQrUrl } from '../../../../../shared/lib/bankTransferMock';
+import { getBankTransferQrUrl } from '../../../../../shared/lib/mocks/bankTransferMock';
 
 import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
 

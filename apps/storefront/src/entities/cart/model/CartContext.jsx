@@ -110,7 +110,7 @@ export function CartProvider({ children }) {
         price: parsedPrice,
         quantity,
         skuAttributes: selectedAttributes,
-        image: selectedSku?.imgUrl || selectedSku?.image || product.image || product.imgUrls?.[0],
+        image: selectedSku?.imgUrl || selectedSku?.image || product.image || product.images?.[0] || product.imgUrls?.[0],
       };
       optimisticItems = [cartItem, ...cartItems];
     }
@@ -121,7 +121,7 @@ export function CartProvider({ children }) {
     if (showPopup) {
       dispatch(setShowAddToCartPopupAction(true));
     } else {
-      toast.success('Đã thêm vào giỏ hàng!');
+      toast.success('Successfully added to cart!');
     }
 
     // Server Sync
@@ -129,7 +129,7 @@ export function CartProvider({ children }) {
       await cartService.addToCart({ productSkuId: skuId, quantity });
       fetchCart(); // Refetch to get true ID
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng');
+      toast.error(error?.response?.data?.message || 'Failed to add to cart. Please try again.');
       fetchCart(); // Rollback local state
     }
   };
@@ -137,13 +137,13 @@ export function CartProvider({ children }) {
   const removeFromCart = async (cartId) => {
     const previousItems = [...cartItems];
     dispatch(setCartItemsAction(cartItems.filter((item) => item.cartId !== cartId)));
-    toast.info('Đã xoá sản phẩm khỏi giỏ hàng');
+    toast.info('Item removed from cart');
 
     if (String(cartId).startsWith('temp-')) return;
     try {
       await cartService.removeFromCart(cartId);
     } catch {
-      toast.error('Lỗi khi xoá sản phẩm');
+      toast.error('Failed to remove item');
       dispatch(setCartItemsAction(previousItems)); // Rollback
     }
   };
@@ -163,7 +163,7 @@ export function CartProvider({ children }) {
     try {
       await cartService.updateCartItem(cartId, { quantity: newQuantity });
     } catch {
-      toast.error('Lỗi khi cập nhật số lượng');
+      toast.error('Failed to update quantity');
       dispatch(setCartItemsAction(previousItems)); // Rollback
     }
   };
@@ -181,7 +181,7 @@ export function CartProvider({ children }) {
       await cartService.clearCart();
     } catch {
       dispatch(setCartItemsAction(previousItems));
-      toast.error('Lỗi khi làm mới giỏ hàng');
+      toast.error('Failed to clear cart');
     }
   };
 

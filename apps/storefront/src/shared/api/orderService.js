@@ -1,5 +1,5 @@
 import axiosClient from './axiosClient';
-import { createBankTransferInfo } from '../lib/bankTransferMock';
+import { createBankTransferInfo } from '../lib/mocks/bankTransferMock';
 
 const ENABLE_BANK_TRANSFER_MOCK = import.meta.env.VITE_ENABLE_BANK_TRANSFER_MOCK === 'true';
 
@@ -34,7 +34,7 @@ export const orderService = {
         if (ENABLE_BANK_TRANSFER_MOCK && paymentMethod === 'BankTransfer') {
             // Check for potential amount field variants
             const finalAmount = data?.totalAmount ?? data?.total_amount ?? data?.total ?? 0;
-            
+
             data = {
                 ...data,
                 bankTransferInfo: createBankTransferInfo({

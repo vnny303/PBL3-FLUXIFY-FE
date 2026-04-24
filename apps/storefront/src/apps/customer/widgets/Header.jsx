@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAppContext } from '../../../app/providers/useAppContext';
 import { useNotifications } from '../../../entities/notification/model/useNotifications';
+import { formatVnd } from '../../../shared/lib/formatters';
 import { ROUTES, ACCOUNT_SCREENS } from '../../../shared/lib/constants';
 export default function Header() {
   const { 
@@ -26,6 +27,7 @@ export default function Header() {
   const notifRef = useRef(null);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const searchRef = useRef(null);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const { content, theme } = useStorefrontConfig();
 
   const headerTheme = theme?.components?.header || {
@@ -40,13 +42,28 @@ export default function Header() {
     borderBottomColor: isActive ? theme?.colors?.primary || '#1754cf' : 'transparent',
   });
 
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+
+  // Debounce effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(localSearch);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [localSearch, setSearchQuery]);
+
+  // Sync back if global search query changes (e.g. Cleared from Shop page)
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
+
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
     return products
-      .filter(p => p.name.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q)))
+      .filter(p => p.name.toLowerCase().includes(q) || (p.description && p.description?.toLowerCase().includes(q)))
       .slice(0, 6);
-  }, [searchQuery]);
+  }, [searchQuery, products]);
 
   const { notifications, unreadCount, markAllAsRead, handleNotificationClick } = useNotifications();
 
@@ -111,11 +128,11 @@ export default function Header() {
                 <Search className="w-4 h-4" />
               </div>
               <input
-                value={searchQuery}
+                value={localSearch}
                 onChange={(e) => {
-                  setSearchQuery(e.target.value);
+                  setLocalSearch(e.target.value);
                   setShowSearchDropdown(true);
-                  if (!location.pathname.includes('/shop')) {
+                  if (e.target.value.trim() && !location.pathname.includes('/shop')) {
                     navigate('/shop');
                   }
                 }}
@@ -123,16 +140,16 @@ export default function Header() {
                 onKeyDown={(e) => {
                   if (e.key === 'Escape') {
                     setShowSearchDropdown(false);
-                    setSearchQuery('');
+                    setLocalSearch('');
                   }
                 }}
                 className="block w-full rounded-xl border-none bg-slate-100 py-2 pl-10 pr-8 text-sm placeholder-slate-500 focus:ring-2 focus:ring-primary focus:bg-white transition-all"
                 placeholder="Search products..."
                 type="text"
               />
-              {searchQuery && (
+              {localSearch && (
                 <button
-                  onClick={() => { setSearchQuery(''); setShowSearchDropdown(false); }}
+                  onClick={() => { setLocalSearch(''); setShowSearchDropdown(false); }}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
                 >
                   <X className="w-4 h-4" />
@@ -149,17 +166,17 @@ export default function Header() {
                           key={product.id}
                           onClick={() => {
                             setShowSearchDropdown(false);
-                            setSearchQuery(product.name);
-                            if (!location.pathname.includes('/shop')) navigate('/shop');
+                            setLocalSearch(''); // Clear search on navigation
+                            navigate(`/product/${product.id}`);
                           }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors text-left"
                         >
                           <img src={product.imgUrls?.[0] || product.img} alt={product.name} className="w-8 h-8 rounded-lg object-cover shrink-0" />
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className="text-sm font-semibold text-slate-900 truncate">{product.name}</p>
-                            <p className="text-xs text-slate-400 truncate">{product.description}</p>
+                            <p className="text-xs text-slate-500 truncate">{product.description}</p>
                           </div>
-                          <span className="shrink-0 text-sm font-bold text-primary ml-auto">${product.price.toFixed(2)}</span>
+                          <span className="shrink-0 text-sm font-bold text-primary ml-auto">{formatVnd(product.price)}</span>
                         </button>
                       ))}
                       <div className="border-t border-slate-100 p-2">
@@ -321,12 +338,47 @@ export default function Header() {
                 </button>
               </>
             )}
-            <button className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+            <button 
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+            >
               <Menu />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      {showMobileMenu && (
+        <div className="lg:hidden fixed inset-0 z-[60] flex">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)}></div>
+          <div className="relative w-full max-w-[280px] bg-white h-full shadow-2xl flex flex-col py-6">
+            <div className="px-6 flex items-center justify-between mb-8">
+              <span className="font-black text-slate-900 uppercase">Menu</span>
+              <button onClick={() => setShowMobileMenu(false)} className="p-2 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <nav className="flex-1 px-4 space-y-2">
+              {content?.header?.navLinks?.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setShowMobileMenu(false)}
+                  className={`block px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                    location.pathname === link.path ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+            <div className="px-6 py-4 border-t border-slate-100 italic text-[10px] text-slate-400 uppercase tracking-widest text-center">
+              Fluxify Storefront v1.0
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

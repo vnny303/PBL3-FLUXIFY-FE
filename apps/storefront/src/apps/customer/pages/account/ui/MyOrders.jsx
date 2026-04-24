@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, Clock, ArrowRight, ShoppingCart } from 'lucide-react';
+import { CheckCircle, Clock, ArrowRight, ShoppingCart, CreditCard } from 'lucide-react';
 import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
 
 export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders = [], isLoading = false, error = null, onRetry }) {

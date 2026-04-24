@@ -78,7 +78,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
       setIsCancelling(false);
       setIsCancelModalOpen(false);
       setOrderStatus('Cancelled');
-      toast.success('Đơn hàng đã được huỷ thành công!');
+      toast.success('Order cancelled successfully!');
     }, 1500);
   };
 
@@ -144,7 +144,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
       });
       setShowCart(true);
       setIsBuyingWholeOrder(false);
-      toast.success('Đã thêm lại toàn bộ đơn hàng vào giỏ!');
+      toast.success('Entire order has been added back to your cart!');
     }, 500);
   };
 

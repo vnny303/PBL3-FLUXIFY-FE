@@ -1,4 +1,7 @@
 import axiosClient from './axiosClient';
+import { mockProducts, mockCategories } from '../lib/mocks/productMock';
+
+const isMockEnabled = import.meta.env.VITE_ENABLE_PRODUCTS_MOCK === 'true';
 
 const toNumber = (value, fallback = 0) => {
     const numeric = Number(value);
@@ -21,80 +24,115 @@ const normalizeCategory = (category) => ({
     isActive: category.isActive !== false,
 });
 
-const normalizeSku = (sku) => ({
-    id: sku.id,
-    skuCode: sku.skuCode,
-    price: toNumber(sku.price ?? sku.unitPrice, 0),
-    stock: toNumber(sku.stock, 0),
-    imgUrl: sku.imgUrl || sku.image,
-    attributes: safeParseJson(sku.attributes, {}),
-});
+const normalizeSku = (sku) => {
+    if (!sku) return null;
+    return {
+        id: sku.id,
+        skuCode: sku.skuCode,
+        price: toNumber(sku.price ?? sku.unitPrice, 0),
+        stock: toNumber(sku.stock, 0),
+        imgUrl: sku.imgUrl || sku.image,
+        attributes: safeParseJson(sku.attributes, {}),
+    };
+};
 
 const normalizeProduct = (product) => {
-    // The backend uses imgUrls, not images
+    if (!product) return null;
     const rawImages = product.imgUrls || product.images;
     const imagesArray = Array.isArray(rawImages) ? rawImages : safeParseJson(rawImages, []);
     
-    // The backend uses productSkus, not skus
     const rawSkus = product.productSkus || product.skus;
-    const skus = Array.isArray(rawSkus) ? rawSkus.map(normalizeSku) : [];
+    const skus = Array.isArray(rawSkus) ? rawSkus.map(normalizeSku).filter(Boolean) : [];
     
-    let price = toNumber(product.basePrice ?? product.price, 0);
+    // Extract everything needed at the top level
+    const allSizes = new Set();
+    const allColors = new Set();
+    let minPrice = toNumber(product.basePrice ?? product.price, 0);
     let stock = 0;
     
     if (skus.length > 0) {
-        const validSkuPrices = skus
-            .map((sku) => toNumber(sku.price, NaN))
-            .filter((skuPrice) => Number.isFinite(skuPrice) && skuPrice >= 0);
-
-        if (validSkuPrices.length > 0) {
-            price = Math.min(...validSkuPrices);
-        }
-
+        const validSkuPrices = skus.map(s => s.price).filter(p => p > 0);
+        if (validSkuPrices.length > 0) minPrice = Math.min(...validSkuPrices);
         stock = skus.reduce((sum, s) => sum + (s.stock || 0), 0);
+        
+        skus.forEach(s => {
+            if (s.attributes) {
+                if (s.attributes.size) allSizes.add(s.attributes.size);
+                if (s.attributes.color) allColors.add(s.attributes.color);
+            }
+        });
     }
 
     return {
         id: product.id,
         name: product.name,
-        description: product.description,
+        description: product.description || product.desc || 'No description available',
         categoryId: product.categoryId,
         basePrice: product.basePrice,
         images: imagesArray,
-        image: imagesArray[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80', // generic fallback placeholder
-        price: price,
+        image: imagesArray[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+        price: minPrice,
         stock: stock,
-        isInStock: stock > 0 || skus.length === 0, // if no skus, assume base item is available unless specified
-        attributes: safeParseJson(product.attributes, {}),
+        isInStock: stock > 0,
         skus: skus,
-        variants: Array.isArray(product.variants) ? product.variants : [],
+        productSkus: skus,
+        isNew: !!product.isNew,
+        isSale: !!product.isSale,
+        isBestSeller: !!product.isBestSeller,
+        discountLabel: product.discountLabel,
+        rating: toNumber(product.rating || product.averageRating, 0),
+        reviewCount: toNumber(product.reviewCount || product.numReviews, 0),
+        soldCount: toNumber(product.soldCount, 0),
+        attributes: safeParseJson(product.attributes, {})
     };
 };
 
 export const productService = {
     // GET /api/tenants/{tenantId}/products?categoryId=uuid&page=1&pageSize=20
     getProducts: async (tenantId, filters = {}) => {
-        const query = new URLSearchParams(filters).toString();
-        const response = await axiosClient.get(`/api/tenants/${tenantId}/products${query ? `?${query}` : ''}`);
-        
-        // Handle pagination structure (e.g. { items: [...] } or array)
-        if (response && Array.isArray(response.items)) {
-            return response.items.map(normalizeProduct);
+        let products = [];
+
+        if (isMockEnabled) {
+            let filtered = [...mockProducts];
+            if (filters.categoryId) {
+                filtered = filtered.filter(p => p.categoryId === filters.categoryId);
+            }
+            products = filtered.map(normalizeProduct);
+        } else {
+            const query = new URLSearchParams(filters).toString();
+            const response = await axiosClient.get(`/api/tenants/${tenantId}/products${query ? `?${query}` : ''}`);
+            
+            if (response && Array.isArray(response.items)) {
+                products = response.items.map(normalizeProduct);
+            } else if (Array.isArray(response)) {
+                products = response.map(normalizeProduct);
+            }
         }
-        if (Array.isArray(response)) {
-             return response.map(normalizeProduct);
-        }
-        return [];
+
+        // Sort: In-stock items first, Out-of-stock last
+        return products.sort((a, b) => {
+            if (a.isInStock === b.isInStock) return 0;
+            return a.isInStock ? -1 : 1;
+        });
     },
 
     // GET /api/tenants/{tenantId}/products/{id}
     getProductById: async (tenantId, productId) => {
+        if (isMockEnabled) {
+            const found = mockProducts.find(p => p.id === productId);
+            return found ? normalizeProduct(found) : null;
+        }
+
         const response = await axiosClient.get(`/api/tenants/${tenantId}/products/${productId}`);
         return normalizeProduct(response);
     },
 
     // GET /api/tenants/{tenantId}/categories
     getCategories: async (tenantId) => {
+        if (isMockEnabled) {
+            return mockCategories.map(normalizeCategory);
+        }
+
         const response = await axiosClient.get(`/api/tenants/${tenantId}/categories`);
         if (response && Array.isArray(response.items)) {
             return response.items.map(normalizeCategory);

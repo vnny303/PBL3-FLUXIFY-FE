@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, CreditCard, Building, StickyNote, AlertCircle } from 'lucide-react';
-import { getBankTransferQrUrl } from '../../../shared/lib/bankTransferMock';
+import { getBankTransferQrUrl } from '../../../shared/lib/mocks/bankTransferMock';
 import { formatVnd, parsePrice } from '../../../shared/lib/formatters';
 
 export default function OrderSummaryCard({ order }) {
