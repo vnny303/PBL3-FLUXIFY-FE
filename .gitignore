@@ -14,9 +14,9 @@ dist-ssr
 package-lock.json
 
 # Environment files — chứa secrets/config nhạy cảm, không commit
-.env
-.env.production
-.env.staging
+!.env
+!.env.production
+!.env.staging
 # Chỉ .env.example được commit (không có giá trị thật)
 !.env.example
 

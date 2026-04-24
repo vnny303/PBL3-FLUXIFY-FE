@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAppContext } from '../../../app/providers/useAppContext';
@@ -49,6 +49,17 @@ export function useShopFilters() {
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const gridTopRef = useRef(null);
+
+  // Sync with location state (e.g. when navigating from Home or Breadcrumbs)
+  useEffect(() => {
+    if (location.state?.categoryId) {
+      setSelectedCategories([location.state.categoryId]);
+      setCurrentPage(1);
+      // Optional: clear other filters if category changes from outside
+      setPriceRange([PRICE_RANGE_MIN, PRICE_RANGE_MAX]);
+      setSelectedSizes([]);
+    }
+  }, [location.state?.categoryId]);
 
   // ─── Build API query params ───────────────────────────────────────────────────
   const { apiSortBy, apiSortDir, clientSort } = getSortParams(sortBy);

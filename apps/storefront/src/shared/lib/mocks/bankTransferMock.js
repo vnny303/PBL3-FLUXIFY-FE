@@ -1,12 +1,7 @@
-const VND_PER_USD = 1; 
-const ENABLE_LIVE_BANK_QR = import.meta.env.VITE_ENABLE_LIVE_BANK_QR === 'true' || true;
+import { DEFAULT_BANK_MOCK } from './bankMock';
 
-const DEFAULT_BANK = {
-  bankName: 'Vietinbank',
-  bankCode: 'VIETINBANK',
-  bankAccountNumber: '104882409227',
-  bankAccountName: 'VAN NGOC NHU Y STORE',
-};
+const VND_PER_USD = 1;
+const ENABLE_LIVE_BANK_QR = import.meta.env.VITE_ENABLE_LIVE_BANK_QR === 'true' || true;
 
 // Generates a short, human-readable code: FLX-YYMMDD-XXXX
 export const buildOrderCode = (prefix = 'FLX') => {
@@ -25,14 +20,14 @@ export const createBankTransferInfo = ({
   // If orderCode is a UUID, we prefer our short mock code for easier manual typing
   const isUuid = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(str);
   const safeOrderCode = (!orderCode || isUuid(orderCode)) ? buildOrderCode('FLX') : orderCode;
-  
+
   const safeAmount = Math.max(0, Number(totalAmount) || 0);
 
   return {
     orderCode: safeOrderCode,
     paymentMethod: 'BankTransfer',
     paymentStatus,
-    ...DEFAULT_BANK,
+    ...DEFAULT_BANK_MOCK,
     transferContent: safeOrderCode,
     totalAmount: safeAmount,
     totalAmountVnd: Math.max(0, Math.round(safeAmount * VND_PER_USD)),

@@ -45,9 +45,9 @@ export function ProductProvider({ children }) {
   const inventoryError = (() => {
     const pFail = !!productsError;
     const cFail = !!categoriesError;
-    if (pFail && cFail) return 'Không thể tải danh mục và sản phẩm';
-    if (cFail) return 'Không thể tải danh mục';
-    if (pFail) return 'Không thể tải sản phẩm';
+    if (pFail && cFail) return 'Failed to load categories and products';
+    if (cFail) return 'Failed to load categories';
+    if (pFail) return 'Failed to load products';
     return null;
   })();
 
@@ -55,21 +55,43 @@ export function ProductProvider({ children }) {
   const setQuickAddProduct = (product) => dispatch(setQuickAddProductAction(product));
 
   const handleQuickAdd = async (product) => {
+    if (!product) return;
+    
     let productWithSkus = product;
-    if (!productWithSkus.skus || productWithSkus.skus.length === 0) {
+    
+    // 1. Ensure we have SKU data
+    const currentSkus = productWithSkus.productSkus || productWithSkus.skus || [];
+    if (currentSkus.length === 0) {
       try {
-        productWithSkus = await productService.getProductById(tenantId, product.id);
+        console.log('[QuickAdd] Fetching full product details for:', product.id);
+        const detailed = await productService.getProductById(tenantId, product.id);
+        if (detailed) productWithSkus = detailed;
       } catch (error) {
-        console.error('Failed to fetch product details for quick add:', error);
+        console.error('[QuickAdd] Failed to fetch product details:', error);
       }
     }
 
-    const attrs = productWithSkus.attributes || {};
-    const hasSelectableAttrs = Object.values(attrs).some((v) => Array.isArray(v) && v.length > 0);
-    if (hasSelectableAttrs) {
-      dispatch(setQuickAddProductAction(productWithSkus));
+    // 2. Validate product data after potential fetch
+    if (!productWithSkus) return;
+
+    const skus = productWithSkus.productSkus || productWithSkus.skus || [];
+    const inStockSkus = skus.filter(s => (s && (s.stockQuantity ?? s.stock)) > 0);
+    
+    if (inStockSkus.length === 0) {
+      console.warn('[QuickAdd] No in-stock SKUs found for:', productWithSkus.name);
+      return;
+    }
+
+    // 3. Logic: Direct add if exactly one SKU, otherwise open Modal
+    if (inStockSkus.length === 1) {
+      if (addToCart) {
+        addToCart(productWithSkus, inStockSkus[0]);
+      } else {
+        console.error('[QuickAdd] addToCart function is missing!');
+      }
     } else {
-      addToCart(productWithSkus, productWithSkus.skus?.[0]);
+      console.log('[QuickAdd] Opening Modal for multiple variants:', productWithSkus.name);
+      dispatch(setQuickAddProductAction(productWithSkus));
     }
   };
 
@@ -81,6 +103,7 @@ export function ProductProvider({ children }) {
         quickAddProduct,
         setQuickAddProduct,
         handleQuickAdd,
+        addToCart, // <--- EXPOSE THIS
         products,
         categories,
         isLoadingInventory,

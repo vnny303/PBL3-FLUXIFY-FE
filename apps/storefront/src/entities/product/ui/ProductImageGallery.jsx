@@ -4,7 +4,7 @@ import { Heart } from 'lucide-react';
 export default function ProductImageGallery({ product, selectedSku, isLoggedIn, isWishlisted, toggleWishlist, onLoginRedirect }) {
   // Collect all images: product images + any extra per-sku imgUrls not already in the list
   const allImages = useMemo(() => {
-    const productImgs = product?.images || (product?.image ? [product.image] : []);
+    const productImgs = (product?.images?.length > 0) ? product.images : (product?.image ? [product.image] : []);
     const skuImgs = (product?.skus || [])
       .map((s) => s.image || s.imgUrl)
       .filter((url) => url && !productImgs.includes(url));

@@ -23,7 +23,7 @@ export const useLogin = () => {
 
     if (!email || !password) return { error: 'Please fill in all required fields.' };
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Please enter a valid email address.' };
-    if (!/^[a-z0-9-]{3,50}$/.test(subdomain)) return { error: 'Storefront subdomain chưa được cấu hình hợp lệ.' };
+    if (!/^[a-z0-9-]{3,50}$/.test(subdomain)) return { error: 'Invalid storefront configuration.' };
 
     return { subdomain, email, password };
   };
@@ -34,7 +34,7 @@ export const useLogin = () => {
       authService.loginCustomer({ subdomain, email, password }),
     onSuccess: (response) => {
       applyAuthResponse(response);
-      toast.success('Đăng nhập thành công!');
+      toast.success('Successfully logged in!');
       setFormData((prev) => ({ ...prev, password: '' }));
 
       if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
@@ -47,9 +47,9 @@ export const useLogin = () => {
       const status = err.response?.status;
       let errorMessage;
       if (status === 401) {
-        errorMessage = 'Email hoặc password không chính xác.';
+        errorMessage = 'Incorrect email or password.';
       } else if (status === 400) {
-        errorMessage = err.response?.data?.message || 'Store không tồn tại hoặc dữ liệu không hợp lệ.';
+        errorMessage = err.response?.data?.message || 'Store not found or invalid data.';
       } else {
         errorMessage = err.response?.data?.message || err.message || 'Invalid email or password. Please try again.';
       }

@@ -32,10 +32,10 @@ export const useSignUp = () => {
     const password = formData.password;
 
     if (!email || !password) return { error: 'Please fill in all required fields.' };
-    if (!/^[a-z0-9-]{3,50}$/.test(subdomain)) return { error: 'Storefront subdomain chưa được cấu hình hợp lệ.' };
+    if (!/^[a-z0-9-]{3,50}$/.test(subdomain)) return { error: 'Invalid storefront configuration.' };
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Please enter a valid email address.' };
     if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/.test(password)) {
-      return { error: 'Mật khẩu phải ít nhất 8 ký tự, chứa chữ hoa, số và ký tự đặc biệt (@$!%*?&.)' };
+      return { error: 'Password must be at least 8 characters, containing uppercase, numbers and special characters (@$!%*?&.)' };
     }
     if (!formData.acceptTerms) return { error: 'You must agree to the Terms of Service and Privacy Policy to continue.' };
 
@@ -48,7 +48,7 @@ export const useSignUp = () => {
       authService.registerCustomer({ subdomain, email, password }),
     onSuccess: (response) => {
       applyAuthResponse(response);
-      toast.success('Đăng ký thành công!');
+      toast.success('Account created successfully!');
       setFormData({ email: '', password: '', acceptTerms: false });
 
       if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
