@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, MapPin, Truck, CreditCard, Plus, AlertCircle, Loader2 } from 'lucide-react';
-import AddressModal from './AddressModal';
+import AddressModal from '../../../../../features/address-management/ui/AddressModal';
 
 export default function CheckoutForm({
   userEmail,
