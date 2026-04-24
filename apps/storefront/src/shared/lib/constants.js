@@ -3,7 +3,7 @@ export const ITEMS_PER_PAGE = 12;
 
 // ─── Price Filter ─────────────────────────────────────────────────────────────
 export const PRICE_RANGE_MIN = 0;
-export const PRICE_RANGE_MAX = 500000;
+export const PRICE_RANGE_MAX = 10000000;
 
 // ─── Sort Options ─────────────────────────────────────────────────────────────
 export const SORT_OPTIONS = [
@@ -43,4 +43,19 @@ export const STORAGE_KEYS = {
   USER_ID: 'userId',
   TENANT_ID: 'tenantId',
   TENANT_SUBDOMAIN: 'tenant_subdomain',
+};
+// ─── Shipping Methods ────────────────────────────────────────────────────────
+export const SHIPPING_METHODS = {
+  STANDARD: {
+    id: 'standard',
+    name: 'Standard',
+    fee: 15000,
+    eta: '3-5 business days',
+  },
+  EXPRESS: {
+    id: 'express',
+    name: 'Express',
+    fee: 35000,
+    eta: 'Next business day',
+  },
 };

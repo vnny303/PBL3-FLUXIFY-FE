@@ -1,12 +1,13 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function ProductCard({ product, onQuickAdd, onCardClick }) {
   const { theme } = useStorefrontConfig();
 
   const imageSrc = product.image;
-  const displayPrice = typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price;
+  const displayPrice = formatVnd(product.price);
 
   const handleQuickAddClick = (event) => {
     event.stopPropagation();
@@ -43,15 +44,26 @@ export default function ProductCard({ product, onQuickAdd, onCardClick }) {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute top-3 left-3">
-          <span
-            className="px-2 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider"
-            style={{
-              backgroundColor: productCardTheme.badge,
-              borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
-            }}
-          >
-            In Stock
-          </span>
+          {product.isInStock ? (
+            <span
+              className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm"
+              style={{
+                backgroundColor: productCardTheme.badge,
+                borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
+              }}
+            >
+              In Stock
+            </span>
+          ) : (
+            <span
+              className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm bg-red-500"
+              style={{
+                borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
+              }}
+            >
+              Out of Stock
+            </span>
+          )}
         </div>
       </div>
 

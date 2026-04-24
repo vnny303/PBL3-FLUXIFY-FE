@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
-import { Activity, Sliders, Package, CheckCircle2, Target, Ear, Plug, Cable, Ruler, Scale, CircleDot, Waves, Zap } from 'lucide-react';
+import { Sliders } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import ReviewList from './ReviewList';
+import { reviewService } from '../../../shared/api/reviewService';
+import { useStorefrontTenant } from '../../../features/theme/useStorefrontTenant';
 
 export default function ProductTabs({ product }) {
   const [activeTab, setActiveTab] = useState('DESCRIPTION');
-  const reviewCount = product?.numReviews || 0;
+  const { tenantId } = useStorefrontTenant();
+
+  // Lấy số lượng review từ summary endpoint (/reviews/summary) thay vì dùng field giả
+  const firstSkuId = product?.skus?.[0]?.id;
+  const { data: summary } = useQuery({
+    queryKey: ['review-summary', firstSkuId],
+    queryFn: () => reviewService.getReviewSummary(tenantId, firstSkuId),
+    enabled: !!tenantId && !!firstSkuId,
+    staleTime: 30_000,
+  });
+  const reviewCount = summary?.totalReviews ?? 0;
 
   return (
     <div className="mt-20">

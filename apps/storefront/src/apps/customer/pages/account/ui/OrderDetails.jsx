@@ -7,6 +7,7 @@ import { useAppContext } from '../../../../../app/providers/useAppContext';
 import OrderItemList from '../../../../../entities/order/ui/OrderItemList';
 import OrderStatusTimeline from '../../../../../entities/order/ui/OrderStatusTimeline';
 import OrderSummaryCard from '../../../../../entities/order/ui/OrderSummaryCard';
+import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
 
 export default function OrderDetails({ setCurrentScreen, order }) {
   const { addToCart, setShowCart } = useAppContext();
@@ -42,7 +43,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     name: item.productName || item.name,
     variant: item.variant || (item.skuAttributes ? `${item.skuAttributes.color || ''} • ${item.skuAttributes.size || ''}` : ''),
     image: item.image || `https://picsum.photos/seed/${item.productName || 'product'}/200/300`,
-    price: item.unitPrice != null ? `$${Number(item.unitPrice).toFixed(2)}` : (item.price || '$0.00'),
+    price: item.unitPrice != null ? formatVnd(item.unitPrice) : formatVnd(parsePrice(item.price)),
     quantity: item.quantity || 1,
     productSkuId: item.productSkuId,
     skuAttributes: item.skuAttributes,
@@ -52,7 +53,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     ...orderData,
     items: normalizedItems,
     date: orderData.date || (orderData.createdAt ? new Date(orderData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : ''),
-    total: orderData.total || (orderData.totalAmount != null ? `$${Number(orderData.totalAmount).toFixed(2)}` : '$0.00'),
+    total: formatVnd(parsePrice(orderData.total || orderData.totalAmount)),
   };
 
   const cancellationReasons = [
@@ -68,11 +69,6 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     return { size: parts[0]?.trim() || 'Standard', color: parts[1]?.trim() || 'Default' };
   };
 
-  const toNumericPrice = (value) => {
-    if (typeof value === 'number') return value;
-    if (typeof value === 'string') return parseFloat(value.replace('$', '')) || 0;
-    return 0;
-  };
 
   const handleWriteReview = (product) => { setSelectedProduct(product); setIsReviewModalOpen(true); };
 
@@ -91,7 +87,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     setTimeout(() => {
       const { size, color } = getVariantDetails(item.variant);
       const skuAttributes = item.skuAttributes || { size, color };
-      const unitPrice = toNumericPrice(item.price);
+      const unitPrice = parsePrice(item.price);
 
       addToCart(
         {
@@ -124,7 +120,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
       normalizedOrder.items.forEach((item, idx) => {
         const { size, color } = getVariantDetails(item.variant);
         const skuAttributes = item.skuAttributes || { size, color };
-        const unitPrice = toNumericPrice(item.price);
+        const unitPrice = parsePrice(item.price);
 
         addToCart(
           {
@@ -167,7 +163,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Order {normalizedOrder.id}</h1>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Order {getDisplayOrderCode(normalizedOrder)}</h1>
               <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                 orderStatus === 'Cancelled' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
                 orderStatus === 'Pending' || orderStatus === 'Processing' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
@@ -233,7 +229,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
             <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-6">
               <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Cancel Order {normalizedOrder.id}?</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Cancel Order {getDisplayOrderCode(normalizedOrder)}?</h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Are you sure you want to cancel this order? This action cannot be undone.</p>
             <div className="mb-8">
               <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Reason for cancellation (Optional)</label>

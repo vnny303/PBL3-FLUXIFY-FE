@@ -1,11 +1,12 @@
 import React from 'react';
 import { Minus, Plus, ShoppingBag, Truck, ShieldCheck } from 'lucide-react';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function ProductActions({ product, selectedSku, quantity, setQuantity, selectedAttributes, addToCart }) {
   const currentProduct = product || { id: 999, name: 'Product', price: 0 };
 
   const skuPrice = selectedSku?.price ?? currentProduct.price ?? 0;
-  const displayPrice = `$${typeof skuPrice === 'number' ? skuPrice.toFixed(2) : skuPrice}`;
+  const displayPrice = formatVnd(skuPrice);
   const isAvailable = selectedSku ? selectedSku.stock > 0 : currentProduct.isInStock !== false;
 
   const handleAddToCart = () => {
@@ -52,7 +53,7 @@ export default function ProductActions({ product, selectedSku, quantity, setQuan
           <Truck className="text-blue-600 mt-0.5" />
           <div>
             <p className="text-xs font-bold text-slate-900">FREE DELIVERY</p>
-            <p className="text-xs text-slate-500">Orders over $150</p>
+            <p className="text-xs text-slate-500">Orders over 500.000đ</p>
           </div>
         </div>
         <div className="flex items-start gap-3">

@@ -1,78 +1,388 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Star, StarHalf, BadgeCheck, User, ChevronDown, Pen } from 'lucide-react';
+import { Star, StarHalf, User, ChevronDown, Pen, Send, Loader2, Trash2, Pencil } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { reviewService } from '../../../shared/api/reviewService';
+import { useStorefrontTenant } from '../../../features/theme/useStorefrontTenant';
+import { useAppContext } from '../../../app/providers/useAppContext';
+import ConfirmationModal from '../../../shared/ui/ConfirmationModal';
 
-export default function ReviewList({ product }) {
-  const [reviewSortBy, setReviewSortBy] = useState('Newest');
-  const [showReviewSort, setShowReviewSort] = useState(false);
-  const reviewSortRef = useRef(null);
+const SORT_OPTIONS = [
+  { label: 'Mới nhất', sortBy: 'createdAt', sortDir: 'desc' },
+  { label: 'Đánh giá cao nhất', sortBy: 'rating', sortDir: 'desc' },
+  { label: 'Đánh giá thấp nhất', sortBy: 'rating', sortDir: 'asc' },
+];
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (reviewSortRef.current && !reviewSortRef.current.contains(event.target)) {
-        setShowReviewSort(false);
+// ─── Rating Stars Input ────────────────────────────────────────────────────────
+function StarInput({ value, onChange, disabled }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(star)}
+          onMouseEnter={() => setHovered(star)}
+          onMouseLeave={() => setHovered(0)}
+          className="text-amber-400 transition-transform hover:scale-110 disabled:cursor-not-allowed"
+        >
+          <Star
+            className="w-7 h-7"
+            fill={(hovered || value) >= star ? 'currentColor' : 'none'}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Review Card ──────────────────────────────────────────────────────────────
+function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
+  const isOwner = review.customerId === currentUserId;
+  const formattedDate = review.createdAt
+    ? new Date(review.createdAt).toLocaleDateString('vi-VN', {
+        year: 'numeric', month: 'short', day: 'numeric',
+      })
+    : 'Gần đây';
+
+  return (
+    <div className="border-b border-slate-100 pb-8">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-400">
+            <User className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="font-bold text-slate-900">{review.customerEmail || 'Khách hàng'}</span>
+            <div className="flex text-amber-400 mt-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-3.5 h-3.5 ${i < review.rating ? 'text-amber-400' : 'text-slate-200'}`}
+                  fill="currentColor"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-400">{formattedDate}</span>
+          {isOwner && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => onEdit(review)}
+                className="text-slate-400 hover:text-primary transition-colors"
+                title="Chỉnh sửa"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => onDelete(review.id)}
+                className="text-slate-400 hover:text-red-500 transition-colors"
+                title="Xóa"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      {review.comment && (
+        <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
+      )}
+    </div>
+  );
+}
+
+// ─── Write Review Form ─────────────────────────────────────────────────────────
+function ReviewForm({ productSkuId, editingReview, onDone }) {
+  const queryClient = useQueryClient();
+  const [rating, setRating] = useState(editingReview?.rating || 0);
+  const [comment, setComment] = useState(editingReview?.comment || '');
+
+  const createMutation = useMutation({
+    mutationFn: () => reviewService.createReview({ productSkuId, rating, comment }),
+    onSuccess: () => {
+      toast.success('Đánh giá của bạn đã được gửi!');
+      queryClient.invalidateQueries({ queryKey: ['reviews', productSkuId] });
+      queryClient.invalidateQueries({ queryKey: ['review-summary', productSkuId] });
+      onDone();
+    },
+    onError: (err) => {
+      if (err?.response?.status === 409) {
+        toast.error('Bạn đã đánh giá sản phẩm này rồi!');
+      } else {
+        toast.error(err?.response?.data?.message || 'Không thể gửi đánh giá');
       }
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: () => reviewService.updateReview(editingReview.id, { rating, comment }),
+    onSuccess: () => {
+      toast.success('Đánh giá đã được cập nhật!');
+      queryClient.invalidateQueries({ queryKey: ['reviews', productSkuId] });
+      queryClient.invalidateQueries({ queryKey: ['review-summary', productSkuId] });
+      onDone();
+    },
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || 'Không thể cập nhật đánh giá');
+    },
+  });
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (rating === 0) {
+      toast.error('Vui lòng chọn số sao!');
+      return;
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    if (editingReview) {
+      updateMutation.mutate();
+    } else {
+      createMutation.mutate();
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-slate-50 rounded-xl p-5 mb-8 border border-slate-200">
+      <h4 className="font-bold text-slate-900 mb-4">
+        {editingReview ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá'}
+      </h4>
+      <div className="mb-4">
+        <label className="text-sm text-slate-600 mb-2 block">Xếp hạng *</label>
+        <StarInput value={rating} onChange={setRating} disabled={isPending} />
+      </div>
+      <div className="mb-4">
+        <label className="text-sm text-slate-600 mb-2 block">Nhận xét (tuỳ chọn)</label>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          maxLength={2000}
+          rows={3}
+          disabled={isPending}
+          placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+          className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-lg resize-none outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50"
+        />
+        <p className="text-xs text-slate-400 text-right mt-1">{comment.length}/2000</p>
+      </div>
+      <div className="flex gap-3">
+        <button
+          type="submit"
+          disabled={isPending}
+          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-lg hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-60"
+        >
+          {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          {editingReview ? 'Cập nhật' : 'Gửi đánh giá'}
+        </button>
+        <button
+          type="button"
+          onClick={onDone}
+          disabled={isPending}
+          className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+        >
+          Huỷ
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// ─── Main ReviewList Component ────────────────────────────────────────────────
+export default function ReviewList({ product }) {
+  const { tenantId } = useStorefrontTenant();
+  const { isLoggedIn, user } = useAppContext();
+  const queryClient = useQueryClient();
+
+  const [sortOption, setSortOption] = useState(SORT_OPTIONS[0]);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
+  const [reviewIdToDelete, setReviewIdToDelete] = useState(null);
+  const sortDropdownRef = useRef(null);
+
+  // Dùng SKU đầu tiên của product để fetch reviews (theo spec: reviews gắn với SKU)
+  const firstSkuId = product?.skus?.[0]?.id;
+
+  // ── Fetch review list ──────────────────────────────────────────────────────
+  const {
+    data: reviews = [],
+    isLoading: isLoadingReviews,
+  } = useQuery({
+    queryKey: ['reviews', firstSkuId, sortOption],
+    queryFn: () => reviewService.getReviews(tenantId, firstSkuId, {
+      sortBy: sortOption.sortBy,
+      sortDir: sortOption.sortDir,
+      pageSize: 50,
+    }),
+    enabled: !!tenantId && !!firstSkuId,
+    staleTime: 30_000,
+  });
+
+  // ── Fetch review summary (rating breakdown) ──────────────────────────────
+  const { data: summary } = useQuery({
+    queryKey: ['review-summary', firstSkuId],
+    queryFn: () => reviewService.getReviewSummary(tenantId, firstSkuId),
+    enabled: !!tenantId && !!firstSkuId,
+    staleTime: 30_000,
+  });
+
+  // ── Delete review ──────────────────────────────────────────────────────────
+  const deleteMutation = useMutation({
+    mutationFn: (reviewId) => reviewService.deleteReview(reviewId),
+    onSuccess: () => {
+      toast.success('Đã xóa đánh giá!');
+      queryClient.invalidateQueries({ queryKey: ['reviews', firstSkuId] });
+      queryClient.invalidateQueries({ queryKey: ['review-summary', firstSkuId] });
+      setReviewIdToDelete(null);
+    },
+    onError: () => {
+      toast.error('Không thể xóa đánh giá');
+      setReviewIdToDelete(null);
+    },
+  });
+
+  // ── Close sort dropdown on outside click ─────────────────────────────────
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(e.target)) {
+        setShowSortDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const reviews = product?.reviews || [];
-  const averageRating = product?.averageRating || 0;
-  const numReviews = product?.numReviews || 0;
+  const averageRating = summary?.averageRating ?? 0;
+  const totalReviews = summary?.totalReviews ?? 0;
+
+  const ratingBreakdown = summary
+    ? [
+        { stars: 5, count: summary.fiveStarCount },
+        { stars: 4, count: summary.fourStarCount },
+        { stars: 3, count: summary.threeStarCount },
+        { stars: 2, count: summary.twoStarCount },
+        { stars: 1, count: summary.oneStarCount },
+      ]
+    : [];
+
+  const handleEdit = (review) => {
+    setEditingReview(review);
+    setShowForm(true);
+  };
+
+  const handleFormDone = () => {
+    setShowForm(false);
+    setEditingReview(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (reviewIdToDelete) {
+      deleteMutation.mutate(reviewIdToDelete);
+    }
+  };
+
+  if (!firstSkuId) {
+    return (
+      <div className="text-center py-12 border border-slate-100 rounded-xl bg-slate-50">
+        <p className="text-slate-500">Sản phẩm này chưa có biến thể để đánh giá.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row gap-12">
+      {/* ── Left: Summary ──────────────────────────────────────────────── */}
       <div className="w-full lg:w-1/3">
-        <div className="sticky top-24">
-          <div className="text-6xl font-black text-slate-900 mb-2">{averageRating.toFixed(1)}</div>
+        <div className="lg:sticky top-24">
+          <div className="text-6xl font-black text-slate-900 mb-2">
+            {averageRating.toFixed(1)}
+          </div>
           <div className="flex text-amber-400 mb-2">
             {Array.from({ length: 5 }).map((_, i) => {
-              if (i < Math.floor(averageRating)) return <Star key={i} fill="currentColor" />;
-              if (i < averageRating) return <StarHalf key={i} fill="currentColor" />;
-              return <Star key={i} className="text-slate-200" />;
+              if (i < Math.floor(averageRating)) return <Star key={i} fill="currentColor" className="w-5 h-5" />;
+              if (i < averageRating) return <StarHalf key={i} fill="currentColor" className="w-5 h-5" />;
+              return <Star key={i} className="w-5 h-5 text-slate-200" />;
             })}
           </div>
-          <p className="text-sm text-slate-500 mb-8">Based on {numReviews} reviews</p>
+          <p className="text-sm text-slate-500 mb-6">Dựa trên {totalReviews} đánh giá</p>
 
-          <button className="w-full py-3 rounded-full border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
-            <Pen className=" text-sm" />
-            WRITE A REVIEW
-          </button>
+          {/* Rating breakdown bars */}
+          {ratingBreakdown.length > 0 && (
+            <div className="space-y-2 mb-8">
+              {ratingBreakdown.map(({ stars, count }) => (
+                <div key={stars} className="flex items-center gap-3 text-sm">
+                  <span className="w-4 text-slate-600 font-medium">{stars}</span>
+                  <Star className="w-3.5 h-3.5 text-amber-400 shrink-0" fill="currentColor" />
+                  <div className="flex-1 bg-slate-100 rounded-full h-2">
+                    <div
+                      className="bg-amber-400 h-2 rounded-full transition-all duration-500"
+                      style={{ width: totalReviews > 0 ? `${(count / totalReviews) * 100}%` : '0%' }}
+                    />
+                  </div>
+                  <span className="w-6 text-right text-slate-400">{count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {isLoggedIn ? (
+            <button
+              onClick={() => { setEditingReview(null); setShowForm(true); }}
+              className="w-full py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 text-sm"
+            >
+              <Pen className="w-4 h-4" />
+              VIẾT ĐÁNH GIÁ
+            </button>
+          ) : (
+            <p className="text-sm text-slate-500 text-center italic">
+              Đăng nhập để viết đánh giá
+            </p>
+          )}
         </div>
       </div>
 
+      {/* ── Right: Review list ─────────────────────────────────────────── */}
       <div className="w-full lg:w-2/3">
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600/20" />
-            <span className="text-sm text-slate-600">Only show reviews with images</span>
-          </label>
-          <div className="flex items-center gap-2 text-sm relative" ref={reviewSortRef}>
-            <span className="text-slate-500">Sort by:</span>
-            <button 
-              onClick={() => setShowReviewSort(!showReviewSort)}
-              className="flex items-center gap-1 font-bold text-slate-900 hover:text-blue-600 transition-colors"
-            >
-              {reviewSortBy}
-              <ChevronDown className={` text-sm transition-transform duration-300 ${showReviewSort ? 'rotate-180' : ''}`} />
-            </button>
+        {/* Write/Edit form */}
+        {showForm && (
+          <ReviewForm
+            productSkuId={firstSkuId}
+            editingReview={editingReview}
+            onDone={handleFormDone}
+          />
+        )}
 
-            {showReviewSort && (
-              <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 py-2 z-50">
-                {['Newest', 'Highest Rated', 'Lowest Rated'].map((option) => (
+        {/* Sort bar */}
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+          <span className="text-sm text-slate-500">
+            {totalReviews} đánh giá
+          </span>
+          <div className="flex items-center gap-2 text-sm relative" ref={sortDropdownRef}>
+            <span className="text-slate-500">Sắp xếp:</span>
+            <button
+              onClick={() => setShowSortDropdown(!showSortDropdown)}
+              className="flex items-center gap-1 font-bold text-slate-900 hover:text-primary transition-colors"
+            >
+              {sortOption.label}
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showSortDropdown ? 'rotate-180' : ''}`} />
+            </button>
+            {showSortDropdown && (
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50">
+                {SORT_OPTIONS.map((opt) => (
                   <button
-                    key={option}
-                    onClick={() => {
-                      setReviewSortBy(option);
-                      setShowReviewSort(false);
-                    }}
+                    key={opt.label}
+                    onClick={() => { setSortOption(opt); setShowSortDropdown(false); }}
                     className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                      reviewSortBy === option 
-                        ? 'bg-blue-50/80 text-blue-600 font-bold' 
+                      sortOption.label === opt.label
+                        ? 'bg-blue-50/80 text-blue-600 font-bold'
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
                     }`}
                   >
-                    {option}
+                    {opt.label}
                   </button>
                 ))}
               </div>
@@ -80,45 +390,42 @@ export default function ReviewList({ product }) {
           </div>
         </div>
 
+        {/* Review items */}
         <div className="space-y-8">
-          {reviews.length === 0 ? (
+          {isLoadingReviews ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : reviews.length === 0 ? (
             <div className="text-center py-12 border border-slate-100 rounded-xl bg-slate-50">
-              <p className="text-slate-500">There are no reviews for this product yet.</p>
-              <p className="text-slate-900 font-bold mt-2">Be the first to share your thoughts!</p>
+              <p className="text-slate-500">Chưa có đánh giá nào cho sản phẩm này.</p>
+              <p className="text-slate-900 font-bold mt-2">Hãy là người đầu tiên chia sẻ!</p>
             </div>
           ) : (
-            reviews.map((review, idx) => (
-              <div key={idx} className="border-b border-slate-100 pb-8">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
-                      {review.userAvatar ? (
-                        <img src={review.userAvatar} alt={review.userName} className="w-full h-full object-cover" />
-                      ) : (
-                        <User />
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900">{review.userName || 'Anonymous'}</span>
-                      </div>
-                      <div className="flex text-amber-400 text-sm mt-1">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={`text-xs ${i < (review.rating || 5) ? 'text-amber-400' : 'text-slate-200'}`} fill="currentColor" />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-xs text-slate-400">{review.date || 'Recently'}</span>
-                </div>
-                <p className="text-slate-600 text-sm leading-relaxed mb-4">
-                  {review.comment}
-                </p>
-              </div>
+            reviews.map((review) => (
+              <ReviewCard
+                key={review.id}
+                review={review}
+                currentUserId={user?.userId}
+                onEdit={handleEdit}
+                onDelete={(id) => setReviewIdToDelete(id)}
+              />
             ))
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!reviewIdToDelete}
+        onClose={() => setReviewIdToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Xóa đánh giá"
+        message="Bạn có chắc là muốn xóa đánh giá này không? Hành động này không thể hoàn tác."
+        confirmText="Xóa ngay"
+        cancelText="Để sau"
+        type="danger"
+      />
     </div>
   );
 }
