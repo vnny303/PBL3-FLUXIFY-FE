@@ -1,12 +1,13 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function ProductCard({ product, onQuickAdd, onCardClick }) {
   const { theme } = useStorefrontConfig();
 
   const imageSrc = product.image;
-  const displayPrice = typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price;
+  const displayPrice = formatVnd(product.price);
 
   const handleQuickAddClick = (event) => {
     event.stopPropagation();

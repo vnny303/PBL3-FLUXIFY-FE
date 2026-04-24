@@ -1,115 +1,140 @@
 import React from 'react';
-import { MapPin, CreditCard, Building } from 'lucide-react';
+import { MapPin, CreditCard, Building, StickyNote, AlertCircle } from 'lucide-react';
+import { getBankTransferQrUrl } from '../../../shared/lib/bankTransferMock';
+import { formatVnd, parsePrice } from '../../../shared/lib/formatters';
 
 export default function OrderSummaryCard({ order }) {
-  const getAddressLines = () => {
-    if (!order.shippingAddress) return ['Address not provided'];
-    if (typeof order.shippingAddress === 'string') {
-      return order.shippingAddress.split(',').map(s => s.trim()).filter(Boolean);
+  const rawAddress = order.shippingAddress || order.address || '';
+  
+  const parseAddressAndNote = () => {
+    if (!rawAddress) return { address: 'Address not provided', note: null };
+    if (typeof rawAddress === 'string') {
+      const parts = rawAddress.split(' | Note: ');
+      return {
+        address: parts[0],
+        note: parts.length > 1 ? parts[1] : null
+      };
     }
-    const { name, street, city, state, zip, country } = order.shippingAddress;
-    return [
-      name,
-      street,
-      [city, state, zip].filter(Boolean).join(', '),
-      country
-    ].filter(Boolean);
+    return { address: rawAddress, note: null };
   };
 
-  const addressLines = getAddressLines();
+  const { address, note } = parseAddressAndNote();
+  const addressLines = typeof address === 'string' 
+    ? address.split(',').map(s => s.trim()).filter(Boolean)
+    : [address.name, address.street, [address.city, address.state, address.zip].filter(Boolean).join(', '), address.country].filter(Boolean);
 
   const calculateSubtotal = () => {
-    return order.items.reduce((sum, item) => {
-      let price = 0;
-      if (typeof item.price === 'string') {
-        price = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
-      } else if (typeof item.price === 'number') {
-        price = item.price;
-      }
+    const items = order.items || order.orderItems || [];
+    return items.reduce((sum, item) => {
+      const price = parsePrice(item.unitPrice ?? item.price);
       return sum + (price * (item.quantity || 1));
     }, 0);
   };
 
   const subtotal = calculateSubtotal();
-  let totalNum = 0;
-  if (typeof order.total === 'string') {
-    totalNum = parseFloat(order.total.replace(/[^0-9.]/g, '')) || 0;
-  } else if (typeof order.totalAmount === 'number') {
-    totalNum = order.totalAmount;
-  }
-  
-  const diff = Math.max(0, totalNum - subtotal);
-  const taxAndShipping = diff > 0 ? diff : 0;
+  const totalNum = parsePrice(order.total || order.totalAmount);
+  const shippingFee = Math.max(0, totalNum - subtotal);
+
+  const isBankTransfer = (order.paymentMethod === 'BankTransfer') || (order.payment?.methodName === 'Bank Transfer');
+  const isPending = (order.status || order.paymentStatus) === 'Pending';
+  const bankInfo = order.bankTransferInfo;
+  const qrUrl = getBankTransferQrUrl(bankInfo);
 
   return (
     <div className="space-y-6">
       {/* Shipping Details */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6">
-        <div>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
-            <MapPin className="w-4 h-4 text-slate-400" />
-            Shipping Address
-          </h3>
-          <div className="text-sm text-slate-600 dark:text-slate-400">
-            {addressLines.map((line, idx) => (
-              <p key={idx} className={idx === 0 ? "font-bold text-slate-900 dark:text-white mb-1" : ""}>
-                {line}
-              </p>
-            ))}
-          </div>
-          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tracking Info</h4>
-            <p className="text-xs text-slate-500 italic">Tracking details will appear once shipped.</p>
-          </div>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+        <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+          <MapPin className="w-4 h-4 text-primary" />
+          Shipping Address
+        </h3>
+        <div className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          {addressLines.map((line, idx) => (
+            <p key={idx} className={idx === 0 ? "font-bold text-slate-900 dark:text-white mb-1" : ""}>{line}</p>
+          ))}
         </div>
+        {note && (
+          <div className="mt-4 p-4 bg-primary/[0.03] dark:bg-primary/5 rounded-2xl border border-primary/10 overflow-hidden">
+            <div className="flex items-center gap-2 mb-2">
+              <StickyNote className="w-3 h-3 text-primary" />
+              <span className="text-[10px] font-black text-primary uppercase tracking-widest leading-none">Order Note</span>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-300 italic break-words whitespace-pre-wrap">"{note}"</p>
+          </div>
+        )}
       </div>
 
-      {/* Payment Method */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
-          <CreditCard className="w-4 h-4 text-slate-400" />
-          Payment Method
-        </h3>
-        <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
-          <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center text-slate-500">
-            <Building className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="font-medium text-slate-900 dark:text-white">
-              {order.paymentMethod === 'BankTransfer' ? 'Bank Transfer' : (order.paymentMethod || 'N/A')}
-            </p>
+      {/* Payment & Status */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm space-y-6">
+        <div>
+          <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+            <CreditCard className="w-4 h-4 text-primary" />
+            Payment Method
+          </h3>
+          <div className="flex items-center justify-between">
+             <div className="flex items-center gap-3">
+               <div className="w-10 h-7 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center border border-slate-100 dark:border-slate-800">
+                 <Building className="w-4 h-4 text-slate-400" />
+               </div>
+               <p className="text-sm font-bold text-slate-900 dark:text-white">{isBankTransfer ? 'Bank Transfer' : 'Cash on Delivery'}</p>
+             </div>
+             <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest ${isPending ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+               {isPending ? 'Pending verification' : 'Paid'}
+             </span>
           </div>
         </div>
+
+        {isBankTransfer && isPending && bankInfo && (
+          <div className="pt-6 border-t border-slate-50 dark:border-slate-800 space-y-6">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500">
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-xs font-bold uppercase tracking-wider">Payment Instructions</span>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="flex justify-between border-b border-slate-50 pb-1">
+                  <span className="text-[10px] text-slate-400 uppercase font-black">Bank</span>
+                  <span className="text-xs font-bold uppercase">{bankInfo.bankName}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-50 pb-1">
+                  <span className="text-[10px] text-slate-400 uppercase font-black">Account</span>
+                  <span className="text-xs font-bold text-primary">{bankInfo.bankAccountNumber}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-50 pb-1">
+                  <span className="text-[10px] text-slate-400 uppercase font-black">Content</span>
+                  <span className="text-xs font-bold text-primary uppercase">{bankInfo.transferContent}</span>
+                </div>
+              </div>
+              {qrUrl && (
+                <div className="flex justify-center bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-100">
+                   <img src={qrUrl} alt="QR" className="w-24 h-24 object-contain" />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Order Summary */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-        <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">Order Summary</h2>
-        <div className="space-y-3 text-sm">
-          <div className="flex justify-between text-slate-600 dark:text-slate-400">
-            <span>Subtotal</span>
-            <span className="font-medium text-slate-900 dark:text-white">${subtotal.toFixed(2)}</span>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+        <h2 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white mb-6">Order Summary</h2>
+        <div className="space-y-4 text-sm">
+          <div className="flex justify-between text-slate-500">
+            <span className="uppercase tracking-widest text-[10px] font-bold">Subtotal</span>
+            <span className="font-bold text-slate-900 dark:text-white tabular-nums">{formatVnd(subtotal)}</span>
           </div>
-          <div className="flex justify-between text-slate-600 dark:text-slate-400">
-            <span>Shipping & Tax</span>
-            <span className="font-medium text-slate-900 dark:text-white">${taxAndShipping.toFixed(2)}</span>
+          <div className="flex justify-between text-slate-500">
+            <span className="uppercase tracking-widest text-[10px] font-bold">Shipping</span>
+            <span className="font-bold text-slate-900 dark:text-white tabular-nums">{formatVnd(shippingFee)}</span>
           </div>
-          <div className="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-            <span className="font-bold text-slate-900 dark:text-white text-base">Total</span>
-            <span className="text-lg font-black text-slate-900 dark:text-white">{order.total}</span>
+          <div className="pt-6 mt-2 border-t border-slate-50 dark:border-slate-800 flex justify-between items-end">
+            <span className="font-black text-slate-400 text-[10px] uppercase tracking-[0.2em]">Total</span>
+            <span className="text-2xl font-black text-primary tabular-nums leading-none">
+              {formatVnd(totalNum)}
+            </span>
           </div>
         </div>
-      </div>
-
-      {/* Support */}
-      <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30 p-6">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">Need help with this order?</h3>
-        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-          Our support team is available 24/7 to assist you with any questions.
-        </p>
-        <button className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
-          Contact Support &rarr;
-        </button>
       </div>
     </div>
   );

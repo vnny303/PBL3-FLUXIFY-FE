@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useAppContext } from '../../../app/providers/useAppContext';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function QuickAddModal() {
   const { quickAddProduct, setQuickAddProduct, addToCart } = useAppContext();
@@ -52,7 +53,7 @@ export default function QuickAddModal() {
             <div>
               <h3 className="font-bold text-slate-900 leading-tight">{quickAddProduct.name}</h3>
               <p className="text-primary font-bold mt-1">
-                ${typeof quickAddProduct.price === 'number' ? quickAddProduct.price.toFixed(2) : quickAddProduct.price}
+                {formatVnd(quickAddProduct.price)}
               </p>
             </div>
           </div>

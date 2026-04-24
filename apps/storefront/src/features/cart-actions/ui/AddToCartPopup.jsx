@@ -1,14 +1,12 @@
 import React, { useEffect } from 'react';
 import { X, Check, ArrowRight } from 'lucide-react';
 import { useAppContext } from '../../../app/providers/useAppContext';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function AddToCartPopup() {
   const { showAddToCartPopup, setShowAddToCartPopup, setShowCart, lastAddedItem, cartTotal } = useAppContext();
 
-  const displayPrice =
-    typeof lastAddedItem?.price === 'number'
-      ? `$${lastAddedItem.price.toFixed(2)}`
-      : (lastAddedItem?.price || '$0.00');
+  const displayPrice = formatVnd(lastAddedItem?.price);
 
   useEffect(() => {
     if (showAddToCartPopup) {
@@ -66,7 +64,7 @@ export default function AddToCartPopup() {
 
           <div className="flex items-center justify-between mb-6">
             <span className="text-sm font-medium text-slate-500">Cart Subtotal</span>
-            <span className="text-xl font-black text-slate-900">${cartTotal.toFixed(2)}</span>
+            <span className="text-xl font-black text-slate-900">{formatVnd(cartTotal)}</span>
           </div>
 
           <div className="flex gap-4">

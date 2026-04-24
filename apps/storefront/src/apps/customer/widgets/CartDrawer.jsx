@@ -2,16 +2,11 @@ import React from 'react';
 import { X, Trash2, Minus, Plus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../app/providers/useAppContext';
+import { formatVnd, parsePrice } from '../../../shared/lib/formatters';
 
 export default function CartDrawer() {
   const { showCart, setShowCart, cartItems, removeFromCart, updateQuantity, cartTotal, cartCount } = useAppContext();
   const navigate = useNavigate();
-
-  const toNumberPrice = (value) => {
-    if (typeof value === 'number') return value;
-    if (typeof value === 'string') return parseFloat(value.replace('$', ''));
-    return 0;
-  };
 
   if (!showCart) return null;
 
@@ -91,7 +86,7 @@ export default function CartDrawer() {
                       </button>
                     </div>
                     <span className="text-sm font-bold text-blue-600">
-                      ${(toNumberPrice(item.price) * item.quantity).toFixed(2)}
+                      {formatVnd(parsePrice(item.price) * item.quantity)}
                     </span>
                   </div>
                 </div>
@@ -107,7 +102,7 @@ export default function CartDrawer() {
           </div>
           <div className="flex justify-between items-center mb-6">
             <span className="text-base font-bold text-slate-900">Subtotal</span>
-            <span className="text-xl font-black text-blue-600">${cartTotal.toFixed(2)}</span>
+            <span className="text-xl font-black text-blue-600">{formatVnd(cartTotal)}</span>
           </div>
           
           <button 

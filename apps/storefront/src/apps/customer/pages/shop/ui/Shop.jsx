@@ -131,24 +131,24 @@ export default function Shop() {
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">đ</span>
                       <input
                         type="number"
                         value={priceRange[0]}
                         onChange={e => setPriceRange([Number(e.target.value), priceRange[1]])}
-                        className="w-full pl-7 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-primary/20 focus:border-primary outline-none"
+                        className="w-full pr-7 pl-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-primary/20 focus:border-primary outline-none"
                       />
                     </div>
                   </div>
                   <span className="text-slate-400">-</span>
                   <div className="flex-1">
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">đ</span>
                       <input
                         type="number"
                         value={priceRange[1]}
                         onChange={e => setPriceRange([priceRange[0], Number(e.target.value)])}
-                        className="w-full pl-7 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-primary/20 focus:border-primary outline-none"
+                        className="w-full pr-7 pl-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-primary/20 focus:border-primary outline-none"
                       />
                     </div>
                   </div>

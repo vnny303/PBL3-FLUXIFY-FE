@@ -12,7 +12,7 @@ export default function OrderItemList({ items, reviewedItems, buyingItemIds, onW
           const productName = item.name || 'Product';
           const productVariant = item.variant || 'Standard';
           const productImage = item.image || `https://picsum.photos/seed/product${idx}/200/300`;
-          const productPrice = item.price || '$35.00';
+          const productPrice = item.price || '0đ';
           return (
             <div key={idx} className="p-6 flex gap-4">
               <div className="w-20 h-24 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shrink-0">

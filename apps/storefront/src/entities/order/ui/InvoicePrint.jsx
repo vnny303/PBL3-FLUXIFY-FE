@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom';
+import { formatVnd, parsePrice } from '../../../shared/lib/formatters';
 
 export default function InvoicePrint({ order }) {
   if (!order) return null;
@@ -23,23 +24,13 @@ export default function InvoicePrint({ order }) {
 
   const calculateSubtotal = () => {
     return order.items.reduce((sum, item) => {
-      let price = 0;
-      if (typeof item.price === 'string') {
-        price = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
-      } else if (typeof item.price === 'number') {
-        price = item.price;
-      }
+      const price = parsePrice(item.price);
       return sum + (price * (item.quantity || 1));
     }, 0);
   };
 
   const subtotal = calculateSubtotal();
-  let totalNum = 0;
-  if (typeof order.total === 'string') {
-    totalNum = parseFloat(order.total.replace(/[^0-9.]/g, '')) || 0;
-  } else if (typeof order.totalAmount === 'number') {
-    totalNum = order.totalAmount;
-  }
+  const totalNum = parsePrice(order.total || order.totalAmount);
   
   const taxAndShipping = Math.max(0, totalNum - subtotal);
 
@@ -87,9 +78,8 @@ export default function InvoicePrint({ order }) {
         </thead>
         <tbody className="divide-y divide-slate-200">
           {order.items.map((item, idx) => {
-            const price = item.price || '$0.00';
-            const priceNum = typeof item.price === 'string' ? parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0 : (item.price || 0);
-            const totalItemPrice = `$${(priceNum * (item.quantity || 1)).toFixed(2)}`;
+            const priceNum = parsePrice(item.price);
+            const totalItemPrice = formatVnd(priceNum * (item.quantity || 1));
             return (
               <tr key={idx}>
                 <td className="py-4">
@@ -97,7 +87,7 @@ export default function InvoicePrint({ order }) {
                   <p className="text-xs text-slate-500">{item.variant || 'Standard'}</p>
                 </td>
                 <td className="py-4 text-center text-slate-800">{item.quantity || 1}</td>
-                <td className="py-4 text-right text-slate-800">{price}</td>
+                <td className="py-4 text-right text-slate-800">{formatVnd(priceNum)}</td>
                 <td className="py-4 text-right font-bold text-slate-800">{totalItemPrice}</td>
               </tr>
             );
@@ -110,15 +100,15 @@ export default function InvoicePrint({ order }) {
         <div className="w-1/2 max-w-sm">
           <div className="flex justify-between py-2 text-sm text-slate-600">
             <span>Subtotal</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>{formatVnd(subtotal)}</span>
           </div>
           <div className="flex justify-between py-2 text-sm text-slate-600 border-b border-slate-200">
             <span>Shipping & Tax</span>
-            <span>${taxAndShipping.toFixed(2)}</span>
+            <span>{formatVnd(taxAndShipping)}</span>
           </div>
           <div className="flex justify-between py-4 text-lg font-bold text-slate-900">
             <span>Total</span>
-            <span>{order.total}</span>
+            <span>{formatVnd(totalNum)}</span>
           </div>
         </div>
       </div>

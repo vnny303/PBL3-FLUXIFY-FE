@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CheckCircle, Clock, ArrowRight, ShoppingCart } from 'lucide-react';
+import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
 
 export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders = [], isLoading = false, error = null, onRetry }) {
   const [showAll, setShowAll] = useState(false);
@@ -65,21 +66,30 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div className="space-y-1">
                 <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold">{order.id}</span>
-                  {order.status === 'Delivered' ? (
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1">
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      Delivered
+                  <span className="text-lg font-bold">{getDisplayOrderCode(order)}</span>
+                  <div className="flex flex-wrap gap-2">
+                    {order.status === 'Delivered' ? (
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Delivered
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary dark:bg-primary/20 flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {order.status || 'Processing'}
+                      </span>
+                    )}
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 flex items-center gap-1">
+                      <CreditCard className="w-3 h-3" />
+                      {order.paymentMethod === 'BankTransfer' ? 'Bank Transfer' : 'COD'}
                     </span>
-                  ) : (
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary dark:bg-primary/20 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      {order.status || 'Processing'}
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-900/10 dark:text-amber-500 dark:border-amber-900/30 flex items-center gap-1">
+                      {order.paymentStatus || 'Pending Payment'}
                     </span>
-                  )}
+                  </div>
                 </div>
                 <p className="text-sm text-slate-500">
-                  Ordered on {order.date || (order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '')} • Total: {order.total || (order.totalAmount != null ? `$${Number(order.totalAmount).toFixed(2)}` : '')}
+                  Ordered on {order.date || (order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '')} • Total: {formatVnd(parsePrice(order.total || order.totalAmount))}
                 </p>
               </div>
               <button 

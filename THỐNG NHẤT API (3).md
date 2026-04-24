@@ -10,77 +10,89 @@
 
 [Response lỗi	4](#response-lỗi)
 
-[**2\. Auth Rules tổng quát	5**](#auth-rules-tổng-quát)
+[**2\. Auth Rules tổng quát	4**](#auth-rules-tổng-quát)
 
-[JWT Claims	5](#jwt-claims)
+[JWT Claims	4](#jwt-claims)
 
 [Phân quyền theo vai trò	5](#phân-quyền-theo-vai-trò)
 
 [Pattern kiểm tra owner (dùng trong nhiều controller)	5](#pattern-kiểm-tra-owner-\(dùng-trong-nhiều-controller\))
 
-[**3\. Query Parameters — Pagination / Sort / Filter	6**](#query-parameters-—-pagination-/-sort-/-filter)
+[**3\. Query Parameters — Pagination / Sort / Filter	5**](#query-parameters-—-pagination-/-sort-/-filter)
 
-[3.1 QueryBase (dùng chung cho tất cả)	6](#querybase-\(dùng-chung-cho-tất-cả\))
+[3.1 QueryBase (dùng chung cho tất cả)	5](#querybase-\(dùng-chung-cho-tất-cả\))
 
 [3.2 Query theo từng endpoint	6](#query-theo-từng-endpoint)
 
 [Tenants — GET /api/tenants/me	6](#tenants-—-get-/api/tenants/me)
 
-[Customers — GET /api/tenants/{tenantId}/customers	7](#customers-—-get-/api/tenants/{tenantid}/customers)
+[Customers — GET /api/tenants/{tenantId}/customers	6](#customers-—-get-/api/tenants/{tenantid}/customers)
 
 [Categories — GET /api/tenants/{tenantId}/categories	7](#categories-—-get-/api/tenants/{tenantid}/categories)
 
-[Products — GET /api/tenants/{tenantId}/products	8](#products-—-get-/api/tenants/{tenantid}/products)
+[Products — GET /api/tenants/{tenantId}/products	7](#products-—-get-/api/tenants/{tenantid}/products)
 
-[Orders — GET /api/tenants/{tenantId}/orders	9](#orders-—-get-/api/tenants/{tenantid}/orders)
+[Orders — GET /api/tenants/{tenantId}/orders	8](#orders-—-get-/api/tenants/{tenantid}/orders)
 
-[3.3 Lưu ý quan trọng về pagination	10](#lưu-ý-quan-trọng-về-pagination)
+[Analytics — /api/tenants/{tenantId}/analytics	9](#analytics-—-/api/tenants/{tenantid}/analytics)
 
-[**4\. Auth — /api/auth	10**](#auth-—-/api/auth)
+[GET /api/tenants/{tenantId}/analytics/overview	9](#get-/api/tenants/{tenantid}/analytics/overview)
 
-[POST /api/auth/merchant/register	10](#post-/api/auth/merchant/register)
+[GET /api/tenants/{tenantId}/analytics/ratings	9](#get-/api/tenants/{tenantid}/analytics/ratings)
 
-[POST /api/auth/merchant/login	12](#post-/api/auth/merchant/login)
+[GET /api/tenants/{tenantId}/analytics/top-products	10](#get-/api/tenants/{tenantid}/analytics/top-products)
 
-[POST /api/auth/customer/register	13](#post-/api/auth/customer/register)
+[GET /api/tenants/{tenantId}/analytics/dashboard	10](#get-/api/tenants/{tenantid}/analytics/dashboard)
 
-[POST /api/auth/customer/login	14](#post-/api/auth/customer/login)
+[Reviews – GET /api/tenants/{tenantId}/product-skus/{productSkuId}/reviews	11](#reviews-–-get-/api/tenants/{tenantid}/product-skus/{productskuid}/reviews)
 
-[GET /api/auth/me	16](#get-/api/auth/me)
+[3.3 Lưu ý quan trọng về pagination	11](#lưu-ý-quan-trọng-về-pagination)
 
-[PUT /api/auth/customers/{customerId}	16](#put-/api/auth/customers/{customerid})
+[**4\. Auth — /api/auth	12**](#auth-—-/api/auth)
+
+[POST /api/auth/merchant/register	12](#post-/api/auth/merchant/register)
+
+[POST /api/auth/merchant/login	13](#post-/api/auth/merchant/login)
+
+[POST /api/auth/customer/register	14](#post-/api/auth/customer/register)
+
+[POST /api/auth/customer/login	16](#post-/api/auth/customer/login)
+
+[GET /api/auth/me	17](#get-/api/auth/me)
+
+[PUT /api/auth/customers/{customerId}	17](#put-/api/auth/customers/{customerid})
 
 [POST /api/auth/logout	18](#post-/api/auth/logout)
 
-[**5\. Tenants — /api/tenants	18**](#tenants-—-/api/tenants)
+[**5\. Tenants — /api/tenants	19**](#tenants-—-/api/tenants)
 
-[GET /api/tenants	19](#get-/api/tenants)
+[GET /api/tenants	20](#get-/api/tenants)
 
-[GET /api/tenants/{id}	19](#get-/api/tenants/{id})
+[GET /api/tenants/{id}	20](#get-/api/tenants/{id})
 
 [GET /api/tenants/subdomain/{subdomain}	20](#get-/api/tenants/subdomain/{subdomain})
 
-[POST /api/tenants	20](#post-/api/tenants)
+[POST /api/tenants	21](#post-/api/tenants)
 
-[PUT /api/tenants/{id}	21](#put-/api/tenants/{id})
+[PUT /api/tenants/{id}	22](#put-/api/tenants/{id})
 
 [DELETE /api/tenants/{id}	23](#delete-/api/tenants/{id})
 
-[**6\. Customers — /api/tenants/{tenantId}/customers	23**](#customers-—-/api/tenants/{tenantid}/customers)
+[**6\. Customers — /api/tenants/{tenantId}/customers	24**](#customers-—-/api/tenants/{tenantid}/customers)
 
-[GET /api/tenants/{tenantId}/customers	23](#get-/api/tenants/{tenantid}/customers)
+[GET /api/tenants/{tenantId}/customers	24](#get-/api/tenants/{tenantid}/customers)
 
 [GET /api/tenants/{tenantId}/customers/{customerId}	25](#get-/api/tenants/{tenantid}/customers/{customerid})
 
 [GET /api/tenants/{tenantId}/customers/email/{email}	26](#get-/api/tenants/{tenantid}/customers/email/{email})
 
-[GET /api/tenants/{tenantId}/customers/cart/{cartId}	26](#get-/api/tenants/{tenantid}/customers/cart/{cartid})
+[GET /api/tenants/{tenantId}/customers/cart/{cartId}	27](#get-/api/tenants/{tenantid}/customers/cart/{cartid})
 
 [DELETE /api/tenants/{tenantId}/customers/{customerId}	27](#delete-/api/tenants/{tenantid}/customers/{customerid})
 
-[**7\. Categories — /api/tenants/{tenantId}/categories	27**](#categories-—-/api/tenants/{tenantid}/categories)
+[**7\. Categories — /api/tenants/{tenantId}/categories	28**](#categories-—-/api/tenants/{tenantid}/categories)
 
-[GET /api/tenants/{tenantId}/categories	27](#get-/api/tenants/{tenantid}/categories)
+[GET /api/tenants/{tenantId}/categories	28](#get-/api/tenants/{tenantid}/categories)
 
 [GET /api/tenants/{tenantId}/categories/{id} (đề xuất — nên thêm)	28](#get-/api/tenants/{tenantid}/categories/{id}-\(đề-xuất-—-nên-thêm\))
 
@@ -100,9 +112,9 @@
 
 [POST /api/tenants/{tenantId}/products	34](#post-/api/tenants/{tenantid}/products)
 
-[PUT /api/tenants/{tenantId}/products/{id}	37](#put-/api/tenants/{tenantid}/products/{id})
+[PUT /api/tenants/{tenantId}/products/{id}	36](#put-/api/tenants/{tenantid}/products/{id})
 
-[DELETE /api/tenants/{tenantId}/products/{id}	38](#delete-/api/tenants/{tenantid}/products/{id})
+[DELETE /api/tenants/{tenantId}/products/{id}	37](#delete-/api/tenants/{tenantid}/products/{id})
 
 [GET /api/tenants/{tenantId}/products/{id}/skus	38](#get-/api/tenants/{tenantid}/products/{id}/skus)
 
@@ -110,25 +122,27 @@
 
 [PUT /api/tenants/{tenantId}/products/{id}/skus/{skuId}	40](#put-/api/tenants/{tenantid}/products/{id}/skus/{skuid})
 
-[DELETE /api/tenants/{tenantId}/products/{id}/skus/{skuId}	41](#delete-/api/tenants/{tenantid}/products/{id}/skus/{skuid})
+[DELETE /api/tenants/{tenantId}/products/{id}/skus/{skuId}	40](#delete-/api/tenants/{tenantid}/products/{id}/skus/{skuid})
 
-[**9\. Cart — /api/tenants/{tenantId}/customers/{customerId}/cart	42**](#cart-—-/api/cart)
+[**9\. Cart — /api/cart	41**](#cart-—-/api/cart)
 
-[GET /api/tenants/{tenantId}/customers/{customerId}/cart	42](#get-/api/cart)
+[GET /api/cart	41](#get-/api/cart)
+
+[CartItemDto mở rộng (Đề xuất)	42](#cartitemdto-mở-rộng-\(đề-xuất\))
 
 [POST /api/tenants/{tenantId}/customers/{customerId}/cart	43](#post-/api/tenants/{tenantid}/customers/{customerid}/cart)
 
 [GET /api/tenants/{tenantId}/customers/{customerId}/cart/items	43](#get-/api/tenants/{tenantid}/customers/{customerid}/cart/items)
 
-[POST /api/tenants/{tenantId}/customers/{customerId}/cart/items	44](#post-/api/cart/items)
+[POST /api/cart/items	44](#post-/api/cart/items)
 
-[PUT /api/tenants/{tenantId}/customers/{customerId}/cart/items/{id}	46](#put-/api/cart/items/{itemid})
+[PUT /api/cart/items/{itemId}	45](#put-/api/cart/items/{itemid})
 
-[DELETE /api/tenants/{tenantId}/customers/{customerId}/cart/items/{id}	47](#delete-/api/cart/items/{id})
+[DELETE /api/cart/items/{id}	47](#delete-/api/cart/items/{id})
 
-[DELETE /api/tenants/{tenantId}/customers/{customerId}/cart/items	47](#delete-/api/cart/items)
+[DELETE /api/cart/items	47](#delete-/api/cart/items)
 
-[**10\. Orders — /api/tenants/{tenantId}/orders	48**](#orders-—-/api/tenants/{tenantid}/orders)
+[**10\. Orders — /api/tenants/{tenantId}/orders	47**](#orders-—-/api/tenants/{tenantid}/orders)
 
 [MERCHANT ORDERS	48](#merchant-orders)
 
@@ -142,33 +156,63 @@
 
 [DELETE /api/tenants/{tenantId}/orders/{id}	53](#delete-/api/tenants/{tenantid}/orders/{id})
 
-[CUSTOMER ORDERS	54](#customer-orders)
+[CUSTOMER ORDERS	53](#customer-orders)
 
-[GET /api/tenants/{tenantId}/orders/customers/{customerId}	54](#get-/api/customers/orders)
+[GET /api/customers/orders	53](#get-/api/customers/orders)
 
-[GET /api/tenants/{tenantId}/orders/{orderId}/customers/{customerId}	54](#get-/api/customers/orders/{orderid})
+[GET /api/customers/orders/{orderId}	54](#get-/api/customers/orders/{orderid})
 
-[POST /api/tenants/{tenantId}/order/customers/{customerId}/checkout	55](#post-/api/customers/orders/checkout)
+[POST /api/customers/orders/checkout	54](#post-/api/customers/orders/checkout)
 
-[PUT /api/tenants/{tenantId}/orders/{orderId}/customers/{customerId}/cancel (Optional)	57](#put-/api/customers/orders/{orderid}/cancel-\(optional\))
+[PUT /api/customers/orders/{orderId}/cancel (Optional)	56](#put-/api/customers/orders/{orderid}/cancel-\(optional\))
 
 [**11\. Admin — /api/admin ⚠️ Test Only	57**](#admin-—-/api/admin-⚠️-test-only)
 
 [⚠️ QUAN TRỌNG — ĐỌC TRƯỚC KHI DÙNG	57](#⚠️-quan-trọng-—-đọc-trước-khi-dùng)
 
-[GET /api/admin/platformUsers	58](#get-/api/admin/platformusers)
+[GET /api/admin/platformUsers	57](#get-/api/admin/platformusers)
 
 [DELETE /api/admin/platformUsers/{id}	60](#delete-/api/admin/platformusers/{id})
 
-[**12\. Luồng truy cập sản phẩm: Merchant vs Customer	61**](#luồng-truy-cập-sản-phẩm:-merchant-vs-customer)
+[**12\. Luồng truy cập sản phẩm: Merchant vs Customer	60**](#luồng-truy-cập-sản-phẩm:-merchant-vs-customer)
 
-[Luồng 1: Merchant quản lý sản phẩm	61](#luồng-1:-merchant-quản-lý-sản-phẩm)
+[Luồng 1: Merchant quản lý sản phẩm	60](#luồng-1:-merchant-quản-lý-sản-phẩm)
 
-[Luồng 2: Customer xem sản phẩm (Storefront)	62](#luồng-2:-customer-xem-sản-phẩm-\(storefront\))
+[Luồng 2: Customer xem sản phẩm (Storefront)	61](#luồng-2:-customer-xem-sản-phẩm-\(storefront\))
 
-[⚠️ Lưu ý quan trọng về phân quyền hiện tại	63](#⚠️-lưu-ý-quan-trọng-về-phân-quyền-hiện-tại)
+[⚠️ Lưu ý quan trọng về phân quyền hiện tại	62](#⚠️-lưu-ý-quan-trọng-về-phân-quyền-hiện-tại)
 
-[**13\. Error Codes Summary	63**](#error-codes-summary)
+[**13\. Analytics — /api/tenants/{tenantId}/analytics	62**](#analytics-—-/api/tenants/{tenantid}/analytics-1)
+
+[GET /api/tenants/{tenantId}/analytics/overview	62](#get-/api/tenants/{tenantid}/analytics/overview-1)
+
+[GET /api/tenants/{tenantId}/analytics/top-products	63](#get-/api/tenants/{tenantid}/analytics/top-products-1)
+
+[GET /api/tenants/{tenantId}/analytics/ratings	64](#get-/api/tenants/{tenantid}/analytics/ratings-1)
+
+[GET /api/tenants/{tenantId}/analytics/dashboard	65](#get-/api/tenants/{tenantid}/analytics/dashboard-1)
+
+[**14\. Reviews	66**](#reviews)
+
+[ReviewDto — Cấu trúc chung	66](#reviewdto-—-cấu-trúc-chung)
+
+[PUBLIC — Đọc Reviews	66](#public-—-đọc-reviews)
+
+[GET /api/tenants/{tenantId}/product-skus/{productSkuId}/reviews	66](#get-/api/tenants/{tenantid}/product-skus/{productskuid}/reviews)
+
+[GET /api/tenants/{tenantId}/product-skus/{productSkuId}/reviews/summary	67](#get-/api/tenants/{tenantid}/product-skus/{productskuid}/reviews/summary)
+
+[CUSTOMER — Quản lý Reviews	67](#customer-—-quản-lý-reviews)
+
+[POST /api/customer/reviews	68](#post-/api/customer/reviews)
+
+[PUT /api/customer/reviews/{reviewId}	69](#put-/api/customer/reviews/{reviewid})
+
+[DELETE /api/customer/reviews/{reviewId}	70](#delete-/api/customer/reviews/{reviewid})
+
+[Error Codes tổng hợp cho Reviews	70](#error-codes-tổng-hợp-cho-reviews)
+
+[**15\. Error Codes Summary	71**](#error-codes-summary)
 
 1. # **Conventions** {#conventions}
 
@@ -182,8 +226,7 @@ Content-Type: application/json
 Các endpoint hiện tại trả trực tiếp object hoặc array, **không có wrapper**. Ví dụ:
 
 json  
-{ "id": "...", "email": "..." }
-
+{ "id": "...", "email": "..." }  
 hoặc
 
 json  
@@ -192,8 +235,7 @@ json
 ### **Response lỗi** {#response-lỗi}
 
 json  
-{ "message": "Mô tả lỗi ngắn gọn" }
-
+{ "message": "Mô tả lỗi ngắn gọn" }  
 Hoặc khi có lỗi hệ thống:
 
 json  
@@ -201,8 +243,7 @@ json
   "message": "Lỗi khi thực hiện thao tác",  
   "error": "Exception message",  
   "innerError": "Inner exception message nếu có"  
-}
-
+}  
 Khi validation fail (ModelState):
 
 json  
@@ -270,8 +311,7 @@ Tất cả endpoint GET list đều hỗ trợ query object kế thừa từ `Qu
 
 **Ví dụ**:
 
-GET /api/tenants/me?page=1\&pageSize=5\&sortBy=storeName\&sortDir=asc\&isActive=true
-
+GET /api/tenants/me?page=1\&pageSize=5\&sortBy=storeName\&sortDir=asc\&isActive=true  
 **Axios**:
 
 javascript  
@@ -295,8 +335,7 @@ const res \= await axios.get('/api/tenants/me', {
 **Ví dụ**:
 
 GET /api/tenants/{id}/customers?page=1\&pageSize=20\&email=abc@gmail.com  
-GET /api/tenants/{id}/customers?search=gmail\&sortBy=createdAt\&sortDir=desc
-
+GET /api/tenants/{id}/customers?search=gmail\&sortBy=createdAt\&sortDir=desc  
 **Axios**:
 
 javascript  
@@ -319,8 +358,7 @@ const res \= await axios.get(\`/api/tenants/${tenantId}/customers\`, {
 **Ví dụ**:
 
 GET /api/tenants/{id}/categories?isActive=true\&sortBy=name\&sortDir=asc  
-GET /api/tenants/{id}/categories?search=áo\&page=1\&pageSize=10
-
+GET /api/tenants/{id}/categories?search=áo\&page=1\&pageSize=10  
 **Axios**:
 
 javascript  
@@ -344,8 +382,7 @@ const res \= await axios.get(\`/api/tenants/${tenantId}/categories\`, {
 
 GET /api/tenants/{id}/products?categoryId=11111111-1111-4111-8111-111111111111  
 GET /api/tenants/{id}/products?search=áo\&sortBy=name\&sortDir=asc\&page=1\&pageSize=12  
-GET /api/tenants/{id}/products?hasAttributes=true\&categoryId=xxx
-
+GET /api/tenants/{id}/products?hasAttributes=true\&categoryId=xxx  
 **Axios — Lấy products theo category (dùng cho storefront)**:
 
 javascript  
@@ -357,8 +394,7 @@ const res \= await axios.get(\`/api/tenants/${tenantId}/products\`, {
     sortBy: 'name',  
     sortDir: 'asc'  
   }  
-});
-
+});  
 **Axios — Search sản phẩm**:
 
 javascript  
@@ -388,8 +424,7 @@ const res \= await axios.get(\`/api/tenants/${tenantId}/products\`, {
 
 GET /api/tenants/{id}/orders?status=Pending\&page=1\&pageSize=20  
 GET /api/tenants/{id}/orders?createdFrom=2026-04-01\&createdTo=2026-04-30\&sortBy=totalAmount\&sortDir=desc  
-GET /api/tenants/{id}/orders?customerId=xxx\&status=Delivered
-
+GET /api/tenants/{id}/orders?customerId=xxx\&status=Delivered  
 **Axios**:
 
 javascript  
@@ -402,7 +437,81 @@ const res \= await axios.get(\`/api/tenants/${tenantId}/orders\`, {
     sortDir: 'desc'  
   },  
   headers: { Authorization: \`Bearer ${token}\` }  
+});
+
+### **Analytics — `/api/tenants/{tenantId}/analytics`** {#analytics-—-/api/tenants/{tenantid}/analytics}
+
+#### **GET `/api/tenants/{tenantId}/analytics/overview`** {#get-/api/tenants/{tenantid}/analytics/overview}
+
+#### **GET `/api/tenants/{tenantId}/analytics/ratings`** {#get-/api/tenants/{tenantid}/analytics/ratings}
+
+| Param | Kiểu | Mô tả |
+| ----- | ----- | ----- |
+| `from` | ISO datetime | Từ ngày (optional) |
+| `to` | ISO datetime | Đến ngày (optional) |
+
+**Axios**:
+
+const res \= await axios.get(\`/api/tenants/${tenantId}/analytics/overview\`, {  
+  params: { from: '2026-04-01', to: '2026-04-30' },  
+  headers: { Authorization: \`Bearer ${token}\` }  
+});
+
+#### **GET `/api/tenants/{tenantId}/analytics/top-products`** {#get-/api/tenants/{tenantid}/analytics/top-products}
+
+| Param | Kiểu | Default | Mô tả |
+| ----- | ----- | ----- | ----- |
+| `from` | ISO datetime | — | Từ ngày (optional) |
+| `to` | ISO datetime | — | Đến ngày (optional) |
+| `take` | int (1–100) | `10` | Số sản phẩm muốn lấy |
+
+**Axios**:
+
+const res \= await axios.get(\`/api/tenants/${tenantId}/analytics/top-products\`, {  
+  params: { from: '2026-04-01', to: '2026-04-30', take: 5 },  
+  headers: { Authorization: \`Bearer ${token}\` }  
+});
+
+#### **GET `/api/tenants/{tenantId}/analytics/dashboard`** {#get-/api/tenants/{tenantid}/analytics/dashboard}
+
+| Param | Kiểu | Default | Mô tả |
+| ----- | ----- | ----- | ----- |
+| `from` | ISO datetime | — | Từ ngày (optional) |
+| `to` | ISO datetime | — | Đến ngày (optional) |
+| `take` | int | `10` | Số sản phẩm trong `topProducts` |
+
+**Axios — Tải toàn bộ dashboard một lần**:
+
+const res \= await axios.get(\`/api/tenants/${tenantId}/analytics/dashboard\`, {  
+  params: { from: '2026-04-01', to: '2026-04-30', take: 10 },  
+  headers: { Authorization: \`Bearer ${token}\` }  
 });  
+const { overview, ratings, topProducts } \= res.data;
+
+### **Reviews – `GET` `/api/tenants/{tenantId}/product-skus/{productSkuId}/reviews`** {#reviews-–-get-/api/tenants/{tenantid}/product-skus/{productskuid}/reviews}
+
+| Param | Kiểu | Default | Mô tả |
+| ----- | ----- | ----- | ----- |
+| `page` | int | `1` | Trang hiện tại |
+| `pageSize` | int (1–100) | `10` | Số item mỗi trang |
+| `sortBy` | string | `"createdAt"` | `"rating"`, `"createdAt"` / `"created_at"`, `"id"` |
+| `sortDir` | string | `"desc"` | `"asc"` hoặc `"desc"` |
+| `search` | string | — | Tìm trong `comment` |
+| `rating` | int (1–5) | — | Lọc theo số sao cụ thể |
+
+**Axios — Storefront hiển thị reviews**:
+
+// Lấy reviews 5 sao mới nhất  
+const res \= await axios.get(  
+  \`/api/tenants/${tenantId}/product-skus/${productSkuId}/reviews\`,  
+  { params: { rating: 5, sortBy: 'createdAt', sortDir: 'desc', page: 1, pageSize: 10 } }  
+);
+
+// Tìm kiếm trong comment  
+const res \= await axios.get(  
+  \`/api/tenants/${tenantId}/product-skus/${productSkuId}/reviews\`,  
+  { params: { search: 'thoải mái', page: 1, pageSize: 10 } }  
+);  
 ---
 
 3. ## **Lưu ý quan trọng về pagination** {#lưu-ý-quan-trọng-về-pagination}
@@ -422,8 +531,7 @@ const isLastPage \= data.length \< pageSize;
 
 **Auth**: Không yêu cầu  
 **Mô tả**: Đăng ký tài khoản merchant và tạo tenant (cửa hàng) đầu tiên của merchant đồng thời trong một request.  
-**Hạn chế:** Nếu merchant muốn tạo thêm một tenant mới thì phải login (/merchant/login) rồi tạo (POST /tenant), chứ không được đăng ký lại tài khoản
-
+**Hạn chế:** Nếu merchant muốn tạo thêm một tenant mới thì phải login (/merchant/login) rồi tạo (POST /tenant), chứ không được đăng ký lại tài khoản  
 **Request Body**:
 
 json  
@@ -433,8 +541,7 @@ json
   "password": "Abc@1234",  
   "storeName": "Van Ngoc Nhu Y Store",  
   "subdomain": "vanngocnhuy30032006"  
-}
-
+}  
 **Validation** (hiện tại chưa có DataAnnotations, cần bổ sung):
 
 | Field | Rule |
@@ -456,8 +563,7 @@ json
   "role": "merchant",  
   "tenantId": "2d273f64-2b77-479c-b114-66311d41b573",  
   "subdomain": "vanngocnhuy30032006"  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -477,8 +583,7 @@ json
 {  
   "email": "vanngocnhuy30032006@gmail.com",  
   "password": "Abc@1234"  
-}
-
+}  
 **Validation** (hiện tại chưa có DataAnnotations):
 
 | Field | Rule |
@@ -488,7 +593,8 @@ json
 
 **Logic**:
 
-1. Tìm PlatformUser có **`email`** khớp VÀ **`role = "merchant"`**, Include luôn **`Tenants`**  
+1. Tìm PlatformUser có **`email`** khớp VÀ **`role = "merchant"`**, Include luôn **`Tenants`**
+
 2. Verify password bằng BCrypt  
 3. Response trả về array **`tenants`** để frontend biết merchant sở hữu store nào
 
@@ -511,8 +617,7 @@ json
       "subdomain": "second-store"  
     }  
   \]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -527,12 +632,10 @@ json
  **Mô tả**: Customer đăng ký tài khoản trong một store cụ thể (xác định qua subdomain). **Tự động tạo Cart** cho customer sau khi đăng ký thành công.  
 **Lý do tạo Cart tự động**: Không hợp lý khi customer đăng ký xong mà không có giỏ hàng — phải gọi thêm API riêng để tạo. Cart nên được tạo cùng lúc với customer.  
 **Về `POST /tenants/{tenantId}/customers`**: Endpoint này trong CustomersController ban đầu dùng để tạo customer (kèm auto-create Cart). Nay logic đó được chuyển vào đây. CustomersController chỉ còn phục vụ merchant **xem** thông tin customers (không tạo mới).  
-**Về `subdomain` trong request**: `subdomain` được truyền qua **query parameter** (không phải body). Trong C\#, hàm nhận `[FromQuery] string subdomain` — đây là lý do URL phải kèm `?subdomain=xxx`.
-
+**Về `subdomain` trong request**: `subdomain` được truyền qua **query parameter** (không phải body). Trong C\#, hàm nhận `[FromQuery] string subdomain` — đây là lý do URL phải kèm `?subdomain=xxx`.  
 **Cách gọi đúng**:
 
-POST api/Auth/customer/register?subdomain=pbl3-shop
-
+POST api/Auth/customer/register?subdomain=pbl3-shop  
 **Trong code C\#**:
 
 \[HttpPost("customer/register")\]  
@@ -543,16 +646,14 @@ json
 {  
   "email": "dieuhoale6406@gmail.com",  
   "password": "Abc@1234",  
-}
-
+}  
 **Axios**:
 
 javascript
 
 const res \= await axios.post('/api/auth/customer/register', { email, password }, {  
   params: { subdomain: 'pbl3-shop' }  
-});
-
+});  
 **Validation** (hiện tại chưa có DataAnnotations):
 
 | Field | Rule |
@@ -562,7 +663,8 @@ const res \= await axios.post('/api/auth/customer/register', { email, password }
 
 **Logic**:
 
-* Tìm Tenant theo `subdomain` → không thấy → 400  
+* Tìm Tenant theo `subdomain` → không thấy → 400
+
 * Kiểm tra email đã tồn tại trong tenant chưa → đã có → 400  
 * Tạo Customer với `TenantId` tương ứng  
 * **Tự động tạo Cart** gắn với customer vừa tạo
@@ -578,8 +680,7 @@ json
   "role": "customer",  
   "tenantId": "2d273f64-2b77-479c-b114-66311d41b573",  
   "subdomain": "pbl3-shop"  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -594,17 +695,14 @@ json
 **Auth**: Không yêu cầu  
  **Mô tả**: Customer đăng nhập vào một store cụ thể.
 
-**Về `subdomain` trong request**: `subdomain` được truyền qua **query parameter** (không phải body). Trong C\#, hàm nhận `[FromQuery] string subdomain` — đây là lý do URL phải kèm `?subdomain=xxx`.
-
+**Về `subdomain` trong request**: `subdomain` được truyền qua **query parameter** (không phải body). Trong C\#, hàm nhận `[FromQuery] string subdomain` — đây là lý do URL phải kèm `?subdomain=xxx`.  
 **Cách gọi đúng**:
 
-POST /api/simpleauth/customer/login?subdomain=pbl3-shop
-
+POST /api/simpleauth/customer/login?subdomain=pbl3-shop  
 **Trong code C\#**:
 
 \[HttpPost("customer/login")\]  
-public async Task\<IActionResult\> LoginCustomer(\[FromQuery\] string subdomain, LoginRequest request)
-
+public async Task\<IActionResult\> LoginCustomer(\[FromQuery\] string subdomain, LoginRequest request)  
 **URL**: `POST /api/simpleauth/customer/login?subdomain=pbl3-shop`
 
 **Request Body**:
@@ -613,8 +711,7 @@ json
 {  
   "email": "dieuhoale6406@gmail.com",  
   "password": "Abc@1234"  
-}
-
+}  
 **Logic**:
 
 1. Tìm Tenant theo `subdomain` (query param) → không thấy → 400  
@@ -632,8 +729,7 @@ json
   "role": "customer",  
   "tenantId": "2d273f64-2b77-479c-b114-66311d41b573",  
   "subdomain": "pbl3-shop"  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -656,8 +752,7 @@ json
   "email": "vanngocnhuy30032006@gmail.com",  
   "role": "merchant",  
   "tenantId": "2d273f64-2b77-479c-b114-66311d41b573"  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -675,7 +770,8 @@ Lý do tách ra: `PUT /tenants/{tenantId}/customers/{id}` hiện để merchant 
 
 **Path Params**:
 
-* `tenantId` — GUID của tenant  
+* `tenantId` — GUID của tenant
+
 * `customerId` — GUID của customer
 
 **Request Body** (partial — chỉ gửi field cần thay đổi):
@@ -685,8 +781,7 @@ json
   "email": "newemail@example.com",  
   "password": "NewPass@123",  
   "isActive": false  
-}
-
+}  
 **Validation** (có DataAnnotations trong `UpdateCustomerRequestDto`):
 
 | Field | Rule |
@@ -739,8 +834,7 @@ json
 **GET `/api/tenants/me`**  
 **Auth**: `[Authorize(Roles = "merchant")]`  
 **Mô tả**: Lấy danh sách tenant thuộc về merchant đang đăng nhập (lấy `ownerId` từ JWT claim `userId`).  
-**Query**: Xem [Tenants query params](#tenants-—-get-/api/tenants/me)
-
+**Query**: Xem [Tenants query params](#tenants-—-get-/api/tenants/me)  
 **Response 200** — array of slim TenantDto:
 
 json  
@@ -752,8 +846,7 @@ json
     "storeName": "Van Ngoc Nhu Y",  
     "isActive": true  
   }  
-\]
-
+\]  
 **Về việc slim down TenantDto**: `TenantDto` đã được/sẽ được xóa các property `Categories`, `Customers`, `Orders`. Những dữ liệu đó có endpoint riêng — không nên nhúng vào TenantDto vì gây over-fetch nặng (1000 customers × full data \= response khổng lồ).
 
 **Errors**:
@@ -795,8 +888,7 @@ json
   "customers": \[\],  
   "orders": \[\]
 
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -825,8 +917,7 @@ json
   "categories": \[\],  
   "customers": \[\],  
   "orders": \[\]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -847,8 +938,7 @@ json
   "subdomain": "my-new-store",  
   "storeName": "My New Store",  
   "isActive": true  
-}
-
+}  
 **Validation** (có DataAnnotations):
 
 | Field | Rule |
@@ -866,8 +956,7 @@ json
   "subdomain": "my-new-store",  
   "storeName": "My New Store",  
   "isActive": true  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -892,8 +981,7 @@ json
   "subdomain": "new-subdomain",  
   "storeName": "New Store Name",  
   "isActive": false  
-}
-
+}  
 **Validation**:
 
 | Field | Rule |
@@ -911,8 +999,7 @@ json
   "subdomain": "new-subdomain",  
   "storeName": "New Store Name",  
   "isActive": false  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -988,8 +1075,7 @@ json
       }  
     \]  
   }  
-\]
-
+\]  
 **Lưu ý**: `passwordHash` không xuất hiện trong response vì CustomerDto không có field này.
 
 **Về `passwordHash`**: Không có trong `CustomerDto` — đây là thiết kế đúng. DTO che đi thông tin nhạy cảm, chỉ trả về những gì merchant cần xem. Không nên thêm `passwordHash` vào DTO.
@@ -1013,7 +1099,8 @@ json
 
 **Path Params**:
 
-* `tenantId` — GUID của tenant  
+* `tenantId` — GUID của tenant
+
 * `customerId` — GUID của customer
 
 **Response 200**:
@@ -1045,8 +1132,7 @@ json
 "orderItems": \[\]  
 }  
   \]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1065,7 +1151,8 @@ json
 
 **~~Path Params~~**~~:~~
 
-* ~~`tenantId` — GUID của tenant~~  
+* ~~`tenantId` — GUID của tenant~~
+
 * ~~`email` — địa chỉ email cần tìm (URL-encode nếu cần)~~
 
 **~~Response 200~~**~~: Tương tự GET by ID~~
@@ -1088,7 +1175,8 @@ json
 
 **~~Path Params~~**~~:~~
 
-* ~~`tenantId` — GUID của tenant~~  
+* ~~`tenantId` — GUID của tenant~~
+
 * ~~`cartId` — GUID của cart~~
 
 **~~Response 200~~**~~: Tương tự GET by ID~~
@@ -1102,7 +1190,8 @@ json
 
 **Path Params**:
 
-* `tenantId` — GUID của tenant  
+* `tenantId` — GUID của tenant
+
 * `customerId` — GUID của customer
 
 **Response 204 No Content**
@@ -1149,8 +1238,7 @@ json
     "isActive": true,  
     "products": \[\]  
   }  
-\]
-
+\]  
 **Về field `products`**: CategoryDto có `products` nhưng khi GET all categories, navigation `Products` chưa được `.Include()` nên sẽ trả về `[]`. Nếu cần products theo category, dùng `GET /products?categoryId=xxx`.
 
 ---
@@ -1162,7 +1250,8 @@ json
 
 **Có nên thêm không?** Nên có. Use case thực tế:
 
-* Storefront cần load chi tiết category khi user click vào danh mục  
+* Storefront cần load chi tiết category khi user click vào danh mục
+
 * Merchant dashboard cần xem chi tiết category khi edit  
 * Consistent với RESTful — nếu có GET list thì nên có GET single
 
@@ -1176,8 +1265,7 @@ json
   "description": "Danh mục áo thun cơ bản",  
   "isActive": true,  
   "products": \[\]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1189,8 +1277,7 @@ json
 ### **POST `/api/tenants/{tenantId}/categories`** {#post-/api/tenants/{tenantid}/categories}
 
 **Auth**: `[Authorize]`, phải là tenant owner  
-**Mô tả**: Merchant tạo danh mục mới.
-
+**Mô tả**: Merchant tạo danh mục mới.  
 **Path Params**: `tenantId` — GUID của tenant
 
 **Request Body**:
@@ -1200,8 +1287,7 @@ json
   "name": "Quần jean",  
   "description": "Các loại quần jean",  
   "isActive": true  
-}
-
+}  
 **Validation** (có DataAnnotations trong `CreateCategoryRequestDto`):
 
 | Field | Rule |
@@ -1220,8 +1306,7 @@ json
   "description": "Các loại quần jean",  
   "isActive": true,  
   "products": \[\]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1240,7 +1325,8 @@ json
 
 **Path Params**:
 
-* `tenantId` — GUID của tenant  
+* `tenantId` — GUID của tenant
+
 * `id` — GUID của category
 
 **Request Body** (partial):
@@ -1250,8 +1336,7 @@ json
   "name": "Quần jean cao cấp",  
   "description": "Quần jean chất lượng cao",  
   "isActive": false  
-}
-
+}  
 **Validation** (có DataAnnotations trong `UpdateCategoryRequestDto`):
 
 | Field | Rule |
@@ -1270,8 +1355,7 @@ json
   "description": "Quần jean chất lượng cao",  
   "isActive": false,  
   "products": \[\]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1288,14 +1372,14 @@ json
 
 **Path Params**:
 
-* `tenantId` — GUID của tenant  
+* `tenantId` — GUID của tenant
+
 * `id` — GUID của category
 
 **Response 200**:
 
 json  
-{ "message": "Xóa thành công\!" }
-
+{ "message": "Xóa thành công\!" }  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1343,17 +1427,18 @@ json
       "imgUrl": "https://cdn.example.com/skus/tee-white-s.jpg"  
     }  
   \]  
-}
-
+}  
 **Giải thích** `attributes`:
 
-* `Product.attributes`: định nghĩa nhóm biến thể → `{"color":["black","white"],"size":["S","M","L"]}`  
+* `Product.attributes`: định nghĩa nhóm biến thể → `{"color":["black","white"],"size":["S","M","L"]}`
+
 * `ProductSku.attributes`: tổ hợp cụ thể của SKU → `{"color":"black","size":"M"}`  
 * Cả hai đều là **JSON string**, frontend cần parse: `JSON.parse(product.attributes)`
 
 **Giải thích images**:
 
-* `Product.imgUrls`: array các URL ảnh giới thiệu chung sản phẩm (nhiều góc, màu sắc tổng quan, chức năng)  
+* `Product.imgUrls`: array các URL ảnh giới thiệu chung sản phẩm (nhiều góc, màu sắc tổng quan, chức năng)
+
 * `ProductSku.imgUrl`: 1 URL ảnh đại diện cho biến thể cụ thể đó
 
 ---
@@ -1403,7 +1488,8 @@ json
 
 **Path Params**:
 
-* `tenantId` — GUID tenant  
+* `tenantId` — GUID tenant
+
 * `id` — GUID product
 
 **Response 200** — ProductDto (cấu trúc giống một item trong danh sách)
@@ -1447,8 +1533,7 @@ json
       "imgUrl": ""  
     }  
   \]  
-}
-
+}  
 **Validation**:
 
 | Field | Rule |
@@ -1496,8 +1581,7 @@ json
       "imgUrl": ""  
     }  
   \]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1525,8 +1609,7 @@ json
   "imgUrls": \[  
     "https://cdn.example.com/products/tee-v2-front.jpg"  
   \]  
-}
-
+}  
 **Response 200** — ProductDto đã cập nhật (bao gồm cả SKUs cũ)
 
 **Errors**:
@@ -1551,8 +1634,7 @@ json
 **Response 200**:
 
 json  
-{ "message": "Xóa thành công\!" }
-
+{ "message": "Xóa thành công\!" }  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1589,8 +1671,7 @@ json
     "attributes": "{\\"color\\":\\"white\\",\\"size\\":\\"S\\"}",  
     "imgUrl": ""  
   }  
-\]
-
+\]  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1612,8 +1693,7 @@ json
   "stock": 30,  
   "attributes": "{\\"color\\":\\"gray\\",\\"size\\":\\"M\\"}",  
   "imgUrl": "https://cdn.example.com/skus/tee-gray-m.jpg"  
-}
-
+}  
 **Validation**:
 
 | Field | Rule |
@@ -1633,8 +1713,7 @@ json
   "stock": 30,  
   "attributes": "{\\"color\\":\\"gray\\",\\"size\\":\\"M\\"}",  
   "imgUrl": "https://cdn.example.com/skus/tee-gray-m.jpg"  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1659,8 +1738,7 @@ json
   "stock": 25,  
   "attributes": "{\\"color\\":\\"gray\\",\\"size\\":\\"L\\"}",  
   "imgUrl": "https://cdn.example.com/skus/tee-gray-l.jpg"  
-}
-
+}  
 **Response 200** — ProductSkuDto đã cập nhật:
 
 json  
@@ -1671,8 +1749,7 @@ json
   "stock": 25,  
   "attributes": "{\\"color\\":\\"gray\\",\\"size\\":\\"L\\"}",  
   "imgUrl": "https://cdn.example.com/skus/tee-gray-l.jpg"  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1692,8 +1769,7 @@ json
 **Response 200**:
 
 json  
-{ "message": "Xóa SKU thành công\!" }
-
+{ "message": "Xóa SKU thành công\!" }  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1740,8 +1816,7 @@ json
     "quantity": 1,  
     "subTotal": 149000  
   }  
-\]
-
+\]  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1752,7 +1827,7 @@ json
 
 ---
 
-### **CartItemDto mở rộng *(Đề xuất)***
+### **CartItemDto mở rộng *(Đề xuất)*** {#cartitemdto-mở-rộng-(đề-xuất)}
 
 Để FE có thể hiển thị giỏ hàng mà không cần gọi thêm API, `CartItemDto` cần được mở rộng với thông tin sản phẩm:
 
@@ -1770,8 +1845,7 @@ json
   "skuImgUrl": "https://cdn.example.com/skus/tee-black-m.jpg",  
   "unitPrice": 129000,  
   "subTotal": 258000  
-}
-
+}  
 **Cách implement trong `CartItemService.GetCartItemsAsync`**: Include `ProductSku.Product` khi query CartItems, sau đó map thêm các field trên vào DTO.
 
 **OrderItemDto** cũng cần tương tự để hiển thị trong trang chi tiết đơn hàng:
@@ -1837,8 +1911,7 @@ json
     ~~"quantity": 1,~~  
     ~~"subTotal": 149000~~  
   ~~}~~  
-~~\]~~
-
+~~\]~~  
 **~~Errors~~**~~:~~
 
 | ~~Status~~ | ~~Trường hợp~~ |
@@ -1859,8 +1932,7 @@ json
 {  
   "productSkuId": "71111111-1111-4111-8111-111111111111",  
   "quantity": 2  
-}
-
+}  
 **Validation**:
 
 | Field | Rule |
@@ -1870,7 +1942,8 @@ json
 
 **Logic kiểm tra**:
 
-1. Xác nhận customer thuộc tenant  
+1. Xác nhận customer thuộc tenant
+
 2. Xác nhận SKU thuộc tenant (via `SKU.Product.TenantId`)  
 3. Kiểm tra `SKU.Stock >= quantity`  
 4. Nếu SKU đã có trong cart → `existing.Quantity += quantity`, kiểm tra lại stock sau cộng  
@@ -1884,8 +1957,7 @@ json
   "productSkuId": "71111111-1111-4111-8111-111111111111",  
   "quantity": 2,  
   "message": "Đã thêm vào giỏ hàng\!"  
-}
-
+}  
 **Response 200 — Cộng dồn (đã có SKU)**:
 
 json  
@@ -1894,8 +1966,7 @@ json
   "productSkuId": "71111111-1111-4111-8111-111111111111",  
   "quantity": 4,  
   "message": "Đã cập nhật số lượng trong giỏ hàng\!"  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1947,8 +2018,7 @@ json
   "productSkuId": "71111111-1111-4111-8111-111111111111",  
   "quantity": 3,  
   "message": "Đã cập nhật giỏ hàng\!"  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1971,8 +2041,7 @@ json
 **Response 200**:
 
 json  
-{ "message": "Đã xóa sản phẩm khỏi giỏ hàng\!" }
-
+{ "message": "Đã xóa sản phẩm khỏi giỏ hàng\!" }  
 **Errors**:
 
 | Status | Trường hợp |
@@ -1991,8 +2060,7 @@ json
 **Response 200**:
 
 json  
-{ "message": "Đã xóa 3 sản phẩm khỏi giỏ hàng\!" }
-
+{ "message": "Đã xóa 3 sản phẩm khỏi giỏ hàng\!" }  
 Số trong message là số items đã xóa thực tế.
 
 ---
@@ -2056,8 +2124,7 @@ json
     "createdAt": "2026-03-30T10:20:00",  
     "orderItems": \[\]  
   }  
-\]
-
+\]  
 **Lưu ý**: `orderItems` trong GET list được load đầy đủ (có `.Include(o => o.OrderItems)`). Nếu thấy `[]` là do order được seed sẵn mà không có OrderItems trong DB, không phải do query thiếu include.
 
 ---
@@ -2069,7 +2136,8 @@ json
 
 **Path Params**:
 
-* `tenantId` — GUID của tenant  
+* `tenantId` — GUID của tenant
+
 * `id` — GUID của order
 
 **Response 200** — OrderDto:
@@ -2095,8 +2163,7 @@ json
       "unitPrice": 129000  
     }  
   \]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -2134,8 +2201,7 @@ json
       "unitPrice": 149000  
     }  
   \]  
-}
-
+}  
 **Validation** (có DataAnnotations trong `CreateOrderRequestDto`):
 
 | Field | Rule |
@@ -2183,8 +2249,7 @@ json
       "unitPrice": 149000  
     }  
   \]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -2201,7 +2266,8 @@ json
 
 **Path Params**:
 
-* `tenantId` — GUID của tenant  
+* `tenantId` — GUID của tenant
+
 * `id` — GUID của order
 
 **Request Body** (dùng `UpdateOrderStatusRequestDto`):
@@ -2209,8 +2275,7 @@ json
 json  
 {  
   "status": "Confirmed"  
-}
-
+}  
 **Validation**:
 
 | Field | Rule |
@@ -2239,7 +2304,8 @@ json
 
 **Path Params**:
 
-* `tenantId` — GUID của tenant  
+* `tenantId` — GUID của tenant
+
 * `id` — GUID của order
 
 **Response 204 No Content**
@@ -2320,8 +2386,7 @@ json
 {  
   "address": "12 Nguyen Trai, Q1, TP.HCM",  
   "paymentMethod": "COD"  
-}
-
+}  
 **Validation**:
 
 | Field | Rule |
@@ -2331,7 +2396,8 @@ json
 
 **Logic (cần implement)**:
 
-1. Lấy cart của customer (phải có ít nhất 1 item)  
+1. Lấy cart của customer (phải có ít nhất 1 item)
+
 2. Với mỗi CartItem, load SKU tương ứng  
 3. Kiểm tra stock của từng SKU (nếu thiếu → 400, thông báo SKU nào hết hàng)  
 4. Tạo Order với `Status = "Pending", TotalAmount = sum(sku.Price * quantity)`  
@@ -2370,8 +2436,7 @@ json
       "unitPrice": 149000  
     }  
   \]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -2393,7 +2458,8 @@ json
 
 **Logic**:
 
-* Kiểm tra `order.Status == "Pending"` → cho hủy  
+* Kiểm tra `order.Status == "Pending"` → cho hủy
+
 * Các status khác (`"Confirmed"`, `"Shipping"`, ...) → 400 không cho hủy
 
 **Request Body**: Không cần body
@@ -2405,8 +2471,7 @@ json
   "id": "91111111-1111-4111-8111-111111111111",  
   "status": "Cancelled",  
   "message": "Đã hủy đơn hàng thành công\!"  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -2535,8 +2600,7 @@ json
       }  
     \]  
   }  
-\]
-
+\]  
 **Vấn đề đã biết trong response**:
 
 * `passwordHash` bị lộ — nghiêm trọng  
@@ -2565,8 +2629,7 @@ json
   "isActive": true,  
   "createdAt": "2026-03-04T10:14:58",  
   "tenants": \[\]  
-}
-
+}  
 **Errors**:
 
 | Status | Trường hợp |
@@ -2596,8 +2659,7 @@ POST /tenants/{tenantId}/products 		→ Tạo mới
 PUT /tenants/{tenantId}/products/{id} 		→ Sửa  
 DELETE /tenants/{tenantId}/products/{id} 	→ Xóa  
 GET /tenants/{tenantId}/orders 			→ Xem tất cả orders  
-PUT /tenants/{tenantId}/orders/{id}/status 	→ Cập nhật trạng thái
-
+PUT /tenants/{tenantId}/orders/{id}/status 	→ Cập nhật trạng thái  
 **Cách merchant biết `tenantId`**: Sau khi đăng nhập, JWT chứa `tenantId`. Merchant dùng `tenantId` này trong tất cả request quản lý.
 
 ---
@@ -2629,8 +2691,7 @@ GET /tenants/{tenantId}/customers/{customerId}/cart/items
 POST /tenants/{tenantId}/customers/{customerId}/checkout
 
 **\[Bước 7\] Xem lịch sử đơn**  
-GET /tenants/{tenantId}/customers/{customerId}/orders
-
+GET /tenants/{tenantId}/customers/{customerId}/orders  
 **Sơ đồ luồng đầy đủ cho storefront**:
 
 \[Customer vào pbl3-shop.fluxify.io\]  
@@ -2651,7 +2712,373 @@ POST /api/tenants/{tenantId}/orders   → Đặt hàng
 
 Tất cả các endpoint `GET /products` và `GET /categories` hiện đang **public** (không cần auth). Điều này đúng về mặt nghiệp vụ cho storefront, nhưng **các write endpoints** (POST, PUT, DELETE) cũng chưa có auth — đây là lỗ hổng cần vá.
 
-13. # **Error Codes Summary**  {#error-codes-summary}
+---
+
+13. # **Analytics — `/api/tenants/{tenantId}/analytics`** {#analytics-—-/api/tenants/{tenantid}/analytics-1}
+
+**Auth**: `[Authorize]`, phải là tenant owner (kiểm tra `IsTenantOwner`).  
+ Tất cả endpoint hỗ trợ lọc theo khoảng thời gian qua `from` / `to`.
+
+---
+
+### **GET `/api/tenants/{tenantId}/analytics/overview`** {#get-/api/tenants/{tenantid}/analytics/overview-1}
+
+**Mô tả**: Tổng quan doanh thu và đơn hàng trong khoảng thời gian.
+
+**Query Params**: Xem [Analytics query param](#get-/api/tenants/{tenantid}/analytics/overview)
+
+**Response 200**:
+
+{  
+  "fromUtc": "2026-04-01T00:00:00Z",  
+  "toUtc": "2026-04-30T23:59:59Z",  
+  "totalOrders": 142,  
+  "paidOrders": 98,  
+  "grossRevenue": 18450000,  
+  "paidRevenue": 12600000,  
+  "averageOrderValue": 129929,  
+  "newCustomers": 34,  
+  "activeCustomers": 61  
+}
+
+**Giải thích fields**:
+
+| Field | Ý nghĩa |
+| ----- | ----- |
+| `fromUtc` / `toUtc` | Khoảng thời gian thực tế được áp dụng (sau khi normalize) |
+| `totalOrders` | Tổng đơn hàng trong khoảng thời gian |
+| `paidOrders` | Đơn có `paymentStatus = "Paid"` |
+| `grossRevenue` | Tổng `totalAmount` của tất cả orders |
+| `paidRevenue` | Tổng `totalAmount` của orders đã thanh toán |
+| `averageOrderValue` | `grossRevenue / totalOrders` |
+| `newCustomers` | Customers tạo mới trong khoảng thời gian |
+| `activeCustomers` | Customers có ít nhất 1 order trong khoảng thời gian |
+
+**Errors**:
+
+| Status | Trường hợp |
+| ----- | ----- |
+| `400` | `from > to` hoặc datetime không hợp lệ |
+| `401` | Token lỗi hoặc thiếu `userId` claim |
+| `403` | Không phải owner của tenant |
+| `404` | Tenant không tồn tại |
+
+---
+
+### **GET `/api/tenants/{tenantId}/analytics/top-products`** {#get-/api/tenants/{tenantid}/analytics/top-products-1}
+
+**Mô tả**: Danh sách sản phẩm bán chạy nhất trong khoảng thời gian.
+
+**Query Params**: Xem [Analytics query param](#heading=h.hz4pypn244xm)
+
+**Response 200** — array:
+
+\[  
+  {  
+    "productId": "61111111-1111-4111-8111-111111111111",  
+    "productName": "PBL3 Tee Basic",  
+    "quantitySold": 87,  
+    "revenue": 11223000,  
+    "orderCount": 34,  
+    "averageRating": 4.6,  
+    "reviewCount": 22  
+  },  
+  {  
+    "productId": "62222222-2222-4222-8222-222222222222",  
+    "productName": "PBL3 Tee Oversize",  
+    "quantitySold": 63,  
+    "revenue": 9387000,  
+    "orderCount": 28,  
+    "averageRating": 4.2,  
+    "reviewCount": 15  
+  }  
+\]
+
+**Giải thích fields**:
+
+| Field | Ý nghĩa |
+| ----- | ----- |
+| `quantitySold` | Tổng `quantity` trong các OrderItems của product |
+| `revenue` | Tổng `unitPrice × quantity` trong OrderItems |
+| `orderCount` | Số đơn hàng chứa product này |
+| `averageRating` | Rating trung bình từ Reviews của product |
+| `reviewCount` | Tổng số reviews |
+
+---
+
+### **GET `/api/tenants/{tenantId}/analytics/ratings`** {#get-/api/tenants/{tenantid}/analytics/ratings-1}
+
+**Mô tả**: Thống kê đánh giá của store trong khoảng thời gian.
+
+**Query Params**: Xem [Analytics query param](#get-/api/tenants/{tenantid}/analytics/ratings)
+
+**Response 200**:
+
+{  
+  "fromUtc": "2026-04-01T00:00:00Z",  
+  "toUtc": "2026-04-30T23:59:59Z",  
+  "totalReviews": 89,  
+  "averageRating": 4.3,  
+  "fiveStarCount": 41,  
+  "fourStarCount": 28,  
+  "threeStarCount": 12,  
+  "twoStarCount": 5,  
+  "oneStarCount": 3  
+}  
+---
+
+### **GET `/api/tenants/{tenantId}/analytics/dashboard`** {#get-/api/tenants/{tenantid}/analytics/dashboard-1}
+
+**Mô tả**: Gộp cả 3 endpoint trên vào một lần gọi — tiết kiệm request cho trang dashboard.
+
+**Query Params**: Xem [Analytics query param](#get-/api/tenants/{tenantid}/analytics/dashboard)
+
+**Response 200**:
+
+{  
+  "overview": {  
+    "fromUtc": "2026-04-01T00:00:00Z",  
+    "toUtc": "2026-04-30T23:59:59Z",  
+    "totalOrders": 142,  
+    "paidOrders": 98,  
+    "grossRevenue": 18450000,  
+    "paidRevenue": 12600000,  
+    "averageOrderValue": 129929,  
+    "newCustomers": 34,  
+    "activeCustomers": 61  
+  },  
+  "ratings": {  
+    "fromUtc": "2026-04-01T00:00:00Z",  
+    "toUtc": "2026-04-30T23:59:59Z",  
+    "totalReviews": 89,  
+    "averageRating": 4.3,  
+    "fiveStarCount": 41,  
+    "fourStarCount": 28,  
+    "threeStarCount": 12,  
+    "twoStarCount": 5,  
+    "oneStarCount": 3  
+  },  
+  "topProducts": \[  
+    {  
+      "productId": "61111111-1111-4111-8111-111111111111",  
+      "productName": "PBL3 Tee Basic",  
+      "quantitySold": 87,  
+      "revenue": 11223000,  
+      "orderCount": 34,  
+      "averageRating": 4.6,  
+      "reviewCount": 22  
+    }  
+  \]  
+}  
+---
+
+14. # **Reviews** {#reviews}
+
+Có 2 nhóm endpoint:
+
+* **Public**: khách vãng lai và merchant đọc reviews
+
+* **Customer**: customer tự quản lý review của mình
+
+---
+
+## **ReviewDto — Cấu trúc chung** {#reviewdto-—-cấu-trúc-chung}
+
+{  
+  "id": "rv-uuid-1",  
+  "tenantId": "4f8789e6-cad6-4e2b-b60d-ccbf609e4b31",  
+  "productSkuId": "71111111-1111-4111-8111-111111111111",  
+  "customerId": "50d53159-3d52-4574-9aae-01d8b3a71e06",  
+  "rating": 5,  
+  "comment": "Áo mặc rất thoải mái, vải tốt\!",  
+  "createdAt": "2026-04-10T08:30:00Z",  
+  "updatedAt": "2026-04-10T08:30:00Z"  
+}
+
+---
+
+## **PUBLIC — Đọc Reviews** {#public-—-đọc-reviews}
+
+---
+
+### **GET `/api/tenants/{tenantId}/product-skus/{productSkuId}/reviews`** {#get-/api/tenants/{tenantid}/product-skus/{productskuid}/reviews}
+
+**Auth**: `[AllowAnonymous]`  
+ **Mô tả**: Lấy danh sách reviews của một SKU. Hỗ trợ filter/sort/pagination.
+
+**Query Params**: Xem [Reviews query param](#reviews-–-get-/api/tenants/{tenantid}/product-skus/{productskuid}/reviews)
+
+**Response 200** — array of ReviewDto:
+
+\[  
+  {  
+    "id": "rv-uuid-1",  
+    "tenantId": "4f8789e6-cad6-4e2b-b60d-ccbf609e4b31",  
+    "productSkuId": "71111111-1111-4111-8111-111111111111",  
+    "customerId": "50d53159-3d52-4574-9aae-01d8b3a71e06",  
+    "rating": 5,  
+    "comment": "Áo mặc rất thoải mái, vải tốt\!",  
+    "createdAt": "2026-04-10T08:30:00Z",  
+    "updatedAt": "2026-04-10T08:30:00Z"  
+  }  
+\]  
+---
+
+### **GET `/api/tenants/{tenantId}/product-skus/{productSkuId}/reviews/summary`** {#get-/api/tenants/{tenantid}/product-skus/{productskuid}/reviews/summary}
+
+**Auth**: `[AllowAnonymous]`  
+ **Mô tả**: Thống kê nhanh rating của một SKU — dùng để hiển thị widget sao trên trang sản phẩm.
+
+Response 200:  
+{  
+  "productSkuId": "71111111-1111-4111-8111-111111111111",  
+  "totalReviews": 47,  
+  "averageRating": 4.6,  
+  "oneStarCount": 1,  
+  "twoStarCount": 2,  
+  "threeStarCount": 4,  
+  "fourStarCount": 12,  
+  "fiveStarCount": 28  
+}
+
+**Axios — Hiển thị thanh rating breakdown**:
+
+const res \= await axios.get(  
+  \`/api/tenants/${tenantId}/product-skus/${productSkuId}/reviews/summary\`  
+);  
+const { averageRating, totalReviews, fiveStarCount, ...rest } \= res.data;
+
+---
+
+## **CUSTOMER — Quản lý Reviews** {#customer-—-quản-lý-reviews}
+
+**Auth**: `[Authorize(Roles = "customer")]` cho tất cả endpoint bên dưới.  
+ Customer chỉ thao tác được với review của chính mình.
+
+---
+
+### **POST `/api/customer/reviews`** {#post-/api/customer/reviews}
+
+**Mô tả**: Customer tạo review cho một SKU đã mua.
+
+**Ràng buộc**: Mỗi customer chỉ review được một SKU một lần (`409` nếu đã review rồi).
+
+**Request Body**:
+
+{  
+  "productSkuId": "71111111-1111-4111-8111-111111111111",  
+  "rating": 5,  
+  "comment": "Áo mặc rất thoải mái, vải tốt\!"  
+}
+
+**Validation**:
+
+| Field | Rule |
+| ----- | ----- |
+| `productSkuId` | Required, phải tồn tại |
+| `rating` | Required, int 1–5 |
+| `comment` | Optional, max 2000 ký tự |
+
+**Response 201** — ReviewDto:
+
+{  
+  "id": "rv-uuid-new",  
+  "tenantId": "4f8789e6-cad6-4e2b-b60d-ccbf609e4b31",  
+  "productSkuId": "71111111-1111-4111-8111-111111111111",  
+  "customerId": "50d53159-3d52-4574-9aae-01d8b3a71e06",  
+  "rating": 5,  
+  "comment": "Áo mặc rất thoải mái, vải tốt\!",  
+  "createdAt": "2026-04-23T10:00:00Z",  
+  "updatedAt": "2026-04-23T10:00:00Z"  
+}
+
+**Axios**:
+
+const res \= await axios.post('/api/customer/reviews',  
+  { productSkuId, rating: 5, comment: 'Áo mặc rất thoải mái\!' },  
+  { headers: { Authorization: \`Bearer ${customerToken}\` } }  
+);
+
+**Errors**:
+
+| Status | Trường hợp |
+| ----- | ----- |
+| `400` | Validation fail |
+| `401` | Token customer không hợp lệ |
+| `404` | ProductSku hoặc Customer không tồn tại |
+| `409` | Customer đã review SKU này rồi |
+
+---
+
+### **PUT `/api/customer/reviews/{reviewId}`** {#put-/api/customer/reviews/{reviewid}}
+
+**Mô tả**: Customer chỉnh sửa review của mình. Chỉ được sửa review do chính mình tạo.
+
+**Request Body**:
+
+{  
+  "rating": 4,  
+  "comment": "Áo oke, nhưng size hơi nhỏ so với thực tế."  
+}
+
+**Validation**:
+
+| Field | Rule |
+| ----- | ----- |
+| `rating` | Required, int 1–5 |
+| `comment` | Optional, max 2000 ký tự |
+
+**Response 200** — ReviewDto đã cập nhật (`updatedAt` thay đổi)
+
+**Axios**:
+
+const res \= await axios.put(\`/api/customer/reviews/${reviewId}\`,  
+  { rating: 4, comment: 'Áo oke, nhưng size hơi nhỏ.' },  
+  { headers: { Authorization: \`Bearer ${customerToken}\` } }  
+);
+
+**Errors**:
+
+| Status | Trường hợp |
+| ----- | ----- |
+| `400` | Validation fail |
+| `401` | Token customer không hợp lệ |
+| `403` | Không phải chủ review |
+| `404` | Review không tồn tại |
+
+---
+
+### **DELETE `/api/customer/reviews/{reviewId}`** {#delete-/api/customer/reviews/{reviewid}}
+
+**Mô tả**: Customer xóa review của mình.
+
+**Response 200**:
+
+{ "message": "Xóa review thành công" }
+
+**Errors**:
+
+| Status | Trường hợp |
+| ----- | ----- |
+| `401` | Token customer không hợp lệ |
+| `403` | Không phải chủ review |
+| `404` | Review không tồn tại |
+
+---
+
+### **Error Codes tổng hợp cho Reviews** {#error-codes-tổng-hợp-cho-reviews}
+
+| Status | Trường hợp |
+| ----- | ----- |
+| `200` | OK |
+| `201` | Tạo review thành công |
+| `400` | Validation fail |
+| `401` | Token customer không hợp lệ |
+| `403` | Không phải chủ review (khi update/delete) |
+| `404` | Không tìm thấy customer, review hoặc productSku |
+| `409` | Customer đã review SKU này rồi |
+
+15. # **Error Codes Summary**  {#error-codes-summary}
 
 | HTTP Code | Khi nào dùng | Ví dụ |
 | ----- | ----- | ----- |

@@ -1,6 +1,8 @@
 import React from 'react';
-import { User, MapPin, Truck, CreditCard, Plus, AlertCircle, Loader2 } from 'lucide-react';
-import AddressModal from '../../../../../features/address-management/ui/AddressModal';
+import { User, MapPin, Truck, CreditCard, Plus, Loader2, StickyNote, Info } from 'lucide-react';
+import AddressModal from '../../address-management/ui/AddressModal';
+import { SHIPPING_METHODS } from '../../../shared/lib/constants';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 export default function CheckoutForm({
   userEmail,
@@ -13,8 +15,10 @@ export default function CheckoutForm({
   onAddAddress,
   isAddingAddress,
   isLoadingAddresses,
-  shippingFee,
-  setShippingFee,
+  shippingMethodId,
+  onSelectShippingMethod,
+  orderNote,
+  onChangeOrderNote,
   paymentMethod,
   setPaymentMethod,
   selectedAddress
@@ -23,7 +27,7 @@ export default function CheckoutForm({
     <div className="lg:w-[60%] space-y-6">
       {/* Contact Information */}
       <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 border border-slate-100 dark:border-slate-800 transition-all">
-        <h2 className="text-lg font-semibold flex items-center gap-2 mb-6">
+        <h2 className="text-lg font-semibold flex items-center gap-2 mb-6 text-slate-900 dark:text-white">
           <User className="text-primary w-5 h-5" />
           Contact Information
         </h2>
@@ -57,7 +61,7 @@ export default function CheckoutForm({
       {/* Shipping Address */}
       <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 border border-slate-100 dark:border-slate-800">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
+          <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-900 dark:text-white">
             <MapPin className="text-primary w-5 h-5" />
             Shipping Address
           </h2>
@@ -127,45 +131,54 @@ export default function CheckoutForm({
         )}
       </section>
 
+      {/* Order Note */}
+      <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 border border-slate-100 dark:border-slate-800">
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+          <StickyNote className="text-primary w-5 h-5" />
+          Order Note / Delivery Note
+        </h2>
+        <textarea
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-sm outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none min-h-[100px]"
+          placeholder="Add any specific delivery instructions or notes for your order..."
+          value={orderNote}
+          onChange={(e) => onChangeOrderNote(e.target.value)}
+        />
+        <p className="text-[10px] text-slate-400 mt-2 italic">This note is optional and will be appended to your shipping address.</p>
+      </section>
+
       {/* Shipping Method */}
       <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 border border-slate-100 dark:border-slate-800">
-        <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
+        <h2 className="text-lg font-semibold mb-6 flex items-center gap-2 text-slate-900 dark:text-white">
           <Truck className="text-primary w-5 h-5" />
           Shipping Method
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label className={`flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all ${shippingFee === 5.00 ? 'border-primary bg-primary/5' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-200 dark:hover:border-slate-700'}`}>
-            <div className="flex items-center gap-3">
-              <input className="sr-only" name="shipping" type="radio" checked={shippingFee === 5.00} onChange={() => setShippingFee(5.00)} />
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${shippingFee === 5.00 ? 'border-primary' : 'border-slate-200'}`}>
-                <div className={`w-2.5 h-2.5 rounded-full bg-primary transition-all scale-0 ${shippingFee === 5.00 ? 'scale-100' : ''}`} />
+          {Object.values(SHIPPING_METHODS).map((method) => (
+            <label 
+              key={method.id}
+              className={`flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all ${shippingMethodId === method.id ? 'border-primary bg-primary/5' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-200 dark:hover:border-slate-700'}`}
+            >
+              <div className="flex items-center gap-3">
+                <input className="sr-only" name="shipping" type="radio" checked={shippingMethodId === method.id} onChange={() => onSelectShippingMethod(method.id)} />
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${shippingMethodId === method.id ? 'border-primary' : 'border-slate-200'}`}>
+                  <div className={`w-2.5 h-2.5 rounded-full bg-primary transition-all scale-0 ${shippingMethodId === method.id ? 'scale-100' : ''}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">{method.name}</p>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-tighter">{method.eta}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">Standard</p>
-                <p className="text-[10px] text-slate-500 uppercase tracking-tighter">3-5 business days</p>
-              </div>
-            </div>
-            <span className="text-sm font-black text-primary">$5.00</span>
-          </label>
-          <label className={`flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all ${shippingFee === 15.00 ? 'border-primary bg-primary/5' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-200 dark:hover:border-slate-700'}`}>
-            <div className="flex items-center gap-3">
-              <input className="sr-only" name="shipping" type="radio" checked={shippingFee === 15.00} onChange={() => setShippingFee(15.00)} />
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${shippingFee === 15.00 ? 'border-primary' : 'border-slate-200'}`}>
-                <div className={`w-2.5 h-2.5 rounded-full bg-primary transition-all scale-0 ${shippingFee === 15.00 ? 'scale-100' : ''}`} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">Express</p>
-                <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Next business day</p>
-              </div>
-            </div>
-            <span className="text-sm font-black text-primary">$15.00</span>
-          </label>
+              <span className="text-sm font-black text-primary">
+                {method.fee === 0 ? 'Free' : formatVnd(method.fee)}
+              </span>
+            </label>
+          ))}
         </div>
       </section>
 
       {/* Payment Method */}
       <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 border border-slate-100 dark:border-slate-800">
-        <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
+        <h2 className="text-lg font-semibold mb-6 flex items-center gap-2 text-slate-900 dark:text-white">
           <CreditCard className="text-primary w-5 h-5" />
           Payment Method
         </h2>
@@ -177,6 +190,7 @@ export default function CheckoutForm({
             </div>
             <span className="text-sm font-bold text-slate-900 dark:text-white">Cash on Delivery (COD)</span>
           </label>
+          
           <div className={`rounded-2xl border-2 transition-all overflow-hidden ${paymentMethod === 'bank' ? 'border-primary bg-primary/5' : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'}`}>
             <label className="flex items-center gap-3 p-4 cursor-pointer">
               <input className="sr-only" name="payment" type="radio" value="bank" checked={paymentMethod === 'bank'} onChange={() => setPaymentMethod('bank')} />
@@ -185,18 +199,14 @@ export default function CheckoutForm({
               </div>
               <span className="text-sm font-bold text-slate-900 dark:text-white">Bank Transfer</span>
             </label>
+            
             {paymentMethod === 'bank' && (
               <div className="px-6 pb-6 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-primary/10 flex flex-col items-center">
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-6 text-center max-w-[200px]">Scan the QR code below to transfer via your banking app.</p>
-                  <div className="w-44 h-44 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center border-2 border-slate-100 dark:border-slate-700 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-50" />
-                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300 group-hover:text-primary/40 transition-colors"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
-                  </div>
-                  <div className="mt-6 text-center">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Transfer Reference</p>
-                    <p className="text-sm font-black text-primary font-mono tabular-nums">FLX-ORD-{Date.now().toString().slice(-6)}</p>
-                  </div>
+                <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-start gap-3">
+                  <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Transfer after placing order. Final payment instructions and QR code will be shown on the order confirmation page.
+                  </p>
                 </div>
               </div>
             )}

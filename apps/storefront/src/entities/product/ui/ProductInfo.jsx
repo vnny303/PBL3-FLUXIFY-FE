@@ -1,5 +1,6 @@
 import React from 'react';
 import { Star, StarHalf } from 'lucide-react';
+import { formatVnd } from '../../../shared/lib/formatters';
 
 // Color name → CSS value for swatch rendering
 const COLOR_MAP = {
@@ -20,8 +21,8 @@ export default function ProductInfo({ product, selectedSku, selectedAttributes, 
   const attrEntries = Object.entries(attrs); // e.g. [['colors', [...]], ['sizes', [...]], ['fabrics', [...]]]
 
   const displayPrice = selectedSku
-    ? `$${selectedSku.price.toFixed(2)}`
-    : typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price || '$0.00';
+    ? formatVnd(selectedSku.price)
+    : formatVnd(product.price);
 
   const isAvailable = selectedSku ? selectedSku.stock > 0 : product.isInStock;
   const stockText = isAvailable ? "IN STOCK" : "OUT OF STOCK";
