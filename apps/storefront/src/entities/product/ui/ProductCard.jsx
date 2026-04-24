@@ -17,11 +17,9 @@ export default function ProductCard({ product, onQuickAdd, onCardClick }) {
   const isLowStock = totalStock > 0 && totalStock <= 5;
 
   // 2. Rating & Reviews
-  const showMockReviews = import.meta.env.VITE_ENABLE_PRODUCT_REVIEWS_MOCK === 'true';
-  // Use product.rating if it's a number (including 0), otherwise fallback to mock if enabled
-  const hasRealRating = typeof product.rating === 'number' && product.reviewCount > 0;
-  const displayRating = hasRealRating ? product.rating : (showMockReviews ? 4.5 : null);
-  const displayReviewCount = hasRealRating ? product.reviewCount : (showMockReviews ? 12 : null);
+  // TODO: Backend should include averageRating and reviewCount in ProductDto/list response
+  const rating = product.rating || 0;
+  const reviewCount = product.reviewCount || 0;
 
   // 3. Image Priority: User request: Ưu tiên imgUrls[0] -> SKU imgUrl -> others
   const imageSrc = (product.imgUrls && product.imgUrls.length > 0) ? product.imgUrls[0]
@@ -151,14 +149,16 @@ export default function ProductCard({ product, onQuickAdd, onCardClick }) {
 
         {/* Metadata line */}
         <div className="flex items-center justify-between mb-3">
-          {displayRating && (
+          {reviewCount > 0 ? (
             <div className="flex items-center gap-1">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
               <div className="flex items-center gap-0.5">
-                <span className="text-xs font-extrabold text-slate-700">{displayRating}</span>
-                {displayReviewCount > 0 && <span className="text-[10px] text-slate-400 font-medium">({displayReviewCount})</span>}
+                <span className="text-xs font-extrabold text-slate-700">{rating}</span>
+                <span className="text-[10px] text-slate-400 font-medium">({reviewCount})</span>
               </div>
             </div>
+          ) : (
+            <span className="text-[10px] text-slate-400 font-medium italic">No reviews yet</span>
           )}
           <div className="flex-1 flex justify-end">
             {isOutOfStock ? (
