@@ -4,7 +4,7 @@ import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig
 import { formatVnd } from '../../../shared/lib/formatters';
 import { useAppContext } from '../../../app/providers/useAppContext';
 
-export default function ProductCard({ product, onQuickAdd, onCardClick }) {
+export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSummary }) {
   const { theme } = useStorefrontConfig();
   const { addToCart } = useAppContext();
 
@@ -17,9 +17,12 @@ export default function ProductCard({ product, onQuickAdd, onCardClick }) {
   const isLowStock = totalStock > 0 && totalStock <= 5;
 
   // 2. Rating & Reviews
-  // TODO: Backend should include averageRating and reviewCount in ProductDto/list response
-  const rating = product.rating || 0;
-  const reviewCount = product.reviewCount || 0;
+  const productRating = Number(product.rating) || 0;
+  const productReviewCount = Number(product.reviewCount) || 0;
+
+  const reviewCount = reviewSummary?.totalReviews ?? productReviewCount;
+  const rating = reviewSummary?.averageRating ?? productRating;
+  const ratingLabel = Number.isFinite(rating) ? Number(rating).toFixed(1).replace(/\.0$/, '') : '0';
 
   // 3. Image Priority: User request: Ưu tiên imgUrls[0] -> SKU imgUrl -> others
   const imageSrc = (product.imgUrls && product.imgUrls.length > 0) ? product.imgUrls[0]
@@ -153,7 +156,7 @@ export default function ProductCard({ product, onQuickAdd, onCardClick }) {
             <div className="flex items-center gap-1">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
               <div className="flex items-center gap-0.5">
-                <span className="text-xs font-extrabold text-slate-700">{rating}</span>
+                <span className="text-xs font-extrabold text-slate-700">{ratingLabel}</span>
                 <span className="text-[10px] text-slate-400 font-medium">({reviewCount})</span>
               </div>
             </div>

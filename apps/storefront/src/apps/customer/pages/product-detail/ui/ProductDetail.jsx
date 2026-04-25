@@ -78,17 +78,26 @@ export default function ProductDetail() {
     );
   }, [product, selectedOptions, optionGroups]);
 
-  const reviewSkuId = selectedSku?.id
-    || selectedSku?.productSkuId
-    || selectedSku?.skuId
-    || product?.skus?.[0]?.id
-    || product?.skus?.[0]?.productSkuId
-    || product?.skus?.[0]?.skuId;
+  const productSkuIds = useMemo(() => {
+    return Array.from(
+      new Set(
+        (product?.skus || [])
+          .map((sku) => sku?.id || sku?.productSkuId || sku?.skuId)
+          .filter(Boolean)
+      )
+    );
+  }, [product?.skus]);
+
+  const reviewSummaryKey = useMemo(() => productSkuIds.join(','), [productSkuIds]);
 
   const { data: reviewSummary } = useQuery({
-    queryKey: ['review-summary', reviewSkuId],
-    queryFn: () => reviewService.getReviewSummary(tenantId, reviewSkuId),
-    enabled: !!tenantId && !!reviewSkuId,
+    queryKey: ['product-review-summary', tenantId, product?.id, reviewSummaryKey],
+    queryFn: () => reviewService.getProductReviewSummary({
+      tenantId,
+      productId: product?.id,
+      skuIds: productSkuIds,
+    }),
+    enabled: !!tenantId && !!product?.id && productSkuIds.length > 0,
     staleTime: 30_000,
   });
 

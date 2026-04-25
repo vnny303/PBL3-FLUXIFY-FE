@@ -1,15 +1,19 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAppContext } from '../../../../../app/providers/useAppContext';
 import { PRICE_RANGE_MAX, SORT_OPTIONS } from '../../../../../shared/lib/constants';
 import { useShopFilters } from '../../../../../features/product-filter/model/useShopFilters';
 import ProductCard from '../../../../../entities/product/ui/ProductCard';
+import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
+import { reviewService } from '../../../../../shared/api/reviewService';
 
 
 
 export default function Shop() {
   const { setSelectedProduct, handleQuickAdd, searchQuery, setSearchQuery, categories } = useAppContext();
+  const { tenantId } = useStorefrontTenant();
   const navigate = useNavigate();
 
   const {
@@ -33,6 +37,31 @@ export default function Shop() {
 
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef(null);
+
+  const shopReviewSummaryKey = useMemo(() => {
+    return currentProducts
+      .map((item) => {
+        const skus = item?.productSkus || item?.skus || [];
+        const skuKey = skus
+          .map((sku) => sku?.id || sku?.productSkuId || sku?.skuId)
+          .filter(Boolean)
+          .join(',');
+        return `${item?.id}:${skuKey}`;
+      })
+      .join('|');
+  }, [currentProducts]);
+
+  const { data: shopReviewSummaryMap = {} } = useQuery({
+    queryKey: ['shop-product-review-summary-map', tenantId, shopReviewSummaryKey],
+    queryFn: () =>
+      reviewService.getProductReviewSummariesByProducts({
+        tenantId,
+        products: currentProducts,
+        concurrency: 3,
+      }),
+    enabled: !!tenantId && currentProducts.length > 0,
+    staleTime: 120_000,
+  });
 
   const renderPaginationButtons = () => {
     const pages = [];
@@ -264,6 +293,7 @@ export default function Shop() {
                 <ProductCard
                   key={item.id || i}
                   product={item}
+                  reviewSummary={shopReviewSummaryMap[item.id]}
                   onQuickAdd={handleQuickAdd}
                   onCardClick={() => {
                     setSelectedProduct(item);

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Star, StarHalf, User, ChevronDown, Pen, Send, Loader2, Trash2, Pencil } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -12,6 +12,36 @@ const SORT_OPTIONS = [
   { label: 'Highest Rating', sortBy: 'rating', sortDir: 'desc' },
   { label: 'Lowest Rating', sortBy: 'rating', sortDir: 'asc' },
 ];
+
+const toTimestamp = (value) => {
+  const timestamp = Date.parse(value || '');
+  return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
+const getSkuId = (sku) => sku?.id || sku?.productSkuId || sku?.skuId || null;
+
+const parseAttributes = (value) => {
+  if (!value) return {};
+  if (typeof value === 'object') return value;
+  if (typeof value !== 'string') return {};
+
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const buildVariantLabel = (sku) => {
+  if (!sku) return 'Không rõ';
+  const attributes = parseAttributes(sku.attributes);
+  const values = Object.values(attributes).filter((item) => typeof item === 'string' && item.trim());
+
+  if (values.length > 0) return values.join(' / ');
+  if (sku.skuCode) return sku.skuCode;
+  return 'Không rõ';
+};
 
 // ─── Rating Stars Input ────────────────────────────────────────────────────────
 function StarInput({ value, onChange, disabled }) {
@@ -55,7 +85,7 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
             <User className="w-5 h-5" />
           </div>
           <div>
-            <span className="font-bold text-slate-900">{review.customerEmail || 'Customer'}</span>
+            <span className="font-bold text-slate-900">{review.customerName || review.customerEmail || 'Customer'}</span>
             <div className="flex text-amber-400 mt-1">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
@@ -92,12 +122,15 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
       {review.comment && (
         <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
       )}
+      <p className="text-xs text-slate-500 mt-2">
+        Phân loại đã mua: {review.purchasedVariantLabel || 'Không rõ'}
+      </p>
     </div>
   );
 }
 
 // ─── Write Review Form ─────────────────────────────────────────────────────────
-function ReviewForm({ productSkuId, editingReview, onDone }) {
+function ReviewForm({ productSkuId, productId, editingReview, onDone }) {
   const queryClient = useQueryClient();
   const [rating, setRating] = useState(editingReview?.rating || 0);
   const [comment, setComment] = useState(editingReview?.comment || '');
@@ -106,8 +139,7 @@ function ReviewForm({ productSkuId, editingReview, onDone }) {
     mutationFn: () => reviewService.createReview({ productSkuId, rating, comment }),
     onSuccess: () => {
       toast.success('Message sent successfully! We will get back to you soon.');
-      queryClient.invalidateQueries({ queryKey: ['reviews', productSkuId] });
-      queryClient.invalidateQueries({ queryKey: ['review-summary', productSkuId] });
+      queryClient.invalidateQueries({ queryKey: ['product-reviews', productId] });
       onDone();
     },
     onError: (err) => {
@@ -123,8 +155,7 @@ function ReviewForm({ productSkuId, editingReview, onDone }) {
     mutationFn: () => reviewService.updateReview(editingReview.id, { rating, comment }),
     onSuccess: () => {
       toast.success('Review updated successfully!');
-      queryClient.invalidateQueries({ queryKey: ['reviews', productSkuId] });
-      queryClient.invalidateQueries({ queryKey: ['review-summary', productSkuId] });
+      queryClient.invalidateQueries({ queryKey: ['product-reviews', productId] });
       onDone();
     },
     onError: (err) => {
@@ -136,6 +167,10 @@ function ReviewForm({ productSkuId, editingReview, onDone }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!productSkuId) {
+      toast.error('Không xác định được biến thể SKU để gửi đánh giá.');
+      return;
+    }
     if (rating === 0) {
       toast.error('Please select a rating star.');
       return;
@@ -204,42 +239,82 @@ export default function ReviewList({ product, selectedSkuId }) {
   const [reviewIdToDelete, setReviewIdToDelete] = useState(null);
   const sortDropdownRef = useRef(null);
 
-  const fallbackSku = product?.skus?.[0];
-  const activeSkuId = selectedSkuId
-    || fallbackSku?.id
-    || fallbackSku?.productSkuId
-    || fallbackSku?.skuId;
+  const productSkus = useMemo(() => {
+    const raw = product?.productSkus || product?.skus || [];
+    return Array.isArray(raw) ? raw : [];
+  }, [product]);
+
+  const skuIds = useMemo(
+    () => Array.from(new Set(productSkus.map(getSkuId).filter(Boolean))),
+    [productSkus]
+  );
+
+  const skuById = useMemo(() => {
+    const map = new Map();
+    productSkus.forEach((sku) => {
+      const skuId = getSkuId(sku);
+      if (skuId) map.set(skuId, sku);
+    });
+    return map;
+  }, [productSkus]);
+
+  const activeWriteSkuId = selectedSkuId || skuIds[0] || null;
+  const skuIdsKey = useMemo(() => skuIds.join('|'), [skuIds]);
 
   // ── Fetch review list ──────────────────────────────────────────────────────
   const {
     data: reviews = [],
     isLoading: isLoadingReviews,
   } = useQuery({
-    queryKey: ['reviews', activeSkuId, sortOption.sortBy, sortOption.sortDir],
-    queryFn: () => reviewService.getReviews(tenantId, activeSkuId, {
-      sortBy: sortOption.sortBy,
-      sortDir: sortOption.sortDir,
-      pageSize: 50,
+    queryKey: ['product-reviews', product?.id, skuIdsKey],
+    queryFn: () => reviewService.getProductReviews({
+      tenantId,
+      productId: product?.id,
+      skuIds,
+      filters: {
+        pageSize: 200,
+      },
     }),
-    enabled: !!tenantId && !!activeSkuId,
+    enabled: !!tenantId && skuIds.length > 0,
     staleTime: 30_000,
   });
 
-  // ── Fetch review summary (rating breakdown) ──────────────────────────────
-  const { data: summary } = useQuery({
-    queryKey: ['review-summary', activeSkuId],
-    queryFn: () => reviewService.getReviewSummary(tenantId, activeSkuId),
-    enabled: !!tenantId && !!activeSkuId,
-    staleTime: 30_000,
-  });
+  const enrichedReviews = useMemo(
+    () =>
+      reviews.map((review) => {
+        const sku = skuById.get(review.productSkuId);
+        return {
+          ...review,
+          purchasedVariantLabel: buildVariantLabel(sku),
+        };
+      }),
+    [reviews, skuById]
+  );
+
+  const sortedReviews = useMemo(() => {
+    const next = [...enrichedReviews];
+
+    if (sortOption.sortBy === 'rating') {
+      next.sort((a, b) =>
+        sortOption.sortDir === 'asc' ? a.rating - b.rating : b.rating - a.rating
+      );
+      return next;
+    }
+
+    next.sort((a, b) =>
+      sortOption.sortDir === 'asc'
+        ? toTimestamp(a.createdAt) - toTimestamp(b.createdAt)
+        : toTimestamp(b.createdAt) - toTimestamp(a.createdAt)
+    );
+    return next;
+  }, [enrichedReviews, sortOption]);
 
   // ── Delete review ──────────────────────────────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: (reviewId) => reviewService.deleteReview(reviewId),
     onSuccess: () => {
       toast.success('Review deleted successfully!');
-      queryClient.invalidateQueries({ queryKey: ['reviews', activeSkuId] });
-      queryClient.invalidateQueries({ queryKey: ['review-summary', activeSkuId] });
+      queryClient.invalidateQueries({ queryKey: ['product-reviews', product?.id] });
       setReviewIdToDelete(null);
     },
     onError: () => {
@@ -259,18 +334,29 @@ export default function ReviewList({ product, selectedSkuId }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const averageRating = summary?.averageRating ?? 0;
-  const totalReviews = summary?.totalReviews ?? 0;
+  const totalReviews = reviews.length;
+  const averageRating = totalReviews > 0
+    ? reviews.reduce((sum, review) => sum + (Number(review.rating) || 0), 0) / totalReviews
+    : 0;
 
-  const ratingBreakdown = summary
-    ? [
-        { stars: 5, count: summary.fiveStarCount },
-        { stars: 4, count: summary.fourStarCount },
-        { stars: 3, count: summary.threeStarCount },
-        { stars: 2, count: summary.twoStarCount },
-        { stars: 1, count: summary.oneStarCount },
-      ]
-    : [];
+  const ratingBuckets = reviews.reduce(
+    (acc, review) => {
+      const rating = Number(review.rating) || 0;
+      if (rating >= 1 && rating <= 5) {
+        acc[rating] += 1;
+      }
+      return acc;
+    },
+    { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+  );
+
+  const ratingBreakdown = [
+    { stars: 5, count: ratingBuckets[5] },
+    { stars: 4, count: ratingBuckets[4] },
+    { stars: 3, count: ratingBuckets[3] },
+    { stars: 2, count: ratingBuckets[2] },
+    { stars: 1, count: ratingBuckets[1] },
+  ];
 
   const handleEdit = (review) => {
     setEditingReview(review);
@@ -288,7 +374,7 @@ export default function ReviewList({ product, selectedSkuId }) {
     }
   };
 
-  if (!activeSkuId) {
+  if (skuIds.length === 0) {
     return (
       <div className="text-center py-12 border border-slate-100 rounded-xl bg-slate-50">
         <p className="text-slate-500">This product has no variants to review.</p>
@@ -353,7 +439,8 @@ export default function ReviewList({ product, selectedSkuId }) {
         {/* Write/Edit form */}
         {showForm && (
           <ReviewForm
-            productSkuId={activeSkuId}
+            productSkuId={activeWriteSkuId}
+            productId={product?.id}
             editingReview={editingReview}
             onDone={handleFormDone}
           />
@@ -399,13 +486,13 @@ export default function ReviewList({ product, selectedSkuId }) {
             <div className="flex justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : reviews.length === 0 ? (
+          ) : sortedReviews.length === 0 ? (
             <div className="text-center py-12 border border-slate-100 rounded-xl bg-slate-50">
               <p className="text-slate-500">No reviews yet for this product.</p>
               <p className="text-slate-900 font-bold mt-2">Be the first to share your thoughts!</p>
             </div>
           ) : (
-            reviews.map((review) => (
+            sortedReviews.map((review) => (
               <ReviewCard
                 key={review.id}
                 review={review}

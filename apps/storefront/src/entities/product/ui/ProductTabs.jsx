@@ -4,23 +4,91 @@ import { useQuery } from '@tanstack/react-query';
 import ReviewList from './ReviewList';
 import { reviewService } from '../../../shared/api/reviewService';
 import { useStorefrontTenant } from '../../../features/theme/useStorefrontTenant';
-import { productDetailsMock } from '../../../shared/lib/mocks/productDetailsMock';
+
+const parseMaybeJson = (value, fallback) => {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
+
+const normalizeSpecifications = (raw) => {
+  const parsed = parseMaybeJson(raw, raw);
+
+  if (Array.isArray(parsed)) {
+    return parsed
+      .map((item) => ({
+        name: item?.name || item?.Name || item?.label || item?.Label || item?.key || item?.Key || '',
+        value: item?.value ?? item?.Value ?? '',
+      }))
+      .filter((item) => item.name && String(item.value).trim())
+      .map((item) => ({
+        name: String(item.name),
+        value: Array.isArray(item.value) ? item.value.join(',') : String(item.value),
+      }));
+  }
+
+  if (parsed && typeof parsed === 'object') {
+    return Object.entries(parsed).map(([key, value]) => ({
+      name: String(key),
+      value: Array.isArray(value) ? value.join(',') : String(value),
+    }));
+  }
+
+  return [];
+};
+
+const normalizeDetailSections = (raw) => {
+  const parsed = parseMaybeJson(raw, raw);
+  if (!Array.isArray(parsed)) return [];
+
+  return parsed
+    .map((section) => ({
+      title: section?.title || section?.Title || section?.name || section?.Name || '',
+      content: section?.content || section?.Content || section?.description || section?.Description || '',
+    }))
+    .filter((section) => section.title && section.content);
+};
 
 export default function ProductTabs({ product, selectedSku }) {
   const [activeTab, setActiveTab] = useState('DETAILS');
   const [openSections, setOpenSections] = useState({ 'Product details': true });
   const { tenantId } = useStorefrontTenant();
 
-  const isMockEnabled = import.meta.env.VITE_ENABLE_PRODUCT_DETAILS_MOCK === 'true';
-
   // 1. Data Merging / Fallbacks
   const details = useMemo(() => {
-    // If mock enabled, use mock data. Otherwise use API data.
-    const source = isMockEnabled ? productDetailsMock : product || {};
+    const source = product || {};
+
+    const description =
+      source.overview ||
+      source.Overview ||
+      source.description ||
+      source.Description ||
+      product?.description ||
+      '';
+
+    const detailSections = normalizeDetailSections(
+      source.detailSections ??
+      source.DetailSections ??
+      source.detailsSections ??
+      source.DetailsSections ??
+      source.detail_sections
+    );
+
+    let specs = normalizeSpecifications(
+      source.specifications ??
+      source.Specifications ??
+      source.specs ??
+      source.Specs ??
+      source.productSpecifications ??
+      source.product_specifications
+    );
     
-    // Specifications Fallback Strategy: 
+    // Specifications Fallback Strategy:
     // API specs -> product.attributes -> first SKU attributes
-    let specs = source.specifications || [];
     if (specs.length === 0) {
       const attributes = product?.attributes || product?.skus?.[0]?.attributes || {};
       specs = Object.entries(attributes).map(([key, value]) => ({
@@ -30,27 +98,36 @@ export default function ProductTabs({ product, selectedSku }) {
     }
 
     return {
-      description: source.description || product?.description || '',
-      detailSections: source.detailSections || [],
+      description,
+      detailSections,
       specifications: specs
     };
-  }, [product, isMockEnabled]);
+  }, [product]);
 
   // 2. Review Summary
-  const fallbackSku = product?.skus?.[0];
-  const activeSkuId = selectedSku?.id
-    || selectedSku?.productSkuId
-    || selectedSku?.skuId
-    || fallbackSku?.id
-    || fallbackSku?.productSkuId
-    || fallbackSku?.skuId;
-  const { data: summary } = useQuery({
-    queryKey: ['review-summary', activeSkuId],
-    queryFn: () => reviewService.getReviewSummary(tenantId, activeSkuId),
-    enabled: !!tenantId && !!activeSkuId,
+  const productSkus = product?.productSkus || product?.skus || [];
+  const skuIds = Array.from(
+    new Set(
+      productSkus
+        .map((sku) => sku?.id || sku?.productSkuId || sku?.skuId)
+        .filter(Boolean)
+    )
+  );
+  const skuIdsKey = skuIds.join('|');
+  const selectedSkuId = selectedSku?.id || selectedSku?.productSkuId || selectedSku?.skuId || null;
+
+  const { data: mergedReviews = [] } = useQuery({
+    queryKey: ['product-reviews', product?.id, skuIdsKey],
+    queryFn: () => reviewService.getProductReviews({
+      tenantId,
+      productId: product?.id,
+      skuIds,
+      filters: { pageSize: 200 },
+    }),
+    enabled: !!tenantId && !!product?.id && skuIds.length > 0,
     staleTime: 30_000,
   });
-  const reviewCount = summary?.totalReviews ?? 0;
+  const reviewCount = mergedReviews.length;
 
   const toggleSection = (title) => {
     setOpenSections(prev => ({ ...prev, [title]: !prev[title] }));
@@ -179,7 +256,7 @@ export default function ProductTabs({ product, selectedSku }) {
 
       {activeTab === 'REVIEWS' && (
         <div className="animate-in fade-in duration-500">
-          <ReviewList product={product} selectedSkuId={activeSkuId} />
+          <ReviewList product={product} selectedSkuId={selectedSkuId} />
         </div>
       )}
     </div>

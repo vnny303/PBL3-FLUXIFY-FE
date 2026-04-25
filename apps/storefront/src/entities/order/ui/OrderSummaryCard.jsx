@@ -2,6 +2,7 @@ import React from 'react';
 import { MapPin, CreditCard, Building, StickyNote, AlertCircle } from 'lucide-react';
 import { getBankTransferQrUrl } from '../../../shared/lib/mocks/bankTransferMock';
 import { formatVnd, parsePrice } from '../../../shared/lib/formatters';
+import { isBankTransferMethod } from '../../../shared/lib/paymentMethod';
 
 export default function OrderSummaryCard({ order }) {
   const rawAddress = order.shippingAddress || order.address || '';
@@ -35,7 +36,7 @@ export default function OrderSummaryCard({ order }) {
   const totalNum = parsePrice(order.total || order.totalAmount);
   const shippingFee = Math.max(0, totalNum - subtotal);
 
-  const isBankTransfer = (order.paymentMethod === 'BankTransfer') || (order.payment?.methodName === 'Bank Transfer');
+  const isBankTransfer = isBankTransferMethod(order.paymentMethod) || isBankTransferMethod(order.payment?.methodName);
   const isPending = (order.status || order.paymentStatus) === 'Pending';
   const bankInfo = order.bankTransferInfo;
   const qrUrl = getBankTransferQrUrl(bankInfo);
