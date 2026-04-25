@@ -1,5 +1,29 @@
 import axiosClient from './axiosClient';
 
+const toNumber = (value, fallback = 0) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+};
+
+const normalizeReview = (review) => {
+  if (!review || typeof review !== 'object') return null;
+
+  return {
+    ...review,
+    rating: toNumber(review.rating, 0),
+    comment: review.comment ?? review.text ?? '',
+    customerEmail: review.customerEmail ?? review.customerName ?? review.userName ?? null,
+  };
+};
+
+const extractReviewList = (response) => {
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.items)) return response.items;
+  if (Array.isArray(response?.data)) return response.data;
+  if (Array.isArray(response?.data?.items)) return response.data.items;
+  return [];
+};
+
 export const reviewService = {
   /**
    * GET /api/tenants/{tenantId}/product-skus/{productSkuId}/reviews
@@ -11,8 +35,7 @@ export const reviewService = {
     const response = await axiosClient.get(
       `/api/tenants/${tenantId}/product-skus/${productSkuId}/reviews${query ? `?${query}` : ''}`
     );
-    // Trả mảng trực tiếp (không có wrapper theo spec)
-    return Array.isArray(response) ? response : [];
+    return extractReviewList(response).map(normalizeReview).filter(Boolean);
   },
 
   /**

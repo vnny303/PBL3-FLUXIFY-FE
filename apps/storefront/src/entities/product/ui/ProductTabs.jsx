@@ -6,7 +6,7 @@ import { reviewService } from '../../../shared/api/reviewService';
 import { useStorefrontTenant } from '../../../features/theme/useStorefrontTenant';
 import { productDetailsMock } from '../../../shared/lib/mocks/productDetailsMock';
 
-export default function ProductTabs({ product }) {
+export default function ProductTabs({ product, selectedSku }) {
   const [activeTab, setActiveTab] = useState('DETAILS');
   const [openSections, setOpenSections] = useState({ 'Product details': true });
   const { tenantId } = useStorefrontTenant();
@@ -37,11 +37,17 @@ export default function ProductTabs({ product }) {
   }, [product, isMockEnabled]);
 
   // 2. Review Summary
-  const firstSkuId = product?.skus?.[0]?.id;
+  const fallbackSku = product?.skus?.[0];
+  const activeSkuId = selectedSku?.id
+    || selectedSku?.productSkuId
+    || selectedSku?.skuId
+    || fallbackSku?.id
+    || fallbackSku?.productSkuId
+    || fallbackSku?.skuId;
   const { data: summary } = useQuery({
-    queryKey: ['review-summary', firstSkuId],
-    queryFn: () => reviewService.getReviewSummary(tenantId, firstSkuId),
-    enabled: !!tenantId && !!firstSkuId,
+    queryKey: ['review-summary', activeSkuId],
+    queryFn: () => reviewService.getReviewSummary(tenantId, activeSkuId),
+    enabled: !!tenantId && !!activeSkuId,
     staleTime: 30_000,
   });
   const reviewCount = summary?.totalReviews ?? 0;
@@ -173,7 +179,7 @@ export default function ProductTabs({ product }) {
 
       {activeTab === 'REVIEWS' && (
         <div className="animate-in fade-in duration-500">
-          <ReviewList product={product} />
+          <ReviewList product={product} selectedSkuId={activeSkuId} />
         </div>
       )}
     </div>

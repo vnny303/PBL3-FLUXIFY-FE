@@ -26,8 +26,10 @@ const normalizeCategory = (category) => ({
 
 const normalizeSku = (sku) => {
     if (!sku) return null;
+    const skuId = sku.id || sku.productSkuId || sku.skuId || null;
     return {
-        id: sku.id,
+        id: skuId,
+        productSkuId: skuId,
         skuCode: sku.skuCode,
         price: toNumber(sku.price ?? sku.unitPrice, 0),
         stock: toNumber(sku.stock, 0),

@@ -192,7 +192,7 @@ function ReviewForm({ productSkuId, editingReview, onDone }) {
 }
 
 // ─── Main ReviewList Component ────────────────────────────────────────────────
-export default function ReviewList({ product }) {
+export default function ReviewList({ product, selectedSkuId }) {
   const { tenantId } = useStorefrontTenant();
   const { isLoggedIn, user } = useAppContext();
   const queryClient = useQueryClient();
@@ -204,28 +204,32 @@ export default function ReviewList({ product }) {
   const [reviewIdToDelete, setReviewIdToDelete] = useState(null);
   const sortDropdownRef = useRef(null);
 
-  const firstSkuId = product?.skus?.[0]?.id;
+  const fallbackSku = product?.skus?.[0];
+  const activeSkuId = selectedSkuId
+    || fallbackSku?.id
+    || fallbackSku?.productSkuId
+    || fallbackSku?.skuId;
 
   // ── Fetch review list ──────────────────────────────────────────────────────
   const {
     data: reviews = [],
     isLoading: isLoadingReviews,
   } = useQuery({
-    queryKey: ['reviews', firstSkuId, sortOption],
-    queryFn: () => reviewService.getReviews(tenantId, firstSkuId, {
+    queryKey: ['reviews', activeSkuId, sortOption.sortBy, sortOption.sortDir],
+    queryFn: () => reviewService.getReviews(tenantId, activeSkuId, {
       sortBy: sortOption.sortBy,
       sortDir: sortOption.sortDir,
       pageSize: 50,
     }),
-    enabled: !!tenantId && !!firstSkuId,
+    enabled: !!tenantId && !!activeSkuId,
     staleTime: 30_000,
   });
 
   // ── Fetch review summary (rating breakdown) ──────────────────────────────
   const { data: summary } = useQuery({
-    queryKey: ['review-summary', firstSkuId],
-    queryFn: () => reviewService.getReviewSummary(tenantId, firstSkuId),
-    enabled: !!tenantId && !!firstSkuId,
+    queryKey: ['review-summary', activeSkuId],
+    queryFn: () => reviewService.getReviewSummary(tenantId, activeSkuId),
+    enabled: !!tenantId && !!activeSkuId,
     staleTime: 30_000,
   });
 
@@ -234,8 +238,8 @@ export default function ReviewList({ product }) {
     mutationFn: (reviewId) => reviewService.deleteReview(reviewId),
     onSuccess: () => {
       toast.success('Review deleted successfully!');
-      queryClient.invalidateQueries({ queryKey: ['reviews', firstSkuId] });
-      queryClient.invalidateQueries({ queryKey: ['review-summary', firstSkuId] });
+      queryClient.invalidateQueries({ queryKey: ['reviews', activeSkuId] });
+      queryClient.invalidateQueries({ queryKey: ['review-summary', activeSkuId] });
       setReviewIdToDelete(null);
     },
     onError: () => {
@@ -284,7 +288,7 @@ export default function ReviewList({ product }) {
     }
   };
 
-  if (!firstSkuId) {
+  if (!activeSkuId) {
     return (
       <div className="text-center py-12 border border-slate-100 rounded-xl bg-slate-50">
         <p className="text-slate-500">This product has no variants to review.</p>
@@ -349,7 +353,7 @@ export default function ReviewList({ product }) {
         {/* Write/Edit form */}
         {showForm && (
           <ReviewForm
-            productSkuId={firstSkuId}
+            productSkuId={activeSkuId}
             editingReview={editingReview}
             onDone={handleFormDone}
           />

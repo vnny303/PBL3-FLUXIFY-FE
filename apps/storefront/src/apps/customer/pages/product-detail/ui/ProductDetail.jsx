@@ -4,6 +4,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
 import { productService } from '../../../../../shared/api/productService';
+import { reviewService } from '../../../../../shared/api/reviewService';
 
 import ProductImageGallery from '../../../../../entities/product/ui/ProductImageGallery';
 import ProductInfo from '../../../../../entities/product/ui/ProductInfo';
@@ -76,6 +77,20 @@ export default function ProductDetail() {
       optionGroups.every(group => sku.attributes[group.key] === selectedOptions[group.key])
     );
   }, [product, selectedOptions, optionGroups]);
+
+  const reviewSkuId = selectedSku?.id
+    || selectedSku?.productSkuId
+    || selectedSku?.skuId
+    || product?.skus?.[0]?.id
+    || product?.skus?.[0]?.productSkuId
+    || product?.skus?.[0]?.skuId;
+
+  const { data: reviewSummary } = useQuery({
+    queryKey: ['review-summary', reviewSkuId],
+    queryFn: () => reviewService.getReviewSummary(tenantId, reviewSkuId),
+    enabled: !!tenantId && !!reviewSkuId,
+    staleTime: 30_000,
+  });
 
   // 3. Ensure quantity doesn't exceed selected SKU stock
   React.useEffect(() => {
@@ -156,6 +171,7 @@ export default function ProductDetail() {
             selectedOptions={selectedOptions}
             setSelectedOptions={setSelectedOptions}
             optionGroups={optionGroups}
+            reviewSummary={reviewSummary}
           />
           <ProductActions
             product={product}
@@ -169,7 +185,7 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <ProductTabs product={product} />
+      <ProductTabs product={product} selectedSku={selectedSku} />
     </main>
   );
 }

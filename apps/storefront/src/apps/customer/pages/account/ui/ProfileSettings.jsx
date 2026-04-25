@@ -4,17 +4,24 @@ import { toast } from 'sonner';
 import { useMutation } from '@tanstack/react-query';
 import { useAppContext } from '../../../../../app/providers/useAppContext';
 import { authService } from '../../../../../shared/api/authService';
+import {
+  getUserAvatarUrl,
+  getUserDisplayName,
+  normalizeUserProfile,
+} from '../../../../../shared/lib/userProfile';
 
 export default function ProfileSettings() {
   const { user } = useAppContext();
+  const normalizedUser = normalizeUserProfile(user);
+  const userDisplayName = getUserDisplayName(normalizedUser);
   const [confirmAction, setConfirmAction] = useState(null);
   
   const initialProfileState = useMemo(() => ({
-    firstName: user?.email?.split('@')[0] || '',
-    lastName: '',
-    phone: '',
-    email: user?.email || ''
-  }), [user]);
+    firstName: normalizedUser?.firstName || normalizedUser?.fullName?.split(' ')?.[0] || normalizedUser?.email?.split('@')?.[0] || '',
+    lastName: normalizedUser?.lastName || normalizedUser?.fullName?.split(' ')?.slice(1).join(' ') || '',
+    phone: normalizedUser?.phone || '',
+    email: normalizedUser?.email || ''
+  }), [normalizedUser]);
 
   const [profileForm, setProfileForm] = useState(initialProfileState);
   const [profileErrors, setProfileErrors] = useState({});
@@ -30,7 +37,13 @@ export default function ProfileSettings() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  const photoUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDwTiP1PXmP8RGuJOK4_Z_PyVhQU1M3dR1iFvEWtpsgmWaKWKyOvGKRX2_vGoESn78NR2YqGoYHq1Sw7Vy4rduWTrKc4bdwvqTm95EnWErL3O-A6_pnu94uEJWlc75OSIj1pH3EXz6hAieGJ0SPs_59hr5m6lDklRByRENzQCkkGid036Ayicyry0DWpdNLU2Zos3N82NAMhivrYi9gi0Pls6dCFcoRmQMh0HogQiDIJkTPXkfu1FIcYMd4cOddaqJd8v2LLzHCgzg";
+  const photoUrl = getUserAvatarUrl(normalizedUser);
+  const photoInitial = userDisplayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('') || 'GU';
   const fileInputRef = useRef(null);
 
   const updateProfileMutation = useMutation({
@@ -119,10 +132,16 @@ export default function ProfileSettings() {
             </div>
             <div className="p-6">
               <div className="flex flex-col sm:flex-row items-center gap-6 mb-8">
-                <div 
-                  className="w-24 h-24 rounded-full bg-slate-200 dark:bg-slate-800 bg-cover bg-center border-4 border-white dark:border-slate-800 shadow-lg" 
-                  style={{ backgroundImage: `url('${photoUrl}')` }}
-                ></div>
+                {photoUrl ? (
+                  <div 
+                    className="w-24 h-24 rounded-full bg-slate-200 dark:bg-slate-800 bg-cover bg-center border-4 border-white dark:border-slate-800 shadow-lg" 
+                    style={{ backgroundImage: `url('${photoUrl}')` }}
+                  ></div>
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-primary text-white border-4 border-white dark:border-slate-800 shadow-lg flex items-center justify-center text-2xl font-black">
+                    {photoInitial}
+                  </div>
+                )}
                 <div className="flex flex-col items-center sm:items-start gap-2 text-center sm:text-left">
                   <button 
                     disabled
