@@ -1,14 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { getAuthSession, getToken } from '@fluxify/shared/lib';
+import { normalizeUserProfile } from '../../../shared/lib/userProfile';
 
 const snapshot = getAuthSession();
 const initialUser = snapshot?.userId
-  ? {
+  ? normalizeUserProfile({
       userId: snapshot.userId,
       email: snapshot.email,
       role: snapshot.role,
       tenantId: snapshot.tenantId,
-    }
+      firstName: snapshot.firstName,
+      lastName: snapshot.lastName,
+      fullName: snapshot.fullName,
+      avatarUrl: snapshot.avatarUrl,
+    })
   : null;
 
 const initialState = {

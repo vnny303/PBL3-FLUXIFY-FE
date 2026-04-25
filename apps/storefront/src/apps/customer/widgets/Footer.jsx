@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { toast } from 'sonner';
+import { Facebook, AtSign, Globe } from 'lucide-react';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 export default function Footer() {
@@ -43,9 +44,15 @@ export default function Footer() {
               Premium digital solutions for the modern creator. Join over 50,000+ customers building the future.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-primary hover:text-white transition-all"><span className="material-icons text-lg">facebook</span></a>
-              <a href="#" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-primary hover:text-white transition-all"><span className="material-icons text-lg">alternate_email</span></a>
-              <a href="#" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-primary hover:text-white transition-all"><span className="material-icons text-lg">public</span></a>
+              <a href="#" aria-label="Facebook" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-primary hover:text-white transition-all">
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a href="#" aria-label="Email" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-primary hover:text-white transition-all">
+                <AtSign className="w-4 h-4" />
+              </a>
+              <a href="#" aria-label="Website" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-primary hover:text-white transition-all">
+                <Globe className="w-4 h-4" />
+              </a>
             </div>
           </div>
           <div>

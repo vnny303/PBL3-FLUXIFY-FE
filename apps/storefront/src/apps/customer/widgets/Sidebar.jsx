@@ -3,11 +3,21 @@ import { Package, MapPin, Settings, LogOut, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAppContext } from '../../../app/providers/useAppContext';
+import {
+  getUserAvatarUrl,
+  getUserDisplayEmail,
+  getUserDisplayName,
+  getUserInitials,
+} from '../../../shared/lib/userProfile';
 
 export default function Sidebar({ currentScreen, setCurrentScreen }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
-  const { logout } = useAppContext();
+  const { logout, user } = useAppContext();
+  const userDisplayName = getUserDisplayName(user);
+  const userDisplayEmail = getUserDisplayEmail(user);
+  const userAvatarUrl = getUserAvatarUrl(user);
+  const userInitials = getUserInitials(user);
 
   const navItems = [
     { id: 'my-orders', label: 'My Orders', icon: Package },
@@ -20,12 +30,16 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
     <aside className="w-full lg:w-64 shrink-0">
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 sticky top-24">
         <div className="flex items-center gap-3 px-3 py-4 border-b border-slate-100 dark:border-slate-800 mb-4">
-          <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white">
-            <span className="text-sm font-bold">AT</span>
-          </div>
+          {userAvatarUrl ? (
+            <img src={userAvatarUrl} alt={userDisplayName} className="h-10 w-10 rounded-full object-cover" />
+          ) : (
+            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white">
+              <span className="text-sm font-bold">{userInitials}</span>
+            </div>
+          )}
           <div className="overflow-hidden">
-            <p className="text-sm font-semibold truncate">Alex Thompson</p>
-            <p className="text-xs text-slate-500 truncate">alex.t@example.com</p>
+            <p className="text-sm font-semibold truncate">{userDisplayName}</p>
+            <p className="text-xs text-slate-500 truncate">{userDisplayEmail}</p>
           </div>
         </div>
         <nav className="space-y-1">

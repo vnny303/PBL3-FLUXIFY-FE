@@ -18,6 +18,47 @@ const safeParseJson = (str, fallback = []) => {
     }
 };
 
+const normalizeSpecificationEntries = (raw) => {
+    if (!raw) return [];
+
+    const parsed = safeParseJson(raw, raw);
+    if (Array.isArray(parsed)) {
+        return parsed
+            .map((item) => ({
+                name: item?.name || item?.Name || item?.label || item?.Label || item?.key || item?.Key || '',
+                value: item?.value ?? item?.Value,
+            }))
+            .filter((item) => item.name && item.value !== undefined && item.value !== null)
+            .map((item) => ({
+                name: String(item.name),
+                value: Array.isArray(item.value) ? item.value.join(',') : String(item.value),
+            }));
+    }
+
+    if (parsed && typeof parsed === 'object') {
+        return Object.entries(parsed).map(([key, value]) => ({
+            name: String(key),
+            value: Array.isArray(value) ? value.join(',') : String(value),
+        }));
+    }
+
+    return [];
+};
+
+const normalizeDetailSections = (raw) => {
+    if (!raw) return [];
+
+    const parsed = safeParseJson(raw, raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+        .map((section) => ({
+            title: section?.title || section?.Title || section?.name || section?.Name || section?.heading || section?.Heading || '',
+            content: section?.content || section?.Content || section?.description || section?.Description || section?.body || section?.Body || '',
+        }))
+        .filter((section) => section.title && section.content);
+};
+
 const normalizeCategory = (category) => ({
     id: category.id,
     name: category.name,
@@ -26,8 +67,10 @@ const normalizeCategory = (category) => ({
 
 const normalizeSku = (sku) => {
     if (!sku) return null;
+    const skuId = sku.id || sku.productSkuId || sku.skuId || null;
     return {
-        id: sku.id,
+        id: skuId,
+        productSkuId: skuId,
         skuCode: sku.skuCode,
         price: toNumber(sku.price ?? sku.unitPrice, 0),
         stock: toNumber(sku.stock, 0),
@@ -63,10 +106,23 @@ const normalizeProduct = (product) => {
         });
     }
 
+    const normalizedAttributes = safeParseJson(product.attributes, {});
+    const normalizedSpecifications = normalizeSpecificationEntries(
+        product.specifications ||
+        product.Specifications ||
+        product.specs ||
+        product.Specs ||
+        product.specification ||
+        product.Specification ||
+        product.productSpecifications ||
+        product.product_specifications
+    );
+
     return {
         id: product.id,
         name: product.name,
         description: product.description || product.desc || 'No description available',
+        overview: product.overview || product.description || product.desc || '',
         categoryId: product.categoryId,
         basePrice: product.basePrice,
         images: imagesArray,
@@ -83,7 +139,18 @@ const normalizeProduct = (product) => {
         rating: toNumber(product.rating || product.averageRating, 0),
         reviewCount: toNumber(product.reviewCount || product.numReviews, 0),
         soldCount: toNumber(product.soldCount, 0),
-        attributes: safeParseJson(product.attributes, {})
+        attributes: normalizedAttributes,
+        detailSections: normalizeDetailSections(
+            product.detailSections ||
+            product.DetailSections ||
+            product.detailsSections ||
+            product.DetailsSections ||
+            product.detail_sections ||
+            product.moreInfoSections
+        ),
+        specifications: normalizedSpecifications.length > 0
+            ? normalizedSpecifications
+            : normalizeSpecificationEntries(normalizedAttributes),
     };
 };
 

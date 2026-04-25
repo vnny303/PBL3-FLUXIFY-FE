@@ -1,10 +1,13 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAppContext } from '../../../../../app/providers/useAppContext';
 import ProductCard from '../../../../../entities/product/ui/ProductCard';
 
 import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
+import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
+import { reviewService } from '../../../../../shared/api/reviewService';
 
 // Category images for the "Shop by Category" section
 const CATEGORY_IMAGES = {
@@ -19,7 +22,32 @@ const CATEGORY_IMAGES = {
 export default function Home() {
   const { handleQuickAdd, setSelectedProduct, products, categories, isLoadingInventory, inventoryError } = useAppContext();
   const { content, theme, isLoadingTenant, tenantError } = useStorefrontConfig();
+  const { tenantId } = useStorefrontTenant();
   const navigate = useNavigate();
+  const featuredProducts = products.slice(0, 4);
+
+  const featuredReviewSummaryKey = featuredProducts
+    .map((item) => {
+      const skus = item?.productSkus || item?.skus || [];
+      const skuKey = skus
+        .map((sku) => sku?.id || sku?.productSkuId || sku?.skuId)
+        .filter(Boolean)
+        .join(',');
+      return `${item?.id}:${skuKey}`;
+    })
+    .join('|');
+
+  const { data: featuredReviewSummaryMap = {} } = useQuery({
+    queryKey: ['home-product-review-summary-map', tenantId, featuredReviewSummaryKey],
+    queryFn: () =>
+      reviewService.getProductReviewSummariesByProducts({
+        tenantId,
+        products: featuredProducts,
+        concurrency: 2,
+      }),
+    enabled: !!tenantId && featuredProducts.length > 0,
+    staleTime: 120_000,
+  });
 
   if (isLoadingTenant) {
     return (
@@ -101,10 +129,11 @@ export default function Home() {
           </div>
         ) : products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.slice(0, 4).map((item) => (
+            {featuredProducts.map((item) => (
               <ProductCard
                 key={item.id}
                 product={item}
+                reviewSummary={featuredReviewSummaryMap[item.id]}
                 onQuickAdd={handleQuickAdd}
                 onCardClick={() => {
                   setSelectedProduct(item);

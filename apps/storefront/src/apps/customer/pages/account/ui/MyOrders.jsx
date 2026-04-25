@@ -1,9 +1,47 @@
 import { useState } from 'react';
 import { CheckCircle, Clock, ArrowRight, ShoppingCart, CreditCard } from 'lucide-react';
 import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
+import { getPaymentMethodLabel } from '../../../../../shared/lib/paymentMethod';
+
+const DEFAULT_ORDER_ITEM_IMAGE_FALLBACKS = [
+  'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=300&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=300&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=300&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=300&auto=format&fit=crop',
+];
+
+const ORDER_ITEM_IMAGE_FALLBACKS = (
+  import.meta.env.VITE_ORDER_ITEM_FALLBACK_IMAGES || ''
+)
+  .split(',')
+  .map((url) => url.trim())
+  .filter(Boolean);
+
+const getFallbackImageByIndex = (idx) => {
+  const source =
+    ORDER_ITEM_IMAGE_FALLBACKS.length > 0
+      ? ORDER_ITEM_IMAGE_FALLBACKS
+      : DEFAULT_ORDER_ITEM_IMAGE_FALLBACKS;
+  return source[idx % source.length];
+};
+
+const resolveOrderItemImage = (item, idx) => {
+  if (!item || typeof item !== 'object') {
+    return getFallbackImageByIndex(idx);
+  }
+
+  return (
+    item.image ||
+    item.imgUrl ||
+    item.thumbnail ||
+    item.productImage ||
+    item.productImgUrl ||
+    getFallbackImageByIndex(idx)
+  );
+};
 
 export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders = [], isLoading = false, error = null, onRetry }) {
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(true);
 
   if (isLoading) {
     return (
@@ -81,7 +119,7 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
                     )}
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 flex items-center gap-1">
                       <CreditCard className="w-3 h-3" />
-                      {order.paymentMethod === 'BankTransfer' ? 'Bank Transfer' : 'COD'}
+                      {getPaymentMethodLabel(order.paymentMethod)}
                     </span>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-900/10 dark:text-amber-500 dark:border-amber-900/30 flex items-center gap-1">
                       {order.paymentStatus || 'Pending Payment'}
@@ -106,7 +144,14 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
             <div className="flex gap-4">
               {(order.orderItems || order.items || []).map((item, idx) => (
                 <div key={item.id || idx} className="h-20 w-20 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1">
-                  <img src={item.image} alt={item.productName || item.name} className="w-full h-full object-cover rounded-md" />
+                  <img
+                    src={resolveOrderItemImage(item, idx)}
+                    alt={item.productName || item.name || 'Order item'}
+                    className="w-full h-full object-cover rounded-md"
+                    onError={(e) => {
+                      e.currentTarget.src = getFallbackImageByIndex(idx);
+                    }}
+                  />
                 </div>
               ))}
             </div>

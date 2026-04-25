@@ -13,6 +13,7 @@ import {
 } from '@fluxify/shared/lib';
 
 import { authService } from '../../../shared/api/authService';
+import { normalizeUserProfile } from '../../../shared/lib/userProfile';
 import {
   clearUser,
   setIsHydrating as setIsHydratingAction,
@@ -24,15 +25,20 @@ import { AuthContext } from './authContext';
 
 const CUSTOMER_ROLE = 'customer';
 
-const mapAuthResponseToUser = (authResponse) => ({
-  userId: authResponse?.userId || null,
-  email: authResponse?.email || null,
-  role: authResponse?.role || null,
-  tenantId:
-    authResponse?.tenantId ||
-    authResponse?.tenants?.[0]?.tenantId ||
-    null,
-});
+const mapAuthResponseToUser = (authResponse) =>
+  normalizeUserProfile({
+    userId: authResponse?.userId || null,
+    email: authResponse?.email || null,
+    role: authResponse?.role || null,
+    tenantId:
+      authResponse?.tenantId ||
+      authResponse?.tenants?.[0]?.tenantId ||
+      null,
+    firstName: authResponse?.firstName,
+    lastName: authResponse?.lastName,
+    fullName: authResponse?.fullName,
+    avatarUrl: authResponse?.avatarUrl,
+  });
 
 export function AuthProvider({ children }) {
   const dispatch = useDispatch();
@@ -97,7 +103,7 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        dispatch(setUserAction(me));
+        dispatch(setUserAction(normalizeUserProfile(me)));
         dispatch(setIsLoggedInAction(true));
         } catch {
         clearAuthSession();

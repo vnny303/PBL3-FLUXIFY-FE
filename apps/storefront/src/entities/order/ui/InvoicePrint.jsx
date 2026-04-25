@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { formatVnd, parsePrice } from '../../../shared/lib/formatters';
+import { getPaymentMethodLabel, normalizePaymentMethod } from '../../../shared/lib/paymentMethod';
 
 export default function InvoicePrint({ order }) {
   if (!order) return null;
@@ -61,7 +62,7 @@ export default function InvoicePrint({ order }) {
         </div>
         <div className="text-right">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Payment Method</h3>
-          <p className="font-bold text-slate-800">{order.paymentMethod === 'BankTransfer' ? 'Bank Transfer' : (order.paymentMethod || 'N/A')}</p>
+          <p className="font-bold text-slate-800">{order.paymentMethod ? getPaymentMethodLabel(normalizePaymentMethod(order.paymentMethod)) : 'N/A'}</p>
           <p className="text-sm text-slate-600">Status: {order.status}</p>
         </div>
       </div>

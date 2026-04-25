@@ -14,7 +14,14 @@ function getColorSwatch(colorName) {
   return COLOR_MAP[colorName?.toLowerCase()] || null;
 }
 
-export default function ProductInfo({ product, selectedSku, selectedOptions, setSelectedOptions, optionGroups }) {
+export default function ProductInfo({
+  product,
+  selectedSku,
+  selectedOptions,
+  setSelectedOptions,
+  optionGroups,
+  reviewSummary,
+}) {
   if (!product) return null;
 
   const displayPrice = selectedSku
@@ -24,6 +31,8 @@ export default function ProductInfo({ product, selectedSku, selectedOptions, set
   const isAvailable = selectedSku ? selectedSku.stock > 0 : product.isInStock;
   const stockText = isAvailable ? "IN STOCK" : "OUT OF STOCK";
   const stockStyle = isAvailable ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700";
+  const displayRating = reviewSummary?.averageRating ?? product.rating ?? 0;
+  const displayReviewCount = reviewSummary?.totalReviews ?? product.reviewCount ?? 0;
 
   const handleSelect = (key, value) => {
     setSelectedOptions(prev => ({ ...prev, [key]: value }));
@@ -52,12 +61,12 @@ export default function ProductInfo({ product, selectedSku, selectedOptions, set
         )}
         <div className="flex items-center text-amber-400 text-sm ml-auto sm:ml-0">
           {Array.from({ length: 5 }).map((_, i) => {
-            const rating = product.rating || 0;
+            const rating = displayRating;
             if (i < Math.floor(rating)) return <Star key={i} className="w-4 h-4" fill="currentColor" />;
             if (i < rating) return <StarHalf key={i} className="w-4 h-4" fill="currentColor" />;
             return <Star key={i} className="w-4 h-4 text-slate-200" />;
           })}
-          <span className="text-slate-500 text-xs font-bold ml-2">({product.reviewCount || 0} reviews)</span>
+          <span className="text-slate-500 text-xs font-bold ml-2">({displayReviewCount} reviews)</span>
         </div>
       </div>
 

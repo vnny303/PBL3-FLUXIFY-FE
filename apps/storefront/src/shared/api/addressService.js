@@ -4,6 +4,14 @@ import { INITIAL_ADDRESS_MOCKS } from '../lib/mocks/addressMock';
 
 const IS_MOCK = import.meta.env.VITE_ENABLE_CUSTOMER_ADDRESSES_MOCK === 'true';
 const STORAGE_KEY = 'fluxify_customer_addresses';
+const unwrapData = (response) => response?.data ?? response;
+const toAddressList = (response) => {
+    const data = unwrapData(response);
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+};
 
 const getMockAddresses = () => {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -19,7 +27,7 @@ const saveMockAddresses = (addresses) => {
 };
 
 export const addressService = {
-    // GET /api/tenants/{tenantId}/customers/{customerId}/addresses
+    // GET /api/customer/addresses
     getAddresses: async (tenantId, customerId) => {
         if (IS_MOCK) {
             const all = getMockAddresses();
@@ -27,10 +35,11 @@ export const addressService = {
             const filtered = customerId ? all.filter(a => a.customerId === customerId || a.customerId === null) : all;
             return { data: filtered };
         }
-        return await axiosClient.get(`/api/tenants/${tenantId}/customers/${customerId}/addresses`);
+        const response = await axiosClient.get('/api/customer/addresses');
+        return { data: toAddressList(response) };
     },
 
-    // POST /api/tenants/{tenantId}/customers/{customerId}/addresses
+    // POST /api/customer/addresses
     createAddress: async (tenantId, customerId, addressData) => {
         if (IS_MOCK) {
             const all = getMockAddresses();
@@ -53,10 +62,11 @@ export const addressService = {
             saveMockAddresses(all);
             return { data: newAddress };
         }
-        return await axiosClient.post(`/api/tenants/${tenantId}/customers/${customerId}/addresses`, addressData);
+        const response = await axiosClient.post('/api/customer/addresses', addressData);
+        return { data: unwrapData(response) };
     },
 
-    // PUT /api/tenants/{tenantId}/customers/{customerId}/addresses/{addressId}
+    // PUT /api/customer/addresses/{addressId}
     updateAddress: async (tenantId, customerId, addressId, addressData) => {
         if (IS_MOCK) {
             const all = getMockAddresses();
@@ -75,10 +85,11 @@ export const addressService = {
             saveMockAddresses(all);
             return { data: all[idx] };
         }
-        return await axiosClient.put(`/api/tenants/${tenantId}/customers/${customerId}/addresses/${addressId}`, addressData);
+        const response = await axiosClient.put(`/api/customer/addresses/${addressId}`, addressData);
+        return { data: unwrapData(response) };
     },
 
-    // DELETE /api/tenants/{tenantId}/customers/{customerId}/addresses/{addressId}
+    // DELETE /api/customer/addresses/{addressId}
     deleteAddress: async (tenantId, customerId, addressId) => {
         if (IS_MOCK) {
             const all = getMockAddresses();
@@ -86,6 +97,7 @@ export const addressService = {
             saveMockAddresses(filtered);
             return { data: { success: true } };
         }
-        return await axiosClient.delete(`/api/tenants/${tenantId}/customers/${customerId}/addresses/${addressId}`);
+        const response = await axiosClient.delete(`/api/customer/addresses/${addressId}`);
+        return { data: unwrapData(response) };
     },
 };

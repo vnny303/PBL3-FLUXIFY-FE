@@ -6,11 +6,18 @@ import { toast } from 'sonner';
 import { useAppContext } from '../../../app/providers/useAppContext';
 import { useNotifications } from '../../../entities/notification/model/useNotifications';
 import { formatVnd } from '../../../shared/lib/formatters';
+import {
+  getUserAvatarUrl,
+  getUserDisplayEmail,
+  getUserDisplayName,
+  getUserInitials,
+} from '../../../shared/lib/userProfile';
 import { ROUTES, ACCOUNT_SCREENS } from '../../../shared/lib/constants';
 export default function Header() {
   const { 
     setShowModal, 
     isLoggedIn, 
+    user,
     logout, 
     setShowCart, 
     cartCount, 
@@ -66,6 +73,10 @@ export default function Header() {
   }, [searchQuery, products]);
 
   const { notifications, unreadCount, markAllAsRead, handleNotificationClick } = useNotifications();
+  const userDisplayName = getUserDisplayName(user);
+  const userDisplayEmail = getUserDisplayEmail(user);
+  const userAvatarUrl = getUserAvatarUrl(user);
+  const userInitials = getUserInitials(user);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -267,16 +278,28 @@ export default function Header() {
                     onClick={() => setShowDropdown(!showDropdown)}
                     className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-blue-100 overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
                   >
-                    <img src="https://i.pravatar.cc/150?img=11" alt="Alex Thompson" className="w-full h-full object-cover" />
+                    {userAvatarUrl ? (
+                      <img src={userAvatarUrl} alt={userDisplayName} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="w-full h-full bg-primary text-white text-sm font-bold flex items-center justify-center">
+                        {userInitials}
+                      </span>
+                    )}
                   </button>
                   
                   {showDropdown && (
                     <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 py-2 z-50 transform origin-top-right transition-all">
                       <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
-                        <img src="https://i.pravatar.cc/150?img=11" alt="Alex Thompson" className="w-10 h-10 rounded-full object-cover" />
+                        {userAvatarUrl ? (
+                          <img src={userAvatarUrl} alt={userDisplayName} className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          <span className="w-10 h-10 rounded-full bg-primary text-white text-sm font-bold flex items-center justify-center">
+                            {userInitials}
+                          </span>
+                        )}
                         <div>
-                          <p className="text-sm font-bold text-slate-900">Alex Thompson</p>
-                          <p className="text-xs text-slate-500">alex.t@example.com</p>
+                          <p className="text-sm font-bold text-slate-900">{userDisplayName}</p>
+                          <p className="text-xs text-slate-500">{userDisplayEmail}</p>
                         </div>
                       </div>
                       <div className="py-2">
