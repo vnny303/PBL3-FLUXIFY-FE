@@ -85,8 +85,8 @@ export default function Checkout() {
 
   // Checkout Mutation
   const { mutate: placeOrder, isPending: isProcessing } = useMutation({
-    mutationFn: ({ address, paymentMethod: pm }) =>
-      orderService.checkout({ address, paymentMethod: pm }),
+    mutationFn: ({ addressId, paymentMethod: pm, orderNote, shippingMethod }) =>
+      orderService.checkout({ addressId, paymentMethod: pm, orderNote, shippingMethod }),
     onSuccess: async (checkoutResponse, { finalAddress, apiPaymentMethod }) => {
       // 1. Success: Clear locally (via refresh)
       await refreshCart();
@@ -139,10 +139,13 @@ export default function Checkout() {
 
     const addressString = buildFormattedAddress(selectedAddress, orderNote);
     const apiPaymentMethod = paymentMethod === 'bank' ? 'BankTransfer' : 'COD';
+    const apiShippingMethod = shippingMethodId === SHIPPING_METHODS.STANDARD.id ? 'standard' : 'express';
 
     placeOrder({
-      address: addressString,
+      addressId: selectedAddress.id,
       paymentMethod: apiPaymentMethod,
+      orderNote: orderNote,
+      shippingMethod: apiShippingMethod,
       finalAddress: addressString,
       apiPaymentMethod,
     });
