@@ -3,6 +3,8 @@ import { useAppContext } from '../../../../../app/providers/useAppContext';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
+import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
+
 import { productService } from '../../../../../shared/api/productService';
 import { reviewService } from '../../../../../shared/api/reviewService';
 
@@ -129,13 +131,20 @@ export default function ProductDetail() {
     navigate('/login', { state: { from: location } });
   };
 
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+
   if (isLoadingProduct && !product) {
     return (
       <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-20 flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" style={{ borderBottomColor: 'transparent' }} />
+        <div 
+          className="animate-spin rounded-full h-12 w-12 border-b-2" 
+          style={{ borderColor: primaryColor, borderBottomColor: 'transparent' }} 
+        />
       </main>
     );
   }
+
 
   if (!product) {
     return (

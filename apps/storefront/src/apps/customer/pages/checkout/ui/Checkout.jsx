@@ -20,6 +20,7 @@ export default function Checkout() {
   const [shippingMethodId, setShippingMethodId] = useState(SHIPPING_METHODS.STANDARD.id);
   const [orderNote, setOrderNote] = useState('');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const CHECKOUT_MODE = import.meta.env.VITE_CHECKOUT_MODE || 'live';
 
   // Redirect if not logged in
   useEffect(() => {
@@ -97,6 +98,7 @@ export default function Checkout() {
         shippingFee,
         user,
         finalAddress,
+        selectedAddress,
       }),
     onSuccess: async (checkoutResponse, { finalAddress, apiPaymentMethod }) => {
       const isDemo = checkoutResponse?.source === 'demo-checkout';
@@ -125,11 +127,17 @@ export default function Checkout() {
       sessionStorage.setItem('fluxify_last_checkout_order', JSON.stringify(orderData));
       
       // 2. Success: Redirect to Confirmation
-      navigate('/order-confirmation', { state: { orderData } });
+      navigate('/order-confirmation', {
+        state: {
+          order: orderData,
+          orderData,
+          orderId: orderData?.id || checkoutResponse?.id || null,
+        },
+      });
     },
     onError: (error) => {
-      // 3. Error: Keep state, show toast
-      toast.error(error?.response?.data?.message || error?.message || 'Checkout failed, please try again');
+      const message = error?.response?.data?.message || error?.message || 'Checkout failed, please try again';
+      toast.error(message);
     },
   });
 
@@ -148,6 +156,11 @@ export default function Checkout() {
     if (!selectedAddress) { 
       toast.error('Please select a shipping address'); 
       return; 
+    }
+    if (CHECKOUT_MODE !== 'mock' && selectedAddress?.isMock) {
+      const message = 'Please select a real saved address before live checkout.';
+      toast.error(message);
+      return;
     }
     if (!paymentMethod) {
       toast.error('Please select a payment method');

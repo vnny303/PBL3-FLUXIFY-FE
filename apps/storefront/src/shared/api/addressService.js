@@ -13,13 +13,62 @@ const toAddressList = (response) => {
     return [];
 };
 
+const MOCK_ID_PREFIX = 'mock-address-';
+
+const isUuidLike = (value) => (
+    typeof value === 'string'
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+);
+
+const normalizeMockAddress = (address, index) => {
+    const fallbackId = `${MOCK_ID_PREFIX}${index + 1}`;
+    const safeId = typeof address?.id === 'string' && address.id.trim() ? address.id.trim() : fallbackId;
+    return {
+        ...address,
+        id: isUuidLike(safeId) ? fallbackId : safeId,
+        isMock: true,
+    };
+};
+
+const buildNextMockAddressId = (addresses = []) => {
+    const usedNumbers = new Set(
+        addresses
+            .map((item) => {
+                const id = typeof item?.id === 'string' ? item.id : '';
+                const match = id.match(/^mock-address-(\d+)$/);
+                return match ? Number(match[1]) : null;
+            })
+            .filter((value) => Number.isFinite(value) && value > 0)
+    );
+
+    let cursor = 1;
+    while (usedNumbers.has(cursor)) {
+        cursor += 1;
+    }
+    return `${MOCK_ID_PREFIX}${cursor}`;
+};
+
 const getMockAddresses = () => {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) {
-        saveMockAddresses(INITIAL_ADDRESS_MOCKS);
-        return INITIAL_ADDRESS_MOCKS;
+        const normalizedInitial = INITIAL_ADDRESS_MOCKS.map(normalizeMockAddress);
+        saveMockAddresses(normalizedInitial);
+        return normalizedInitial;
     }
-    return JSON.parse(data);
+    let parsed = null;
+    try {
+        parsed = JSON.parse(data);
+    } catch {
+        parsed = null;
+    }
+    if (!Array.isArray(parsed)) {
+        const normalizedInitial = INITIAL_ADDRESS_MOCKS.map(normalizeMockAddress);
+        saveMockAddresses(normalizedInitial);
+        return normalizedInitial;
+    }
+    const normalized = parsed.map(normalizeMockAddress);
+    saveMockAddresses(normalized);
+    return normalized;
 };
 
 const saveMockAddresses = (addresses) => {
@@ -45,7 +94,8 @@ export const addressService = {
             const all = getMockAddresses();
             const newAddress = {
                 ...addressData,
-                id: crypto.randomUUID(),
+                id: buildNextMockAddressId(all),
+                isMock: true,
                 customerId,
                 tenantId,
                 createdAt: new Date().toISOString(),
@@ -80,6 +130,7 @@ export const addressService = {
             all[idx] = { 
                 ...all[idx], 
                 ...addressData, 
+                isMock: true,
                 updatedAt: new Date().toISOString() 
             };
             saveMockAddresses(all);

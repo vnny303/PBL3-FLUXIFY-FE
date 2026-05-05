@@ -27,7 +27,7 @@ export default function OrderSummary({ cartItems = [], cartSubtotal = 0, shippin
                       <h3 className="text-sm font-medium">{item.productName}</h3>
                       <p className="text-xs text-slate-500 line-clamp-1">
                         {Object.entries(item.skuAttributes || {})
-                          .map(([key, value]) => `${value}`)
+                          .map(([, value]) => `${value}`)
                           .join(' • ') || 'Standard'}
                       </p>
                       <p className="text-sm font-semibold mt-1 text-primary">{formatVnd(item.price)}</p>

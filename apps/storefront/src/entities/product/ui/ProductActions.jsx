@@ -1,8 +1,13 @@
 import React from 'react';
 import { Minus, Plus, ShoppingBag, Truck, ShieldCheck } from 'lucide-react';
 import { formatVnd } from '../../../shared/lib/formatters';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 export default function ProductActions({ product, selectedSku, quantity, setQuantity, selectedOptions, addToCart, optionGroups = [] }) {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 8;
+
   const currentProduct = product || { id: 999, name: 'Product', price: 0 };
 
   const skuPrice = selectedSku?.price ?? currentProduct.price ?? 0;
@@ -24,7 +29,7 @@ export default function ProductActions({ product, selectedSku, quantity, setQuan
   return (
     <>
       <div className="flex gap-4 mb-8">
-        <div className="flex items-center border border-slate-200 rounded-full bg-white">
+        <div className="flex items-center border border-slate-200 bg-white" style={{ borderRadius: `${borderRadius}px` }}>
           <button
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
             disabled={quantity <= 1}
@@ -44,11 +49,16 @@ export default function ProductActions({ product, selectedSku, quantity, setQuan
         <button
           onClick={handleAddToCart}
           disabled={!isAvailable}
-          className={`flex-1 font-bold rounded-full flex items-center justify-center gap-2 transition-colors shadow-lg ${
+          className={`flex-1 font-bold flex items-center justify-center gap-2 transition-colors shadow-lg ${
             isAvailable
-              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
+              ? 'text-white shadow-xl'
               : 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'
           }`}
+          style={{
+            backgroundColor: isAvailable ? primaryColor : undefined,
+            borderRadius: `${borderRadius}px`,
+            boxShadow: isAvailable ? `0 10px 15px -3px ${primaryColor}4D` : undefined
+          }}
         >
           <ShoppingBag className="text-sm" />
           {allAttributesSelected 
@@ -60,14 +70,14 @@ export default function ProductActions({ product, selectedSku, quantity, setQuan
       {/* Features */}
       <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-100">
         <div className="flex items-start gap-3">
-          <Truck className="text-blue-600 mt-0.5" />
+          <Truck className="mt-0.5" style={{ color: primaryColor }} />
           <div>
             <p className="text-xs font-bold text-slate-900">FREE DELIVERY</p>
             <p className="text-xs text-slate-500">Orders over 500.000đ</p>
           </div>
         </div>
         <div className="flex items-start gap-3">
-          <ShieldCheck className="text-blue-600 mt-0.5" />
+          <ShieldCheck className="mt-0.5" style={{ color: primaryColor }} />
           <div>
             <p className="text-xs font-bold text-slate-900">2 YEAR WARRANTY</p>
             <p className="text-xs text-slate-500">Full replacement</p>
@@ -77,3 +87,4 @@ export default function ProductActions({ product, selectedSku, quantity, setQuan
     </>
   );
 }
+

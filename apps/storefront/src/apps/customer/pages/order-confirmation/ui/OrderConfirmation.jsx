@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Copy, CheckCircle2, ShoppingBag, ListChecks, MapPin, CreditCard, Package, AlertCircle } from 'lucide-react';
 import { getBankTransferQrUrl } from '../../../../../shared/lib/mocks/bankTransferMock';
+import { orderService } from '../../../../../shared/api/orderService';
 
 import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
 
@@ -33,25 +35,34 @@ const cleanAddress = (addressString) => {
 export default function OrderConfirmation() {
   const location = useLocation();
   const navigate = useNavigate();
+  const fallbackOrderId = location.state?.orderId || location.state?.order?.id || location.state?.orderData?.id || null;
 
-  const orderData = useMemo(() => {
-    // 1. Try navigation state
-    if (location.state?.orderData) {
-      return location.state.orderData;
-    }
-    
-    // 2. Try sessionStorage fallback (unified key)
+  const stateOrder = useMemo(
+    () => location.state?.order || location.state?.orderData || null,
+    [location.state]
+  );
+
+  const sessionOrder = useMemo(() => {
     try {
       const saved = sessionStorage.getItem('fluxify_last_checkout_order');
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.error('Failed to parse saved order data', e);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
     }
-    
-    return null;
-  }, [location.state]);
+  }, []);
+
+  const { data: backendOrder = null } = useQuery({
+    queryKey: ['order-confirmation-detail', fallbackOrderId],
+    queryFn: () => orderService.getCustomerOrderDetail(fallbackOrderId),
+    enabled: !stateOrder && !sessionOrder && !!fallbackOrderId,
+    staleTime: 30_000,
+  });
+
+  const orderData = useMemo(() => {
+    if (stateOrder) return stateOrder;
+    if (sessionOrder) return sessionOrder;
+    return backendOrder || null;
+  }, [stateOrder, sessionOrder, backendOrder]);
 
   const orderItems = useMemo(() => Array.isArray(orderData?.orderItems) ? orderData.orderItems : [], [orderData]);
   

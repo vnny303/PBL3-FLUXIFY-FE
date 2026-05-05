@@ -113,10 +113,12 @@ export default function Home() {
           </div>
           <button
             onClick={() => navigate('/shop')}
-            className="text-primary font-semibold hover:underline flex items-center gap-1"
+            className="font-semibold hover:underline flex items-center gap-1"
+            style={{ color: theme.colors.primary }}
           >
             View all <ArrowRight className=" text-sm" />
           </button>
+
         </div>
 
         {isLoadingInventory ? (

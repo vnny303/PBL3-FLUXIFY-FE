@@ -3,9 +3,13 @@ import { X, Trash2, Minus, Plus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../app/providers/useAppContext';
 import { formatVnd, parsePrice } from '../../../shared/lib/formatters';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 export default function CartDrawer() {
   const { showCart, setShowCart, cartItems, removeFromCart, updateQuantity, cartTotal, cartCount } = useAppContext();
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
   const navigate = useNavigate();
 
   if (!showCart) return null;
@@ -23,7 +27,12 @@ export default function CartDrawer() {
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-black text-slate-900">Your Cart</h2>
-            <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-bold rounded-full">{cartCount} items</span>
+            <span 
+              className="px-2 py-0.5 text-xs font-bold rounded-full"
+              style={{ backgroundColor: `${primaryColor}1A`, color: primaryColor }}
+            >
+              {cartCount} items
+            </span>
           </div>
           <button 
             onClick={() => setShowCart(false)}
@@ -40,7 +49,8 @@ export default function CartDrawer() {
               <p>Your cart is empty.</p>
               <button 
                 onClick={() => setShowCart(false)}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition"
+                className="px-6 py-2 text-white font-bold transition shadow-lg"
+                style={{ backgroundColor: primaryColor, borderRadius: `${borderRadius}px` }}
               >
                 Shop Now
               </button>
@@ -85,7 +95,7 @@ export default function CartDrawer() {
                         <Plus className=" text-sm" />
                       </button>
                     </div>
-                    <span className="text-sm font-bold text-blue-600">
+                    <span className="text-sm font-bold" style={{ color: primaryColor }}>
                       {formatVnd(parsePrice(item.price) * item.quantity)}
                     </span>
                   </div>
@@ -102,7 +112,7 @@ export default function CartDrawer() {
           </div>
           <div className="flex justify-between items-center mb-6">
             <span className="text-base font-bold text-slate-900">Subtotal</span>
-            <span className="text-xl font-black text-blue-600">{formatVnd(cartTotal)}</span>
+            <span className="text-xl font-black" style={{ color: primaryColor }}>{formatVnd(cartTotal)}</span>
           </div>
           
           <button 
@@ -110,7 +120,12 @@ export default function CartDrawer() {
               setShowCart(false);
               navigate('/checkout');
             }}
-            className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 mb-4 shadow-lg shadow-blue-600/20"
+            className="w-full py-4 text-white font-bold transition-colors flex items-center justify-center gap-2 mb-4 shadow-lg"
+            style={{ 
+                backgroundColor: primaryColor, 
+                borderRadius: `${borderRadius}px`,
+                boxShadow: `0 10px 15px -3px ${primaryColor}33`
+            }}
           >
             Checkout Now
             <ArrowRight className=" text-sm" />
@@ -131,4 +146,5 @@ export default function CartDrawer() {
     </>
   );
 }
+
 

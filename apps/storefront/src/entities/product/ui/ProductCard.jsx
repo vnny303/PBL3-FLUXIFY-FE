@@ -98,27 +98,49 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
             </span>
           )}
           {product.isSale && (
-             <span className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider bg-red-500 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+             <span 
+               className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm" 
+               style={{ 
+                 borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
+                 backgroundColor: productCardTheme.badge || '#ef4444' 
+               }}
+             >
                {product.discountLabel || 'Sale'}
              </span>
           )}
           {product.isNew && (
-             <span className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider bg-blue-500 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+             <span 
+               className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm" 
+               style={{ 
+                 borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
+                 backgroundColor: theme.colors.primary 
+               }}
+             >
                New
              </span>
           )}
           {product.isBestSeller && (
-            <span className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider bg-amber-500 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+            <span 
+              className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm" 
+              style={{ 
+                borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
+                backgroundColor: productCardTheme.badge || '#f59e0b'
+              }}
+            >
               Best Seller
             </span>
           )}
+
         </div>
       </div>
 
       {/* Content Section */}
       <div className="p-5 flex flex-col flex-1 min-h-[200px]">
         {product.cat && (
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">
+          <p 
+            className="text-[10px] uppercase tracking-widest font-bold mb-1 opacity-60"
+            style={{ color: productCardTheme.text }}
+          >
             {product.cat}
           </p>
         )}
@@ -138,8 +160,9 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
 
         {product.description && (
           <p 
-            className="text-sm text-slate-500 mb-2"
+            className="text-sm mb-2 opacity-70"
             style={{ 
+              color: productCardTheme.text,
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
@@ -156,24 +179,24 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
             <div className="flex items-center gap-1">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
               <div className="flex items-center gap-0.5">
-                <span className="text-xs font-extrabold text-slate-700">{ratingLabel}</span>
-                <span className="text-[10px] text-slate-400 font-medium">({reviewCount})</span>
+                <span className="text-xs font-extrabold" style={{ color: productCardTheme.text }}>{ratingLabel}</span>
+                <span className="text-[10px] font-medium opacity-50" style={{ color: productCardTheme.text }}>({reviewCount})</span>
               </div>
             </div>
           ) : (
-            <span className="text-[10px] text-slate-400 font-medium italic">No reviews yet</span>
+            <span className="text-[10px] font-medium italic opacity-50" style={{ color: productCardTheme.text }}>No reviews yet</span>
           )}
           <div className="flex-1 flex justify-end">
             {isOutOfStock ? (
-              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 rounded-full border border-slate-200">
+              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-slate-100/10 text-slate-400 rounded-full border border-slate-200/20">
                 Sold Out
               </span>
             ) : isLowStock ? (
-              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-red-50 text-red-500 rounded-full border border-red-100 animate-pulse">
+              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-red-500/10 text-red-500 rounded-full border border-red-500/20 animate-pulse">
                 Only {totalStock} Left
               </span>
             ) : (
-              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">
+              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
                 In Stock
               </span>
             )}

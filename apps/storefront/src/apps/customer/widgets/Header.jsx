@@ -221,7 +221,10 @@ export default function Header() {
                   >
                     <Bell />
                     {unreadCount > 0 && (
-                      <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white border-white">
+                      <span 
+                        className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white border-white"
+                        style={{ backgroundColor: primaryColor }}
+                      >
                         {unreadCount}
                       </span>
                     )}
@@ -230,7 +233,7 @@ export default function Header() {
                     <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-50 transform origin-top-right transition-all overflow-hidden flex flex-col">
                       <div className="px-5 py-3 border-b flex items-center justify-between border-slate-100">
                         <span className="font-bold text-slate-900 text-sm">Notifications</span>
-                        <button onClick={markAllAsRead} className="text-xs font-semibold text-primary hover:underline">Mark all as read</button>
+                        <button onClick={markAllAsRead} className="text-xs font-semibold hover:underline" style={{ color: primaryColor }}>Mark all as read</button>
                       </div>
                       <div className="max-h-[350px] overflow-y-auto">
                         {notifications.map(notif => (
@@ -248,13 +251,13 @@ export default function Header() {
                               <p className="text-[10px] font-semibold text-slate-400 mt-1.5">{notif.time}</p>
                             </div>
                             {!notif.isRead && (
-                              <div className="shrink-0 w-2 h-2 rounded-full bg-blue-500 mt-1"></div>
+                              <div className="shrink-0 w-2 h-2 rounded-full mt-1" style={{ backgroundColor: primaryColor }}></div>
                             )}
                           </div>
                         ))}
                       </div>
                       <div className="px-5 py-3 border-t border-slate-100 text-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => setShowNotifDropdown(false)}>
-                        <Link to={ROUTES.ACCOUNT} state={{ screen: ACCOUNT_SCREENS.NOTIFICATIONS }} className="text-xs font-bold text-primary hover:underline block w-full h-full">
+                        <Link to={ROUTES.ACCOUNT} state={{ screen: ACCOUNT_SCREENS.NOTIFICATIONS }} className="text-xs font-bold hover:underline block w-full h-full" style={{ color: primaryColor }}>
                           View all notifications
                         </Link>
                       </div>
@@ -276,16 +279,21 @@ export default function Header() {
                 <div className="relative" ref={dropdownRef}>
                   <button 
                     onClick={() => setShowDropdown(!showDropdown)}
-                    className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-blue-100 overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+                    className="flex items-center justify-center w-10 h-10 rounded-full border-2 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all"
+                    style={{ 
+                        borderColor: `${primaryColor}33`,
+                        boxShadow: showDropdown ? `0 0 0 2px ${primaryColor}` : undefined
+                    }}
                   >
                     {userAvatarUrl ? (
                       <img src={userAvatarUrl} alt={userDisplayName} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="w-full h-full bg-primary text-white text-sm font-bold flex items-center justify-center">
+                      <span className="w-full h-full text-white text-sm font-bold flex items-center justify-center" style={{ backgroundColor: primaryColor }}>
                         {userInitials}
                       </span>
                     )}
                   </button>
+
                   
                   {showDropdown && (
                     <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 py-2 z-50 transform origin-top-right transition-all">
@@ -293,7 +301,10 @@ export default function Header() {
                         {userAvatarUrl ? (
                           <img src={userAvatarUrl} alt={userDisplayName} className="w-10 h-10 rounded-full object-cover" />
                         ) : (
-                          <span className="w-10 h-10 rounded-full bg-primary text-white text-sm font-bold flex items-center justify-center">
+                          <span 
+                            className="w-10 h-10 rounded-full text-white text-sm font-bold flex items-center justify-center"
+                            style={{ backgroundColor: primaryColor }}
+                          >
                             {userInitials}
                           </span>
                         )}
@@ -383,19 +394,24 @@ export default function Header() {
               </button>
             </div>
             <nav className="flex-1 px-4 space-y-2">
-              {content?.header?.navLinks?.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setShowMobileMenu(false)}
-                  className={`block px-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                    location.pathname === link.path ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {content?.header?.navLinks?.map((link) => {
+                const isActive = location.pathname === link.path;
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setShowMobileMenu(false)}
+                    className={`block px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                      isActive ? '' : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                    style={isActive ? { backgroundColor: `${primaryColor}1A`, color: primaryColor } : {}}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </nav>
+
             <div className="px-6 py-4 border-t border-slate-100 italic text-[10px] text-slate-400 uppercase tracking-widest text-center">
               Fluxify Storefront v1.0
             </div>
