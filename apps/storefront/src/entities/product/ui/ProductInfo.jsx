@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, StarHalf } from 'lucide-react';
 import { formatVnd } from '../../../shared/lib/formatters';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 // Color name → CSS value for swatch rendering
 const COLOR_MAP = {
@@ -22,6 +23,9 @@ export default function ProductInfo({
   optionGroups,
   reviewSummary,
 }) {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+
   if (!product) return null;
 
   const displayPrice = selectedSku
@@ -73,7 +77,7 @@ export default function ProductInfo({
       <h1 className="text-4xl font-black text-slate-900 leading-tight mb-2">{product.name}</h1>
 
       <div className="flex items-end gap-4 mb-6">
-        <span className="text-4xl font-extrabold text-blue-600">{displayPrice}</span>
+        <span className="text-4xl font-extrabold" style={{ color: primaryColor }}>{displayPrice}</span>
         {selectedSku && (
           <span className="text-sm text-slate-500 pb-1.5 font-medium">
             ({selectedSku.stock} units available)
@@ -82,7 +86,7 @@ export default function ProductInfo({
       </div>
 
       {product.description && (
-        <div className="border-l-4 border-blue-200 pl-4 py-1 mb-8">
+        <div className="border-l-4 pl-4 py-1 mb-8" style={{ borderLeftColor: `${primaryColor}33` }}>
           <p className="text-slate-600 italic">"{product.description}"</p>
         </div>
       )}
@@ -125,9 +129,13 @@ export default function ProductInfo({
                       disabled={isOptionDisabled}
                       onClick={() => handleSelect(key, val)}
                       className={`w-9 h-9 rounded-full border-2 transition-all relative ${
-                        isSelected ? 'border-blue-600 ring-2 ring-blue-100 scale-110' : 'border-transparent hover:border-slate-300'
+                        isSelected ? 'scale-110' : 'border-transparent hover:border-slate-300'
                       } ${isOptionDisabled ? 'opacity-20 cursor-not-allowed grayscale' : ''}`}
-                      style={{ backgroundColor: swatch }}
+                      style={{ 
+                        backgroundColor: swatch,
+                        borderColor: isSelected ? primaryColor : undefined,
+                        boxShadow: isSelected ? `0 0 0 4px ${primaryColor}1A` : undefined
+                      }}
                     >
                       {isOptionDisabled && (
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -145,9 +153,14 @@ export default function ProductInfo({
                     onClick={() => handleSelect(key, val)}
                     className={`px-4 py-2 text-xs font-bold rounded-full border transition-all relative overflow-hidden ${
                       isSelected
-                        ? 'border-blue-600 text-blue-600 bg-blue-50'
+                        ? ''
                         : 'border-slate-200 text-slate-600 hover:border-slate-300'
                     } ${isOptionDisabled ? 'opacity-40 cursor-not-allowed bg-slate-50 text-slate-400 border-slate-100' : ''}`}
+                    style={{
+                      borderColor: isSelected ? primaryColor : undefined,
+                      color: isSelected ? primaryColor : undefined,
+                      backgroundColor: isSelected ? `${primaryColor}0D` : undefined
+                    }}
                   >
                     {val}
                     {isOptionDisabled && (
@@ -165,3 +178,4 @@ export default function ProductInfo({
     </>
   );
 }
+

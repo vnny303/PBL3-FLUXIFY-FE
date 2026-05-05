@@ -3,8 +3,11 @@ import { MapPin, CreditCard, Building, StickyNote, AlertCircle } from 'lucide-re
 import { getBankTransferQrUrl } from '../../../shared/lib/mocks/bankTransferMock';
 import { formatVnd, parsePrice } from '../../../shared/lib/formatters';
 import { isBankTransferMethod } from '../../../shared/lib/paymentMethod';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 export default function OrderSummaryCard({ order }) {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
   const rawAddress = order.shippingAddress || order.address || '';
   
   const parseAddressAndNote = () => {
@@ -46,7 +49,7 @@ export default function OrderSummaryCard({ order }) {
       {/* Shipping Details */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
         <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-          <MapPin className="w-4 h-4 text-primary" />
+          <MapPin className="w-4 h-4" style={{ color: primaryColor }} />
           Shipping Address
         </h3>
         <div className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -55,10 +58,13 @@ export default function OrderSummaryCard({ order }) {
           ))}
         </div>
         {note && (
-          <div className="mt-4 p-4 bg-primary/[0.03] dark:bg-primary/5 rounded-2xl border border-primary/10 overflow-hidden">
+          <div 
+            className="mt-4 p-4 rounded-2xl border overflow-hidden"
+            style={{ backgroundColor: `${primaryColor}0D`, borderColor: `${primaryColor}1A` }}
+          >
             <div className="flex items-center gap-2 mb-2">
-              <StickyNote className="w-3 h-3 text-primary" />
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest leading-none">Order Note</span>
+              <StickyNote className="w-3 h-3" style={{ color: primaryColor }} />
+              <span className="text-[10px] font-black uppercase tracking-widest leading-none" style={{ color: primaryColor }}>Order Note</span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 italic break-words whitespace-pre-wrap">"{note}"</p>
           </div>
@@ -69,7 +75,7 @@ export default function OrderSummaryCard({ order }) {
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm space-y-6">
         <div>
           <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-            <CreditCard className="w-4 h-4 text-primary" />
+            <CreditCard className="w-4 h-4" style={{ color: primaryColor }} />
             Payment Method
           </h3>
           <div className="flex items-center justify-between">
@@ -100,11 +106,11 @@ export default function OrderSummaryCard({ order }) {
                 </div>
                 <div className="flex justify-between border-b border-slate-50 pb-1">
                   <span className="text-[10px] text-slate-400 uppercase font-black">Account</span>
-                  <span className="text-xs font-bold text-primary">{bankInfo.bankAccountNumber}</span>
+                  <span className="text-xs font-bold" style={{ color: primaryColor }}>{bankInfo.bankAccountNumber}</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-50 pb-1">
                   <span className="text-[10px] text-slate-400 uppercase font-black">Content</span>
-                  <span className="text-xs font-bold text-primary uppercase">{bankInfo.transferContent}</span>
+                  <span className="text-xs font-bold uppercase" style={{ color: primaryColor }}>{bankInfo.transferContent}</span>
                 </div>
               </div>
               {qrUrl && (
@@ -131,7 +137,7 @@ export default function OrderSummaryCard({ order }) {
           </div>
           <div className="pt-6 mt-2 border-t border-slate-50 dark:border-slate-800 flex justify-between items-end">
             <span className="font-black text-slate-400 text-[10px] uppercase tracking-[0.2em]">Total</span>
-            <span className="text-2xl font-black text-primary tabular-nums leading-none">
+            <span className="text-2xl font-black tabular-nums leading-none" style={{ color: primaryColor }}>
               {formatVnd(totalNum)}
             </span>
           </div>

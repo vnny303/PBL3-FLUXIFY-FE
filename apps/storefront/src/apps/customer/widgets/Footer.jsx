@@ -40,17 +40,17 @@ export default function Footer() {
               </svg>
               <span className="text-xl font-bold tracking-tight uppercase" style={{ color: footerTheme.text }}>{content?.general?.siteName || 'Fluxify'}</span>
             </div>
-            <p className="text-slate-500 leading-relaxed mb-6 max-w-sm">
-              Premium digital solutions for the modern creator. Join over 50,000+ customers building the future.
+            <p className="text-slate-500 leading-relaxed mb-6 max-w-sm line-clamp-3">
+              {content?.about?.story || `Premium digital solutions for the modern creator. Join over 50,000+ customers building the future with ${content?.general?.siteName || 'Fluxify'}.`}
             </p>
             <div className="flex gap-4">
-              <a href="#" aria-label="Facebook" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-primary hover:text-white transition-all">
+              <a href="#" aria-label="Facebook" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:text-white transition-all hover:opacity-90" style={{ '--hover-bg': primaryColor }}>
                 <Facebook className="w-4 h-4" />
               </a>
-              <a href="#" aria-label="Email" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-primary hover:text-white transition-all">
+              <a href="#" aria-label="Email" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:text-white transition-all hover:opacity-90">
                 <AtSign className="w-4 h-4" />
               </a>
-              <a href="#" aria-label="Website" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-primary hover:text-white transition-all">
+              <a href="#" aria-label="Website" className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:text-white transition-all hover:opacity-90">
                 <Globe className="w-4 h-4" />
               </a>
             </div>
@@ -58,12 +58,12 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-bold uppercase tracking-widest mb-6" style={{ color: footerTheme.text }}>About Us</h4>
             <ul className="space-y-4">
-              <li><a href="#" className="text-sm text-slate-500 hover:text-primary transition-colors">Our Story</a></li>
-              <li><a href="#" className="text-sm text-slate-500 hover:text-primary transition-colors">Careers</a></li>
-              <li><a href="#" className="text-sm text-slate-500 hover:text-primary transition-colors">Sustainability</a></li>
-              <li><a href="#" className="text-sm text-slate-500 hover:text-primary transition-colors">Newsroom</a></li>
+              <li><a href="/about" className="text-sm text-slate-500 hover:opacity-75 transition-colors">Our Story</a></li>
+              <li><a href="#" className="text-sm text-slate-500 hover:opacity-75 transition-colors">Careers</a></li>
+              <li><a href="#" className="text-sm text-slate-500 hover:opacity-75 transition-colors">Sustainability</a></li>
             </ul>
           </div>
+
           <div>
             <h4 className="text-sm font-bold uppercase tracking-widest mb-6" style={{ color: footerTheme.text }}>Customer Support</h4>
             <ul className="space-y-4">

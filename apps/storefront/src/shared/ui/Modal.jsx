@@ -33,7 +33,7 @@ export default function Modal() {
           </div>
           <h2 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">Join Fluxify Storefront</h2>
           <p className="text-slate-500 mb-8 text-sm leading-relaxed px-2">
-            Create an account to save your wishlist, track orders, and get exclusive access to new drops.
+            Create an account to track orders and get exclusive access to new drops.
           </p>
           <div className="space-y-3">
             <button onClick={handleLogin} className="w-full flex items-center justify-center bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition-all shadow-sm">

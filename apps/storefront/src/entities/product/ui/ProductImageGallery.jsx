@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Heart } from 'lucide-react';
 
-export default function ProductImageGallery({ product, selectedSku, isLoggedIn, isWishlisted, toggleWishlist, onLoginRedirect }) {
+
+export default function ProductImageGallery({ product, selectedSku }) {
   // Collect all images: product images + any extra per-sku imgUrls not already in the list
   const allImages = useMemo(() => {
     const productImgs = (product?.images?.length > 0) ? product.images : (product?.image ? [product.image] : []);
@@ -31,23 +31,7 @@ export default function ProductImageGallery({ product, selectedSku, isLoggedIn, 
           alt={product?.name || 'Product image'}
           className="w-full h-full object-cover"
         />
-        <button
-          onClick={() => {
-            const currentProduct = product || { id: 999, name: 'Product', price: 0 };
-            if (!isLoggedIn) {
-              onLoginRedirect();
-              return;
-            }
-            toggleWishlist(currentProduct);
-          }}
-          className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-slate-50 transition-all active:scale-95"
-        >
-          {isWishlisted(product?.id) ? (
-            <Heart className="text-red-500" fill="currentColor" />
-          ) : (
-            <Heart className="text-slate-400" />
-          )}
-        </button>
+
       </div>
 
       {allImages.length > 1 && (

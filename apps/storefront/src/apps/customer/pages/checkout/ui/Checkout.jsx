@@ -16,12 +16,11 @@ export default function Checkout() {
   const { isLoggedIn, user, cartItems, cartTotal, refreshCart } = useAppContext();
 
   const [selectedAddressId, setSelectedAddressId] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('bank');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [shippingMethodId, setShippingMethodId] = useState(SHIPPING_METHODS.STANDARD.id);
   const [orderNote, setOrderNote] = useState('');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-
-  // Redirect if not logged in
+  const CHECKOUT_MODE = import.meta.env.VITE_CHECKOUT_MODE || 'live';
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/login', { state: { from: '/checkout' } });
@@ -85,34 +84,58 @@ export default function Checkout() {
 
   // Checkout Mutation
   const { mutate: placeOrder, isPending: isProcessing } = useMutation({
-    mutationFn: ({ address, paymentMethod: pm }) =>
-      orderService.checkout({ address, paymentMethod: pm }),
+    mutationFn: ({ addressId, paymentMethod: pm, orderNote, shippingMethod, finalAddress }) =>
+      orderService.checkout({
+        addressId,
+        paymentMethod: pm,
+        orderNote,
+        shippingMethod,
+        // Mock context – only used when VITE_CHECKOUT_MODE=mock
+        cartItems,
+        cartTotal,
+        shippingFee,
+        user,
+        finalAddress,
+        selectedAddress,
+      }),
     onSuccess: async (checkoutResponse, { finalAddress, apiPaymentMethod }) => {
-      // 1. Success: Clear locally (via refresh)
-      await refreshCart();
-      queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
+      const isDemo = checkoutResponse?.source === 'demo-checkout';
+
+      // Only clear cart and invalidate queries when dealing with a real persisted order
+      if (!isDemo) {
+        await refreshCart();
+        queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
+      }
       
       // Use fallback constructor for reload safety and incomplete backend responses
-      const orderData = createOrderConfirmationFallback(
-        checkoutResponse, 
-        cartItems, 
-        cartTotal, 
-        shippingFee, 
-        finalAddress, 
-        apiPaymentMethod
-      );
+      const orderData = isDemo
+        ? checkoutResponse
+        : createOrderConfirmationFallback(
+            checkoutResponse, 
+            cartItems, 
+            cartTotal, 
+            shippingFee, 
+            finalAddress, 
+            apiPaymentMethod
+          );
 
-      toast.success('Order placed successfully!');
+      toast.success(isDemo ? 'Demo order created! (not saved to database)' : 'Order placed successfully!');
       
-      // Save for reload safety
-      sessionStorage.setItem('fluxify_last_created_order', JSON.stringify(orderData));
+      // Save for reload safety using the unified key
+      sessionStorage.setItem('fluxify_last_checkout_order', JSON.stringify(orderData));
       
       // 2. Success: Redirect to Confirmation
-      navigate('/order-confirmation', { state: { orderData } });
+      navigate('/order-confirmation', {
+        state: {
+          order: orderData,
+          orderData,
+          orderId: orderData?.id || checkoutResponse?.id || null,
+        },
+      });
     },
     onError: (error) => {
-      // 3. Error: Keep state, show toast
-      toast.error(error?.response?.data?.message || 'Checkout failed, please try again');
+      const message = error?.response?.data?.message || error?.message || 'Checkout failed, please try again';
+      toast.error(message);
     },
   });
 
@@ -132,17 +155,25 @@ export default function Checkout() {
       toast.error('Please select a shipping address'); 
       return; 
     }
+    if (CHECKOUT_MODE !== 'mock' && selectedAddress?.isMock) {
+      const message = 'Please select a real saved address before live checkout.';
+      toast.error(message);
+      return;
+    }
     if (!paymentMethod) {
       toast.error('Please select a payment method');
       return;
     }
 
     const addressString = buildFormattedAddress(selectedAddress, orderNote);
-    const apiPaymentMethod = paymentMethod === 'bank' ? 'BankTransfer' : 'COD';
+    const apiPaymentMethod = 'COD';
+    const apiShippingMethod = shippingMethodId === SHIPPING_METHODS.STANDARD.id ? 'standard' : 'express';
 
     placeOrder({
-      address: addressString,
+      addressId: selectedAddress.id,
       paymentMethod: apiPaymentMethod,
+      orderNote: orderNote,
+      shippingMethod: apiShippingMethod,
       finalAddress: addressString,
       apiPaymentMethod,
     });

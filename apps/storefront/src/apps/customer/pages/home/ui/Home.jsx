@@ -23,6 +23,7 @@ export default function Home() {
   const { handleQuickAdd, setSelectedProduct, products, categories, isLoadingInventory, inventoryError } = useAppContext();
   const { content, theme, isLoadingTenant, tenantError } = useStorefrontConfig();
   const { tenantId } = useStorefrontTenant();
+  const textColor = theme?.colors?.text || '#111827';
   const navigate = useNavigate();
   const featuredProducts = products.slice(0, 4);
 
@@ -106,17 +107,19 @@ export default function Home() {
       <section className="mb-20">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-slate-900">
+            <h2 className="text-3xl font-bold" style={{ color: textColor }}>
               {content.home.featuredTitle}
             </h2>
             <p className="text-slate-500 mt-2">{content.home.featuredSubtitle}</p>
           </div>
           <button
             onClick={() => navigate('/shop')}
-            className="text-primary font-semibold hover:underline flex items-center gap-1"
+            className="font-semibold hover:underline flex items-center gap-1"
+            style={{ color: theme.colors.primary }}
           >
             View all <ArrowRight className=" text-sm" />
           </button>
+
         </div>
 
         {isLoadingInventory ? (
@@ -150,7 +153,7 @@ export default function Home() {
       </section>
 
       <section className="mb-20">
-        <h2 className="text-3xl font-bold text-slate-900 mb-8">Shop by Category</h2>
+        <h2 className="text-3xl font-bold mb-8" style={{ color: textColor }}>Shop by Category</h2>
         {isLoadingInventory ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" style={{ borderColor: theme.colors.primary, borderBottomColor: 'transparent' }}></div>

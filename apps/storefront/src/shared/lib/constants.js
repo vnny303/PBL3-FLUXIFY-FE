@@ -32,7 +32,7 @@ export const ROUTES = {
   CHECKOUT: '/checkout',
   ORDER_CONFIRMATION: '/order-confirmation',
   ACCOUNT: '/account',
-  WISHLIST: '/wishlist',
+
   LOGIN: '/login',
   SIGNUP: '/signup',
 };

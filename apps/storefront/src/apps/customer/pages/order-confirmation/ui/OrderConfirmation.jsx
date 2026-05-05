@@ -1,10 +1,13 @@
 import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Copy, CheckCircle2, ShoppingBag, ListChecks, MapPin, CreditCard, Package, AlertCircle } from 'lucide-react';
 import { getBankTransferQrUrl } from '../../../../../shared/lib/mocks/bankTransferMock';
+import { orderService } from '../../../../../shared/api/orderService';
 
 import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
+import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 
 const formatDate = (value) => {
   if (!value) return '';
@@ -31,27 +34,40 @@ const cleanAddress = (addressString) => {
 };
 
 export default function OrderConfirmation() {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
+
   const location = useLocation();
   const navigate = useNavigate();
+  const fallbackOrderId = location.state?.orderId || location.state?.order?.id || location.state?.orderData?.id || null;
+
+  const stateOrder = useMemo(
+    () => location.state?.order || location.state?.orderData || null,
+    [location.state]
+  );
+
+  const sessionOrder = useMemo(() => {
+    try {
+      const saved = sessionStorage.getItem('fluxify_last_checkout_order');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const { data: backendOrder = null } = useQuery({
+    queryKey: ['order-confirmation-detail', fallbackOrderId],
+    queryFn: () => orderService.getCustomerOrderDetail(fallbackOrderId),
+    enabled: !stateOrder && !sessionOrder && !!fallbackOrderId,
+    staleTime: 30_000,
+  });
 
   const orderData = useMemo(() => {
-    // 1. Try navigation state
-    if (location.state?.orderData) {
-      return location.state.orderData;
-    }
-    
-    // 2. Try sessionStorage fallback
-    try {
-      const saved = sessionStorage.getItem('fluxify_last_created_order');
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.error('Failed to parse saved order data', e);
-    }
-    
-    return null;
-  }, [location.state]);
+    if (stateOrder) return stateOrder;
+    if (sessionOrder) return sessionOrder;
+    return backendOrder || null;
+  }, [stateOrder, sessionOrder, backendOrder]);
 
   const orderItems = useMemo(() => Array.isArray(orderData?.orderItems) ? orderData.orderItems : [], [orderData]);
   
@@ -116,14 +132,20 @@ export default function OrderConfirmation() {
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
           <button 
             onClick={handleViewOrders}
-            className="flex-1 py-3 bg-slate-900 dark:bg-slate-800 text-white font-semibold rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-3 bg-slate-900 dark:bg-slate-800 text-white font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2"
+            style={{ borderRadius: `${borderRadius}px` }}
           >
             <ListChecks className="w-4 h-4" />
             View My Orders
           </button>
           <button 
             onClick={handleContinueShopping}
-            className="flex-1 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+            className="flex-1 py-3 text-white font-semibold transition-all flex items-center justify-center gap-2 shadow-lg hover:opacity-90"
+            style={{ 
+              backgroundColor: primaryColor, 
+              borderRadius: `${borderRadius}px`,
+              boxShadow: `0 10px 15px -3px ${primaryColor}33`
+            }}
           >
             <ShoppingBag className="w-4 h-4" />
             Continue Shopping
@@ -136,12 +158,22 @@ export default function OrderConfirmation() {
   // ─── Render Order Details ────────────────────────────────────────────────
   return (
     <main className="max-w-7xl mx-auto px-6 py-10">
+      {/* Demo Order Banner */}
+      {orderData.persisted === false && (
+        <div className="mb-6 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 text-amber-800 dark:text-amber-300 rounded-xl px-5 py-4">
+          <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-bold">Demo Order — Not saved to database</p>
+            <p className="text-xs mt-0.5 opacity-80">This is a local simulation order created while the backend is under maintenance. It will not appear in order history once backend is live.</p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col items-center text-center mb-10">
         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
           <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Thank you for your order!</h1>
-        <p className="text-slate-500">Order <span className="font-semibold text-primary">{displayOrderCode}</span> • {formatDate(orderData.createdAt) || 'Just now'}</p>
+        <p className="text-slate-500">Order <span className="font-semibold" style={{ color: primaryColor }}>{displayOrderCode}</span> • {formatDate(orderData.createdAt) || 'Just now'}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -230,7 +262,7 @@ export default function OrderConfirmation() {
           <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
             <div className="p-6">
               <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
-                <MapPin className="text-primary w-4 h-4" />
+                <MapPin className="w-4 h-4" style={{ color: primaryColor }} />
                 Shipping Address
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
@@ -245,7 +277,7 @@ export default function OrderConfirmation() {
             </div>
             <div className="p-6">
               <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
-                <CreditCard className="text-primary w-4 h-4" />
+                <CreditCard className="w-4 h-4" style={{ color: primaryColor }} />
                 Payment Method
               </h3>
               <p className="text-sm font-medium">{paymentName}</p>
@@ -257,7 +289,7 @@ export default function OrderConfirmation() {
           <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
             <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-sm font-semibold flex items-center gap-2">
-                <Package className="text-primary w-4 h-4" />
+                <Package className="w-4 h-4" style={{ color: primaryColor }} />
                 Order Items ({orderItems.length})
               </h3>
             </div>
@@ -296,21 +328,27 @@ export default function OrderConfirmation() {
               </div>
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-baseline">
                 <span className="text-lg font-bold">Total</span>
-                <span className="text-2xl font-bold text-primary">{formatVnd(totalDisplayInfo.totalAmount)}</span>
+                <span className="text-2xl font-bold" style={{ color: primaryColor }}>{formatVnd(totalDisplayInfo.totalAmount)}</span>
               </div>
             </div>
 
             <div className="space-y-3">
               <button 
                 onClick={handleViewOrders}
-                className="w-full py-3 bg-slate-900 dark:bg-slate-800 text-white font-semibold rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 text-sm"
+                className="w-full py-3 bg-slate-900 dark:bg-slate-800 text-white font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2 text-sm"
+                style={{ borderRadius: `${borderRadius}px` }}
               >
                 <ListChecks className="w-4 h-4" />
                 View My Orders
               </button>
               <button 
                 onClick={handleContinueShopping}
-                className="w-full py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 text-sm shadow-lg shadow-primary/20"
+                className="w-full py-3 text-white font-semibold transition-all flex items-center justify-center gap-2 text-sm shadow-lg hover:opacity-90"
+                style={{ 
+                  backgroundColor: primaryColor, 
+                  borderRadius: `${borderRadius}px`,
+                  boxShadow: `0 10px 15px -3px ${primaryColor}33`
+                }}
               >
                 <ShoppingBag className="w-4 h-4" />
                 Continue Shopping

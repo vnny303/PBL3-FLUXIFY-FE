@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Package, Tag, CheckCircle, Info, Bell } from 'lucide-react';
+import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 
 const initialNotifications = [
   { id: 1, title: 'Order Delivered', desc: 'Your order #FLX-9823 has been delivered successfully.', time: '2 mins ago', icon: Package, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', isRead: false },
@@ -9,6 +10,9 @@ const initialNotifications = [
 ];
 
 export default function Notifications() {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+
   const [notifications, setNotifications] = useState(initialNotifications);
   const [filter, setFilter] = useState('all');
 
@@ -30,13 +34,14 @@ export default function Notifications() {
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Notifications</h2>
           <p className="text-slate-500 mt-1">
-            You have <span className="font-semibold text-primary">{unreadCount}</span> unread notification{unreadCount !== 1 ? 's' : ''}.
+            You have <span className="font-semibold" style={{ color: primaryColor }}>{unreadCount}</span> unread notification{unreadCount !== 1 ? 's' : ''}.
           </p>
         </div>
         <button
           onClick={markAllAsRead}
           disabled={unreadCount === 0}
-          className="text-sm font-semibold text-primary hover:underline disabled:text-slate-400 disabled:no-underline disabled:cursor-not-allowed"
+          className="text-sm font-semibold hover:underline disabled:text-slate-400 disabled:no-underline disabled:cursor-not-allowed"
+          style={unreadCount > 0 ? { color: primaryColor } : {}}
         >
           Mark all as read
         </button>
@@ -50,9 +55,10 @@ export default function Notifications() {
             onClick={() => setFilter(f)}
             className={`px-4 py-2 text-sm font-semibold capitalize border-b-2 transition-colors -mb-px ${
               filter === f
-                ? 'border-primary text-primary'
+                ? ''
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
+            style={filter === f ? { color: primaryColor, borderBottomColor: primaryColor } : {}}
           >
             {f === 'all' ? `All (${notifications.length})` : `Unread (${unreadCount})`}
           </button>
@@ -77,7 +83,8 @@ export default function Notifications() {
             return (
               <div
                 key={notif.id}
-                className={`p-5 flex gap-4 items-start transition-colors ${!notif.isRead ? 'bg-blue-50/40' : 'hover:bg-slate-50'}`}
+                className={`p-5 flex gap-4 items-start transition-colors ${!notif.isRead ? '' : 'hover:bg-slate-50'}`}
+                style={!notif.isRead ? { backgroundColor: `${primaryColor}0D` } : {}}
               >
                 <div className={`shrink-0 w-11 h-11 rounded-full flex items-center justify-center ${notif.iconBg}`}>
                   <Icon className={`w-5 h-5 ${notif.iconColor}`} />
@@ -87,7 +94,7 @@ export default function Notifications() {
                     <p className={`text-sm font-bold text-slate-900 ${!notif.isRead ? '' : 'font-semibold'}`}>
                       {notif.title}
                       {!notif.isRead && (
-                        <span className="ml-2 inline-block w-2 h-2 rounded-full bg-blue-500 align-middle"></span>
+                        <span className="ml-2 inline-block w-2 h-2 rounded-full align-middle" style={{ backgroundColor: primaryColor }}></span>
                       )}
                     </p>
                     <span className="text-xs text-slate-400 whitespace-nowrap shrink-0">{notif.time}</span>
@@ -97,7 +104,8 @@ export default function Notifications() {
                     {!notif.isRead && (
                       <button
                         onClick={() => markAsRead(notif.id)}
-                        className="text-xs font-semibold text-primary hover:underline"
+                        className="text-xs font-semibold hover:underline"
+                        style={{ color: primaryColor }}
                       >
                         Mark as read
                       </button>

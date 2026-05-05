@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Minus, Plus, ShoppingCart, X } from 'lucide-react';
 import { useAppContext } from '../../../app/providers/useAppContext';
 import { formatVnd } from '../../../shared/lib/formatters';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 const COLOR_MAP = {
   red: '#EF4444', blue: '#3B82F6', white: '#F8FAFC', black: '#1A1C29',
@@ -15,6 +16,10 @@ function getColorSwatch(colorName) {
 }
 
 export default function QuickAddModal() {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
+
   const { quickAddProduct, setQuickAddProduct, addToCart } = useAppContext();
   const [selectedOptions, setSelectedOptions] = useState({});
   const [quantity, setQuantity] = useState(1);
@@ -140,7 +145,8 @@ export default function QuickAddModal() {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={handleClose}></div>
       <div
-        className="relative bg-white rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
+        className="relative bg-white max-w-4xl w-full overflow-hidden shadow-2xl max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
+        style={{ borderRadius: `${borderRadius}px` }}
         onClick={(event) => event.stopPropagation()}
       >
         <button
@@ -154,7 +160,10 @@ export default function QuickAddModal() {
 
         <div className="grid grid-cols-1 md:grid-cols-2">
           <div className="bg-slate-50 p-6 md:p-8 flex items-center justify-center border-b md:border-b-0 md:border-r border-slate-100">
-            <div className="w-full max-w-[320px] aspect-square rounded-2xl bg-white border border-slate-100 overflow-hidden">
+            <div 
+              className="w-full max-w-[320px] aspect-square bg-white border border-slate-100 overflow-hidden"
+              style={{ borderRadius: `${borderRadius}px` }}
+            >
               <img src={imageSrc} alt={quickAddProduct.name} className="w-full h-full object-cover" />
             </div>
           </div>
@@ -176,7 +185,7 @@ export default function QuickAddModal() {
             </div>
 
             <h2 className="text-2xl font-extrabold text-slate-900 leading-tight mb-1">{quickAddProduct.name}</h2>
-            <p className="text-2xl font-black text-primary mb-2">{priceDisplay}</p>
+            <p className="text-2xl font-black mb-2" style={{ color: primaryColor }}>{priceDisplay}</p>
 
             {reviewCount > 0 && (
               <p className="text-xs text-slate-500 font-medium mb-5">
@@ -219,9 +228,13 @@ export default function QuickAddModal() {
                               disabled={isOptionDisabled}
                               onClick={() => handleSelect(key, val)}
                               className={`w-9 h-9 rounded-full border-2 transition-all relative ${
-                                isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-slate-200 hover:border-slate-300'
+                                isSelected ? '' : 'border-slate-200 hover:border-slate-300'
                               } ${isOptionDisabled ? 'opacity-25 cursor-not-allowed grayscale' : ''}`}
-                              style={{ backgroundColor: swatch }}
+                              style={{ 
+                                backgroundColor: swatch,
+                                borderColor: isSelected ? primaryColor : undefined,
+                                boxShadow: isSelected ? `0 0 0 2px ${primaryColor}33` : undefined
+                              }}
                             >
                               {isOptionDisabled && (
                                 <div className="absolute inset-0 flex items-center justify-center">
@@ -237,11 +250,17 @@ export default function QuickAddModal() {
                             key={val}
                             disabled={isOptionDisabled}
                             onClick={() => handleSelect(key, val)}
-                            className={`min-w-[64px] px-3.5 py-2 text-sm font-bold rounded-md border transition-all ${
+                            className={`min-w-[64px] px-3.5 py-2 text-sm font-bold border transition-all ${
                               isSelected
-                                ? 'border-primary text-primary bg-primary/5'
+                                ? ''
                                 : 'border-slate-200 text-slate-600 hover:border-slate-300 bg-white'
                             } ${isOptionDisabled ? 'opacity-35 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-100' : ''}`}
+                            style={{ 
+                              borderRadius: `${borderRadius / 2}px`,
+                              borderColor: isSelected ? primaryColor : undefined,
+                              color: isSelected ? primaryColor : undefined,
+                              backgroundColor: isSelected ? `${primaryColor}0D` : undefined
+                            }}
                           >
                             {val}
                           </button>
@@ -283,11 +302,12 @@ export default function QuickAddModal() {
               <button
                 onClick={handleAdd}
                 disabled={isAddDisabled}
-                className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+                className={`w-full py-3.5 font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
                   isAddDisabled
                     ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                    : 'bg-primary text-white hover:brightness-110 active:scale-[0.99]'
+                    : 'text-white hover:brightness-110 active:scale-[0.99]'
                 }`}
+                style={isAddDisabled ? { borderRadius: `${borderRadius}px` } : { backgroundColor: primaryColor, borderRadius: `${borderRadius}px` }}
               >
                 <ShoppingCart className="w-4 h-4" />
                 {isOutOfStock ? 'Product Sold Out' : !selectedSku ? 'Select All Options' : 'Add to Cart'}

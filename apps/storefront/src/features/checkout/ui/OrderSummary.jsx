@@ -1,15 +1,26 @@
 import React from 'react';
 import { formatVnd } from '../../../shared/lib/formatters';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 export default function OrderSummary({ cartItems = [], cartSubtotal = 0, shippingFee, isProcessing, onPlaceOrder }) {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
+  const bgColor = theme?.colors?.background || '#ffffff';
+  const textColor = theme?.colors?.text || '#111827';
+  const cardBg = bgColor === '#ffffff' ? '#ffffff' : `${bgColor}E6`;
+
   const totalAmount = cartSubtotal + shippingFee;
 
   return (
     <div className="lg:w-[40%]">
       <div className="sticky top-24 space-y-6">
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+        <div 
+          className="shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden"
+          style={{ borderRadius: `${borderRadius}px`, backgroundColor: cardBg, color: textColor }}
+        >
           <div className="p-6">
-            <h2 className="text-lg font-semibold mb-6">Order Summary</h2>
+            <h2 className="text-lg font-semibold mb-6" style={{ color: textColor }}>Order Summary</h2>
             
             <div className="space-y-4 mb-8">
               {cartItems.length === 0 ? (
@@ -27,10 +38,10 @@ export default function OrderSummary({ cartItems = [], cartSubtotal = 0, shippin
                       <h3 className="text-sm font-medium">{item.productName}</h3>
                       <p className="text-xs text-slate-500 line-clamp-1">
                         {Object.entries(item.skuAttributes || {})
-                          .map(([key, value]) => `${value}`)
+                          .map(([, value]) => `${value}`)
                           .join(' • ') || 'Standard'}
                       </p>
-                      <p className="text-sm font-semibold mt-1 text-primary">{formatVnd(item.price)}</p>
+                      <p className="text-sm font-semibold mt-1" style={{ color: primaryColor }}>{formatVnd(item.price)}</p>
                     </div>
                   </div>
                 ))
@@ -49,7 +60,7 @@ export default function OrderSummary({ cartItems = [], cartSubtotal = 0, shippin
               
               <div className="flex justify-between text-xl font-bold pt-3 border-t border-slate-100 dark:border-slate-800">
                 <span>Total</span>
-                <span className="text-primary">{formatVnd(totalAmount)}</span>
+                <span style={{ color: primaryColor }}>{formatVnd(totalAmount)}</span>
               </div>
             </div>
 
@@ -58,12 +69,21 @@ export default function OrderSummary({ cartItems = [], cartSubtotal = 0, shippin
                 <button 
                   onClick={onPlaceOrder} 
                   disabled={cartItems.length === 0}
-                  className="w-full bg-primary hover:bg-primary/90 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3"
+                  className="w-full text-white font-semibold py-4 shadow-lg transition-all flex items-center justify-center gap-3 disabled:bg-slate-300 disabled:cursor-not-allowed hover:opacity-90 hover:-translate-y-0.5"
+                  style={{ 
+                    backgroundColor: primaryColor,
+                    borderRadius: `${borderRadius}px`,
+                    boxShadow: `0 10px 15px -3px ${primaryColor}4D`
+                  }}
                 >
                   Place Order
                 </button>
               ) : (
-                <button className="w-full bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-3 cursor-not-allowed" disabled>
+                <button 
+                  className="w-full bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold py-4 transition-all flex items-center justify-center gap-3 cursor-not-allowed" 
+                  style={{ borderRadius: `${borderRadius}px` }}
+                  disabled
+                >
                   <div className="animate-spin h-5 w-5 border-2 border-slate-300 border-t-slate-500 rounded-full"></div>
                   Processing...
                 </button>

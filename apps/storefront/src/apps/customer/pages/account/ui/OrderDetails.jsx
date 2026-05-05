@@ -1,24 +1,45 @@
 import { useState } from 'react';
 import { Loader2, AlertCircle, ChevronDown, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import ReviewModal from '../../../../../features/product-review/ui/ReviewModal';
-import InvoicePrint from '../../../../../entities/order/ui/InvoicePrint';
+import { orderService } from '../../../../../shared/api/orderService';
 import { useAppContext } from '../../../../../app/providers/useAppContext';
 import OrderItemList from '../../../../../entities/order/ui/OrderItemList';
 import OrderStatusTimeline from '../../../../../entities/order/ui/OrderStatusTimeline';
 import OrderSummaryCard from '../../../../../entities/order/ui/OrderSummaryCard';
 import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
+import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 
 export default function OrderDetails({ setCurrentScreen, order }) {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
+
   const { addToCart, setShowCart } = useAppContext();
+  const queryClient = useQueryClient();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orderStatus, setOrderStatus] = useState(order?.status || 'Pending');
   const [reviewedItems, setReviewedItems] = useState({});
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [isCancelling, setIsCancelling] = useState(false);
   const [buyingItemIds, setBuyingItemIds] = useState({});
   const [isBuyingWholeOrder, setIsBuyingWholeOrder] = useState(false);
+
+  const cancelOrderMutation = useMutation({
+    mutationFn: () => orderService.cancelOrder(order?.id),
+    onSuccess: () => {
+      setOrderStatus('Cancelled');
+      setIsCancelModalOpen(false);
+      toast.success('Order cancelled successfully!');
+      queryClient.invalidateQueries(['customer-orders']);
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Failed to cancel order');
+    }
+  });
+
+  const isCancelling = cancelOrderMutation.isPending;
   const [cancelReason, setCancelReason] = useState('');
   const [isReasonDropdownOpen, setIsReasonDropdownOpen] = useState(false);
 
@@ -28,7 +49,11 @@ export default function OrderDetails({ setCurrentScreen, order }) {
         <AlertCircle className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No Order Selected</h2>
         <p className="text-slate-500 dark:text-slate-400 text-center">Please select an order from the list to view its details.</p>
-        <button onClick={() => setCurrentScreen('my-orders')} className="mt-6 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors">
+        <button 
+          onClick={() => setCurrentScreen('my-orders')} 
+          className="mt-6 px-6 py-2 text-white font-semibold transition-colors hover:opacity-90"
+          style={{ backgroundColor: primaryColor, borderRadius: `${borderRadius}px` }}
+        >
           View My Orders
         </button>
       </div>
@@ -73,13 +98,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   const handleWriteReview = (product) => { setSelectedProduct(product); setIsReviewModalOpen(true); };
 
   const handleConfirmCancel = () => {
-    setIsCancelling(true);
-    setTimeout(() => {
-      setIsCancelling(false);
-      setIsCancelModalOpen(false);
-      setOrderStatus('Cancelled');
-      toast.success('Order cancelled successfully!');
-    }, 1500);
+    cancelOrderMutation.mutate();
   };
 
   const handleBuyItem = (item, idx) => {
@@ -156,11 +175,18 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     <section className="flex-1 relative">
       {/* Header */}
       <div className="mb-6">
-        <button onClick={() => setCurrentScreen('my-orders')} className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-primary transition-colors mb-4">
+        <button 
+          onClick={() => setCurrentScreen('my-orders')} 
+          className="flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-colors mb-4"
+          style={{ color: primaryColor }}
+        >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
           Back to Orders
         </button>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div 
+          className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800 shadow-sm"
+          style={{ borderRadius: `${borderRadius}px` }}
+        >
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Order {getDisplayOrderCode(normalizedOrder)}</h1>
@@ -175,19 +201,29 @@ export default function OrderDetails({ setCurrentScreen, order }) {
             <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Placed on {normalizedOrder.date} • {normalizedOrder.items.length} Items</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => window.print()} className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-              Print Invoice
-            </button>
+
             {orderStatus === 'Cancelled' ? (
-              <button onClick={handleBuyWholeOrder} disabled={isBuyingWholeOrder} className="px-4 py-2 bg-blue-600 text-white font-semibold text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2">
+              <button 
+                onClick={handleBuyWholeOrder} 
+                disabled={isBuyingWholeOrder} 
+                className="px-4 py-2 text-white font-semibold text-sm transition-colors shadow-sm flex items-center justify-center gap-2 hover:opacity-90"
+                style={{ backgroundColor: primaryColor, borderRadius: `${borderRadius}px` }}
+              >
                 {isBuyingWholeOrder ? <><Loader2 className="w-4 h-4 animate-spin" />Loading...</> : 'Buy Again'}
               </button>
             ) : orderStatus === 'Pending' || orderStatus === 'Processing' ? (
-              <button onClick={() => setIsCancelModalOpen(true)} className="px-4 py-2 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-semibold text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shadow-sm">
+              <button 
+                onClick={() => setIsCancelModalOpen(true)} 
+                className="px-4 py-2 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shadow-sm"
+                style={{ borderRadius: `${borderRadius}px` }}
+              >
                 Cancel Order
               </button>
             ) : (
-              <button className="px-4 py-2 bg-primary text-white font-semibold text-sm rounded-lg hover:bg-primary-hover transition-colors shadow-sm">
+              <button 
+                className="px-4 py-2 text-white font-semibold text-sm transition-colors shadow-sm hover:opacity-90"
+                style={{ backgroundColor: primaryColor, borderRadius: `${borderRadius}px` }}
+              >
                 Track Order
               </button>
             )}
@@ -220,12 +256,12 @@ export default function OrderDetails({ setCurrentScreen, order }) {
           toast.success('Review Submitted! Thank you for sharing your experience.');
         }}
       />
-      <InvoicePrint order={normalizedOrder} />
+
 
       {/* Cancel Order Modal */}
       {isCancelModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl p-8 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md shadow-2xl p-8 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()} style={{ borderRadius: `${borderRadius}px` }}>
             <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-6">
               <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
             </div>
@@ -234,18 +270,23 @@ export default function OrderDetails({ setCurrentScreen, order }) {
             <div className="mb-8">
               <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Reason for cancellation (Optional)</label>
               <div className="relative">
-                <button type="button" onClick={() => setIsReasonDropdownOpen(!isReasonDropdownOpen)} className="w-full flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-all text-sm text-left">
+                <button 
+                  type="button" 
+                  onClick={() => setIsReasonDropdownOpen(!isReasonDropdownOpen)} 
+                  className="w-full flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-4 py-3 focus:outline-none focus:ring-2 transition-all text-sm text-left"
+                  style={{ borderRadius: `${borderRadius}px`, '--tw-ring-color': primaryColor }}
+                >
                   <span className={cancelReason ? "text-slate-900 dark:text-white" : "text-slate-500"}>
                     {cancelReason ? cancellationReasons.find(r => r.id === cancelReason)?.label : "Select a reason..."}
                   </span>
                   <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isReasonDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {isReasonDropdownOpen && (
-                  <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden py-1 animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden py-1 animate-in fade-in slide-in-from-top-2" style={{ borderRadius: `${borderRadius}px` }}>
                     {cancellationReasons.map((reason) => (
                       <button key={reason.id} type="button" onClick={() => { setCancelReason(reason.id); setIsReasonDropdownOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-between">
                         {reason.label}
-                        {cancelReason === reason.id && <CheckCircle className="w-4 h-4 text-blue-600" />}
+                        {cancelReason === reason.id && <CheckCircle className="w-4 h-4" style={{ color: primaryColor }} />}
                       </button>
                     ))}
                   </div>
@@ -253,8 +294,20 @@ export default function OrderDetails({ setCurrentScreen, order }) {
               </div>
             </div>
             <div className="flex flex-col gap-3">
-              <button onClick={() => setIsCancelModalOpen(false)} disabled={isCancelling} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm">Keep Order</button>
-              <button onClick={handleConfirmCancel} disabled={isCancelling} className="w-full py-3.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors flex items-center justify-center gap-2">
+              <button 
+                onClick={() => setIsCancelModalOpen(false)} 
+                disabled={isCancelling} 
+                className="w-full py-3.5 text-white font-bold transition-colors shadow-sm hover:opacity-90"
+                style={{ backgroundColor: primaryColor, borderRadius: `${borderRadius}px` }}
+              >
+                Keep Order
+              </button>
+              <button 
+                onClick={handleConfirmCancel} 
+                disabled={isCancelling} 
+                className="w-full py-3.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors flex items-center justify-center gap-2"
+                style={{ borderRadius: `${borderRadius}px` }}
+              >
                 {isCancelling ? <><Loader2 className="w-4 h-4 animate-spin" />Processing...</> : 'Yes, Cancel Order'}
               </button>
             </div>
@@ -264,4 +317,3 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     </section>
   );
 }
-

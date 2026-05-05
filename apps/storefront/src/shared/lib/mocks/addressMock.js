@@ -1,8 +1,9 @@
 export const INITIAL_ADDRESS_MOCKS = [
   {
-    id: "mock-addr-1",
+    id: "mock-address-1",
     customerId: null,
     tenantId: null,
+    isMock: true,
     receiverName: "Nguyen Van A",
     phone: "0901234567",
     country: "Vietnam",
