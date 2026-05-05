@@ -14,7 +14,7 @@ import ProductActions from '../../../../../entities/product/ui/ProductActions';
 import ProductTabs from '../../../../../entities/product/ui/ProductTabs';
 
 export default function ProductDetail() {
-  const { addToCart, products, isLoggedIn, toggleWishlist, isWishlisted } = useAppContext();
+  const { addToCart, products, isLoggedIn } = useAppContext();
   const { tenantId } = useStorefrontTenant();
   const navigate = useNavigate();
   const location = useLocation();
@@ -176,10 +176,6 @@ export default function ProductDetail() {
         <ProductImageGallery
           product={product}
           selectedSku={selectedSku}
-          isLoggedIn={isLoggedIn}
-          isWishlisted={isWishlisted}
-          toggleWishlist={toggleWishlist}
-          onLoginRedirect={handleLoginRedirect}
         />
 
         <div className="w-full lg:w-1/2">

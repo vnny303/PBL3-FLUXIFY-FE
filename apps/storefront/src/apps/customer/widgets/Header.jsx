@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
-import { Search, Bell, ShoppingBag, ShoppingCart, MapPin, Settings, LogOut, User, Heart, X, Package, Menu } from 'lucide-react';
+import { Search, Bell, ShoppingBag, ShoppingCart, MapPin, Settings, LogOut, User, X, Package, Menu } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAppContext } from '../../../app/providers/useAppContext';
@@ -21,7 +21,6 @@ export default function Header() {
     logout, 
     setShowCart, 
     cartCount, 
-    wishlistCount, 
     searchQuery, 
     setSearchQuery,
     products 
@@ -264,12 +263,7 @@ export default function Header() {
                     </div>
                   )}
                 </div>
-                <Link to="/wishlist" className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center">
-                  <Heart />
-                  {wishlistCount > 0 && (
-                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">{wishlistCount}</span>
-                  )}
-                </Link>
+
                 <button onClick={() => setShowCart(true)} className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                   <ShoppingBag />
                   {cartCount > 0 && (

@@ -9,6 +9,7 @@ import {
   getUserDisplayName,
   getUserInitials,
 } from '../../../shared/lib/userProfile';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 export default function Sidebar({ currentScreen, setCurrentScreen }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -18,6 +19,10 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
   const userDisplayEmail = getUserDisplayEmail(user);
   const userAvatarUrl = getUserAvatarUrl(user);
   const userInitials = getUserInitials(user);
+
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
 
   const navItems = [
     { id: 'my-orders', label: 'My Orders', icon: Package },
@@ -33,7 +38,7 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
           {userAvatarUrl ? (
             <img src={userAvatarUrl} alt={userDisplayName} className="h-10 w-10 rounded-full object-cover" />
           ) : (
-            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white">
+            <div className="h-10 w-10 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: primaryColor }}>
               <span className="text-sm font-bold">{userInitials}</span>
             </div>
           )}
@@ -52,9 +57,10 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
                 onClick={() => setCurrentScreen(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                   isActive 
-                    ? 'bg-primary/10 text-primary font-medium' 
+                    ? 'font-medium' 
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
+                style={isActive ? { backgroundColor: `${primaryColor}1A`, color: primaryColor } : {}}
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-sm">{item.label}</span>

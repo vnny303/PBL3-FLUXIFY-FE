@@ -16,13 +16,11 @@ export default function Checkout() {
   const { isLoggedIn, user, cartItems, cartTotal, refreshCart } = useAppContext();
 
   const [selectedAddressId, setSelectedAddressId] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('bank');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [shippingMethodId, setShippingMethodId] = useState(SHIPPING_METHODS.STANDARD.id);
   const [orderNote, setOrderNote] = useState('');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const CHECKOUT_MODE = import.meta.env.VITE_CHECKOUT_MODE || 'live';
-
-  // Redirect if not logged in
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/login', { state: { from: '/checkout' } });
@@ -168,7 +166,7 @@ export default function Checkout() {
     }
 
     const addressString = buildFormattedAddress(selectedAddress, orderNote);
-    const apiPaymentMethod = paymentMethod === 'bank' ? 'BankTransfer' : 'COD';
+    const apiPaymentMethod = 'COD';
     const apiShippingMethod = shippingMethodId === SHIPPING_METHODS.STANDARD.id ? 'standard' : 'express';
 
     placeOrder({

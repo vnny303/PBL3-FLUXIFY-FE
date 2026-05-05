@@ -7,6 +7,7 @@ import { getBankTransferQrUrl } from '../../../../../shared/lib/mocks/bankTransf
 import { orderService } from '../../../../../shared/api/orderService';
 
 import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
+import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 
 const formatDate = (value) => {
   if (!value) return '';
@@ -33,6 +34,10 @@ const cleanAddress = (addressString) => {
 };
 
 export default function OrderConfirmation() {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
+
   const location = useLocation();
   const navigate = useNavigate();
   const fallbackOrderId = location.state?.orderId || location.state?.order?.id || location.state?.orderData?.id || null;
@@ -127,14 +132,20 @@ export default function OrderConfirmation() {
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
           <button 
             onClick={handleViewOrders}
-            className="flex-1 py-3 bg-slate-900 dark:bg-slate-800 text-white font-semibold rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-3 bg-slate-900 dark:bg-slate-800 text-white font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2"
+            style={{ borderRadius: `${borderRadius}px` }}
           >
             <ListChecks className="w-4 h-4" />
             View My Orders
           </button>
           <button 
             onClick={handleContinueShopping}
-            className="flex-1 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+            className="flex-1 py-3 text-white font-semibold transition-all flex items-center justify-center gap-2 shadow-lg hover:opacity-90"
+            style={{ 
+              backgroundColor: primaryColor, 
+              borderRadius: `${borderRadius}px`,
+              boxShadow: `0 10px 15px -3px ${primaryColor}33`
+            }}
           >
             <ShoppingBag className="w-4 h-4" />
             Continue Shopping
@@ -162,7 +173,7 @@ export default function OrderConfirmation() {
           <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Thank you for your order!</h1>
-        <p className="text-slate-500">Order <span className="font-semibold text-primary">{displayOrderCode}</span> • {formatDate(orderData.createdAt) || 'Just now'}</p>
+        <p className="text-slate-500">Order <span className="font-semibold" style={{ color: primaryColor }}>{displayOrderCode}</span> • {formatDate(orderData.createdAt) || 'Just now'}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -251,7 +262,7 @@ export default function OrderConfirmation() {
           <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
             <div className="p-6">
               <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
-                <MapPin className="text-primary w-4 h-4" />
+                <MapPin className="w-4 h-4" style={{ color: primaryColor }} />
                 Shipping Address
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
@@ -266,7 +277,7 @@ export default function OrderConfirmation() {
             </div>
             <div className="p-6">
               <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
-                <CreditCard className="text-primary w-4 h-4" />
+                <CreditCard className="w-4 h-4" style={{ color: primaryColor }} />
                 Payment Method
               </h3>
               <p className="text-sm font-medium">{paymentName}</p>
@@ -278,7 +289,7 @@ export default function OrderConfirmation() {
           <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
             <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-sm font-semibold flex items-center gap-2">
-                <Package className="text-primary w-4 h-4" />
+                <Package className="w-4 h-4" style={{ color: primaryColor }} />
                 Order Items ({orderItems.length})
               </h3>
             </div>
@@ -317,21 +328,27 @@ export default function OrderConfirmation() {
               </div>
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-baseline">
                 <span className="text-lg font-bold">Total</span>
-                <span className="text-2xl font-bold text-primary">{formatVnd(totalDisplayInfo.totalAmount)}</span>
+                <span className="text-2xl font-bold" style={{ color: primaryColor }}>{formatVnd(totalDisplayInfo.totalAmount)}</span>
               </div>
             </div>
 
             <div className="space-y-3">
               <button 
                 onClick={handleViewOrders}
-                className="w-full py-3 bg-slate-900 dark:bg-slate-800 text-white font-semibold rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 text-sm"
+                className="w-full py-3 bg-slate-900 dark:bg-slate-800 text-white font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2 text-sm"
+                style={{ borderRadius: `${borderRadius}px` }}
               >
                 <ListChecks className="w-4 h-4" />
                 View My Orders
               </button>
               <button 
                 onClick={handleContinueShopping}
-                className="w-full py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 text-sm shadow-lg shadow-primary/20"
+                className="w-full py-3 text-white font-semibold transition-all flex items-center justify-center gap-2 text-sm shadow-lg hover:opacity-90"
+                style={{ 
+                  backgroundColor: primaryColor, 
+                  borderRadius: `${borderRadius}px`,
+                  boxShadow: `0 10px 15px -3px ${primaryColor}33`
+                }}
               >
                 <ShoppingBag className="w-4 h-4" />
                 Continue Shopping

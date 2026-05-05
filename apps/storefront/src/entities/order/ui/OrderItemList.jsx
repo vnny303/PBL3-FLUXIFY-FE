@@ -1,7 +1,10 @@
 import React from 'react';
 import { Loader2, Star, Edit } from 'lucide-react';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 export default function OrderItemList({ items, reviewedItems, buyingItemIds, onWriteReview, onBuyItem }) {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
       <div className="p-6 border-b border-slate-100 dark:border-slate-800">
@@ -31,10 +34,11 @@ export default function OrderItemList({ items, reviewedItems, buyingItemIds, onW
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => onWriteReview({ name: productName, variant: productVariant, image: productImage })}
-                      className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 hover:underline transition-colors flex items-center gap-1"
+                      className="text-xs font-bold hover:underline transition-colors flex items-center gap-1"
+                      style={{ color: primaryColor }}
                     >
                       {reviewedItems[productName] ? (
-                        <><Edit className="w-3 h-3 text-blue-600 dark:text-blue-500" />Edit Review</>
+                        <><Edit className="w-3 h-3" style={{ color: primaryColor }} />Edit Review</>
                       ) : (
                         <><Star className="w-3 h-3 fill-amber-400 text-amber-400" />Write a Review</>
                       )}
@@ -42,7 +46,8 @@ export default function OrderItemList({ items, reviewedItems, buyingItemIds, onW
                     <button
                       onClick={() => onBuyItem(item, idx)}
                       disabled={buyingItemIds[idx]}
-                      className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 hover:underline transition-colors flex items-center justify-center gap-1"
+                      className="text-xs font-bold hover:underline transition-colors flex items-center justify-center gap-1"
+                      style={{ color: primaryColor }}
                     >
                       {buyingItemIds[idx] ? (
                         <><Loader2 className="w-3 h-3 animate-spin" />Loading...</>

@@ -1,48 +1,48 @@
 /**
  * Mock Theme and Content for local testing.
- * Tone: "Cyber Crimson" - Một phong cách đỏ hiện đại, mạnh mẽ.
+ * Tone: "Sunset Glow" - Phong cách Cam/Hồng rực rỡ, năng động.
  */
 export const themeMock = {
   theme: {
     colors: {
-      primary: '#e11d48', // Rose 600 (Đỏ hiện đại, hơi ánh hồng ngoại)
-      background: '#0f172a', // Dark Navy/Slate
-      text: '#ffffff', // Trắng tinh khiết
+      primary: '#f97316', // Orange 500
+      background: '#fff1f2', // Rose 50 (Very light pink)
+      text: '#1e293b', // Slate 800
     },
     typography: {
-      fontFamily: 'Inter, sans-serif',
+      fontFamily: 'Outfit, Inter, sans-serif',
     },
     layout: {
-      borderRadius: 12, // Bo góc vừa phải, hiện đại
+      borderRadius: 20, // Bo góc tròn trịa, trẻ trung hơn
     },
     components: {
       header: {
-        background: '#020617', // Đen sâu
-        text: '#ffffff',
+        background: '#ffffff',
+        text: '#f97316',
       },
       footer: {
-        background: '#020617',
-        text: '#94a3b8',
+        background: '#1e293b',
+        text: '#fda4af', // Rose 300
       },
       productCard: {
-        background: '#1e293b',
-        text: '#f1f5f9',
-        price: '#fb7185', // Rose 400 cho giá tiền nổi bật
-        badge: '#e11d48', // Badge màu đỏ trùng tone primary
+        background: '#ffffff',
+        text: '#1e293b',
+        price: '#db2777', // Pink 600
+        badge: '#f472b6', // Pink 400
       }
     }
   },
   content: {
     home: {
-      title: 'CYBER CRIMSON COLLECTION',
-      subtitle: 'Trải nghiệm phong cách mua sắm thế hệ mới với tone đỏ Cyber đầy quyền lực.',
-      heroImageUrl: 'https://images.unsplash.com/photo-1549484770-466ca926529e?auto=format&fit=crop&w=1600&q=80',
-      heroOverlayOpacity: 0.6,
-      featuredTitle: '🔥 Hot Deals of the Week',
-      featuredSubtitle: 'Những sản phẩm được săn đón nhất trong bộ sưu tập Crimson.',
+      title: 'SUNSET GLOW VIBES',
+      subtitle: 'Đón nhận năng lượng tích cực với bộ sưu tập mang sắc màu hoàng hôn rực rỡ.',
+      heroImageUrl: 'https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1600&q=80',
+      heroOverlayOpacity: 0.3,
+      featuredTitle: '🔥 Hottest Picks',
+      featuredSubtitle: 'Những siêu phẩm đang làm mưa làm gió trong mùa hè này.',
     },
     about: {
-      story: 'Chúng tôi không chỉ bán sản phẩm, chúng tôi bán một phong cách sống đầy nhiệt huyết. \n\nCyber Crimson đại diện cho sự bứt phá và đam mê trong từng chi tiết sản phẩm. Hãy khám phá câu chuyện của chúng tôi.',
+      story: 'Fluxify mang đến sự kết hợp đầy táo bạo giữa sắc Cam năng động và màu Hồng ngọt ngào. \n\nSunset Glow không chỉ là một chủ đề, đó là phong cách sống hiện đại, tràn đầy nhiệt huyết và sự tự tin.',
     }
   }
 };

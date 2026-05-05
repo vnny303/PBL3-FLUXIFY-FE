@@ -1,7 +1,10 @@
 import React from 'react';
 import { Package, Truck, CheckCircle, X } from 'lucide-react';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 export default function OrderStatusTimeline({ orderStatus, currentIndex, progressWidth }) {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
       <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Tracking Status</h2>
@@ -44,8 +47,8 @@ export default function OrderStatusTimeline({ orderStatus, currentIndex, progres
         ) : (
           <>
             <div
-              className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary rounded-full transition-all duration-500"
-              style={{ width: progressWidth }}
+              className="absolute left-0 top-1/2 -translate-y-1/2 h-1 rounded-full transition-all duration-500"
+              style={{ width: progressWidth, backgroundColor: primaryColor }}
             ></div>
             <div className="relative flex justify-between">
               {[
@@ -55,7 +58,10 @@ export default function OrderStatusTimeline({ orderStatus, currentIndex, progres
                 { label: 'Delivered', Icon: CheckCircle, date: 'Est. Oct 16' },
               ].map((step, i) => (
                 <div key={step.label} className="flex flex-col items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 transition-colors duration-500 ${currentIndex >= i ? 'bg-primary text-white shadow-sm shadow-primary/30' : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-400'}`}>
+                  <div 
+                    className={`w-8 h-8 rounded-full flex items-center justify-center z-10 transition-colors duration-500 ${currentIndex >= i ? 'text-white' : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-400'}`}
+                    style={currentIndex >= i ? { backgroundColor: primaryColor, boxShadow: `0 4px 6px -1px ${primaryColor}4D` } : {}}
+                  >
                     {React.createElement(step.Icon, { className: 'w-4 h-4' })}
                   </div>
                   <span className={`text-xs font-bold ${currentIndex >= i ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>{step.label}</span>
@@ -78,7 +84,7 @@ export default function OrderStatusTimeline({ orderStatus, currentIndex, progres
       ) : (
         <div className="mt-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-100 dark:border-slate-800">
           <p className="text-sm font-medium text-slate-900 dark:text-white flex items-center gap-2">
-            {currentIndex >= 3 ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Truck className="w-4 h-4 text-primary" />}
+            {currentIndex >= 3 ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Truck className="w-4 h-4" style={{ color: primaryColor }} />}
             {currentIndex === 0 && 'Order has been placed'}
             {currentIndex === 1 && 'Your package is being processed'}
             {currentIndex === 2 && 'Your package is on the way'}

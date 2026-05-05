@@ -2,8 +2,13 @@ import React, { useEffect } from 'react';
 import { X, Check, ArrowRight } from 'lucide-react';
 import { useAppContext } from '../../../app/providers/useAppContext';
 import { formatVnd } from '../../../shared/lib/formatters';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 export default function AddToCartPopup() {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
+
   const { showAddToCartPopup, setShowAddToCartPopup, setShowCart, lastAddedItem, cartTotal } = useAppContext();
 
   const displayPrice = formatVnd(lastAddedItem?.price);
@@ -28,7 +33,10 @@ export default function AddToCartPopup() {
       ></div>
 
       {/* Popup Modal */}
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl z-70 overflow-hidden">
+      <div 
+        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white shadow-2xl z-70 overflow-hidden"
+        style={{ borderRadius: `${borderRadius}px` }}
+      >
         <div className="p-6 relative">
           <button 
             onClick={() => setShowAddToCartPopup(false)}
@@ -58,7 +66,7 @@ export default function AddToCartPopup() {
                 {lastAddedItem.size && lastAddedItem.size !== 'Standard' ? `${lastAddedItem.size} / ` : ''}
                 Qty: {lastAddedItem.quantity}
               </p>
-              <span className="text-sm font-bold text-blue-600">{displayPrice}</span>
+              <span className="text-sm font-bold" style={{ color: primaryColor }}>{displayPrice}</span>
             </div>
           </div>
 
@@ -70,7 +78,8 @@ export default function AddToCartPopup() {
           <div className="flex gap-4">
             <button 
               onClick={() => setShowAddToCartPopup(false)}
-              className="flex-1 py-3 rounded-full border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+              className="flex-1 py-3 border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+              style={{ borderRadius: `${borderRadius}px` }}
             >
               Continue Shopping
             </button>
@@ -79,7 +88,12 @@ export default function AddToCartPopup() {
                 setShowAddToCartPopup(false);
                 setShowCart(true);
               }}
-              className="flex-1 py-3 rounded-full bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
+              className="flex-1 py-3 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-lg hover:brightness-110"
+              style={{ 
+                backgroundColor: primaryColor, 
+                borderRadius: `${borderRadius}px`,
+                boxShadow: `0 10px 15px -3px ${primaryColor}33`
+              }}
             >
               View Cart
               <ArrowRight className=" text-sm" />

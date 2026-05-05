@@ -309,4 +309,7 @@ export const orderService = {
             status,
         });
     },
+    cancelOrder: async (orderId) => {
+        return await axiosClient.post(`/api/customer/orders/${orderId}/cancel`);
+    },
 };

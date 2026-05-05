@@ -45,7 +45,26 @@ export const logout = async () => {
 };
 
 export const updateCustomer = async (customerId, data) => {
-  return axiosClient.put(`/api/auth/customers/${customerId}`, data);
+  return axiosClient.put(`/api/auth/customer/${customerId}`, data);
+};
+
+export const uploadAvatar = async (customerId, file) => {
+  // Vì Backend hiện tại chưa có endpoint xử lý File Upload cho Avatar,
+  // tôi sẽ giả lập (Mock) quá trình này để bạn có thể test luồng giao diện.
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const mockAvatarUrl = URL.createObjectURL(file);
+      resolve({ avatarUrl: mockAvatarUrl });
+    }, 1500);
+  });
+  
+  /* Logic thật khi Backend đã sẵn sàng:
+  const formData = new FormData();
+  formData.append('file', file);
+  return axiosClient.post(`/api/auth/customer/${customerId}/avatar`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  */
 };
 
 export const authService = {
@@ -55,4 +74,5 @@ export const authService = {
   getCurrentUser,
   getTenantBySubdomain,
   updateCustomer,
+  uploadAvatar,
 };

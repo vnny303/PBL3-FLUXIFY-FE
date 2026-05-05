@@ -9,9 +9,21 @@ import {
   getUserDisplayName,
   normalizeUserProfile,
 } from '../../../../../shared/lib/userProfile';
+import { useDispatch } from 'react-redux';
+import { setUser as setUserAction } from '../../../../../app/store/slices/authSlice';
+import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 
 export default function ProfileSettings() {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
+  const bgColor = theme?.colors?.background || '#ffffff';
+  const textColor = theme?.colors?.text || '#111827';
+  const cardBg = bgColor === '#ffffff' ? '#ffffff' : `${bgColor}E6`; // Slightly more opaque card bg
+  const sectionBg = bgColor === '#ffffff' ? '#f8fafc' : `${bgColor}80`; // Sub-section bg
+
   const { user } = useAppContext();
+  const dispatch = useDispatch();
   const normalizedUser = normalizeUserProfile(user);
   const userDisplayName = getUserDisplayName(normalizedUser);
   const [confirmAction, setConfirmAction] = useState(null);
@@ -37,7 +49,8 @@ export default function ProfileSettings() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  const photoUrl = getUserAvatarUrl(normalizedUser);
+  const [photoUrl, setPhotoUrl] = useState(getUserAvatarUrl(normalizedUser));
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const photoInitial = userDisplayName
     .split(' ')
     .filter(Boolean)
@@ -51,6 +64,7 @@ export default function ProfileSettings() {
     onSuccess: () => {
       toast.success('Profile updated successfully!');
       setConfirmAction(null);
+      // Optional: Refresh user data in context if needed
     },
     onError: (error) => {
       toast.error(error?.response?.data?.message || 'Failed to update profile');
@@ -68,6 +82,22 @@ export default function ProfileSettings() {
     onError: (error) => {
       toast.error(error?.response?.data?.message || 'Failed to update password');
       setConfirmAction(null);
+    }
+  });
+
+  const uploadAvatarMutation = useMutation({
+    mutationFn: (file) => authService.uploadAvatar(user?.userId, file),
+    onSuccess: (data) => {
+      toast.success('Avatar updated successfully!');
+      if (data?.avatarUrl) {
+        setPhotoUrl(data.avatarUrl);
+        // Cập nhật state user toàn cục trong Redux để Header, Sidebar... đều thay đổi theo
+        dispatch(setUserAction({ ...user, avatarUrl: data.avatarUrl }));
+      }
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Failed to upload avatar');
+      setPhotoUrl(getUserAvatarUrl(normalizedUser));
     }
   });
 
@@ -109,11 +139,15 @@ export default function ProfileSettings() {
     setConfirmAction('update-password');
   };
 
-  const handlePhotoChange = (e) => {
+  const handlePhotoChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setPhotoUrl(url);
+      // 1. Client-side preview
+      const previewUrl = URL.createObjectURL(file);
+      setPhotoUrl(previewUrl);
+      
+      // 2. Real upload
+      uploadAvatarMutation.mutate(file);
     }
   };
 
@@ -121,14 +155,17 @@ export default function ProfileSettings() {
     <section className="flex-1">
       <div className="max-w-4xl">
         <div className="mb-10">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Profile Settings</h1>
+          <h1 className="text-3xl font-bold tracking-tight" style={{ color: textColor }}>Profile Settings</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2">Update your personal information and security settings.</p>
         </div>
         
         <div className="flex flex-col gap-8">
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div 
+            className="rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden"
+            style={{ backgroundColor: cardBg, color: textColor }}
+          >
             <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Personal Information</h2>
+              <h2 className="text-lg font-bold" style={{ color: textColor }}>Personal Information</h2>
             </div>
             <div className="p-6">
               <div className="flex flex-col sm:flex-row items-center gap-6 mb-8">
@@ -138,18 +175,30 @@ export default function ProfileSettings() {
                     style={{ backgroundImage: `url('${photoUrl}')` }}
                   ></div>
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-primary text-white border-4 border-white dark:border-slate-800 shadow-lg flex items-center justify-center text-2xl font-black">
+                  <div 
+                    className="w-24 h-24 rounded-full text-white border-4 border-white dark:border-slate-800 shadow-lg flex items-center justify-center text-2xl font-black"
+                    style={{ backgroundColor: primaryColor }}
+                  >
                     {photoInitial}
                   </div>
                 )}
                 <div className="flex flex-col items-center sm:items-start gap-2 text-center sm:text-left">
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={handlePhotoChange} 
+                  />
                   <button 
-                    disabled
-                    className="px-5 py-2 text-sm font-semibold border border-slate-200 dark:border-slate-700 rounded-lg opacity-50 cursor-not-allowed"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadAvatarMutation.isPending}
+                    className="px-5 py-2 text-sm font-semibold border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
                   >
-                    Change Photo
+                    {uploadAvatarMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {uploadAvatarMutation.isPending ? 'Uploading...' : 'Change Photo'}
                   </button>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Profile photo upload is coming soon.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">JPG, PNG or GIF. Max 5MB.</p>
                 </div>
               </div>
               
@@ -163,7 +212,8 @@ export default function ProfileSettings() {
                       setProfileForm({...profileForm, firstName: e.target.value});
                       if (profileErrors.firstName) setProfileErrors({...profileErrors, firstName: null});
                     }}
-                    className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${profileErrors.firstName ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-800'}`} 
+                    className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${profileErrors.firstName ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:bg-white dark:focus:bg-slate-800'}`} 
+                    style={!profileErrors.firstName ? { '--tw-ring-color': primaryColor } : {}}
                   />
                   {profileErrors.firstName && (
                     <p className="flex items-center gap-1 mt-1 text-[13px] text-red-500">
@@ -181,7 +231,8 @@ export default function ProfileSettings() {
                       setProfileForm({...profileForm, lastName: e.target.value});
                       if (profileErrors.lastName) setProfileErrors({...profileErrors, lastName: null});
                     }}
-                    className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${profileErrors.lastName ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-800'}`} 
+                    className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${profileErrors.lastName ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:bg-white dark:focus:bg-slate-800'}`} 
+                    style={!profileErrors.lastName ? { '--tw-ring-color': primaryColor } : {}}
                   />
                   {profileErrors.lastName && (
                     <p className="flex items-center gap-1 mt-1 text-[13px] text-red-500">
@@ -212,7 +263,8 @@ export default function ProfileSettings() {
                       setProfileForm({...profileForm, phone: e.target.value});
                       if (profileErrors.phone) setProfileErrors({...profileErrors, phone: null});
                     }}
-                    className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${profileErrors.phone ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-800'}`} 
+                    className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${profileErrors.phone ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:bg-white dark:focus:bg-slate-800'}`} 
+                    style={!profileErrors.phone ? { '--tw-ring-color': primaryColor } : {}}
                   />
                   {profileErrors.phone && (
                     <p className="flex items-center gap-1 mt-1 text-[13px] text-red-500">
@@ -223,19 +275,25 @@ export default function ProfileSettings() {
                 </div>
               </div>
             </div>
-            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
+            <div className="px-6 py-4 flex justify-end" style={{ backgroundColor: sectionBg }}>
               <button 
-                disabled
-                className="bg-slate-300 dark:bg-slate-700 text-white font-bold py-2.5 px-6 rounded-lg text-sm cursor-not-allowed"
+                onClick={handleSaveProfileClick}
+                disabled={updateProfileMutation.isPending}
+                className="text-white font-bold py-2.5 px-6 text-sm transition-all shadow-sm flex items-center justify-center gap-2 hover:brightness-110"
+                style={{ backgroundColor: primaryColor, borderRadius: `${borderRadius}px` }}
               >
-                Save Changes (Updating...)
+                {updateProfileMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                Save Changes
               </button>
             </div>
           </div>
           
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-12">
+          <div 
+            className="rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-12"
+            style={{ backgroundColor: cardBg, color: textColor }}
+          >
             <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Change Password</h2>
+              <h2 className="text-lg font-bold" style={{ color: textColor }}>Change Password</h2>
             </div>
             <div className="p-6 max-w-lg">
               <div className="flex flex-col gap-5">
@@ -250,7 +308,8 @@ export default function ProfileSettings() {
                         setPasswordForm({...passwordForm, currentPassword: e.target.value});
                         if (passwordErrors.currentPassword) setPasswordErrors({...passwordErrors, currentPassword: null});
                       }}
-                      className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 pr-10 text-sm outline-none transition-all ${passwordErrors.currentPassword ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-800'}`} 
+                      className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 pr-10 text-sm outline-none transition-all ${passwordErrors.currentPassword ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:bg-white dark:focus:bg-slate-800'}`} 
+                      style={!passwordErrors.currentPassword ? { '--tw-ring-color': primaryColor } : {}}
                     />
                     <button 
                       type="button"
@@ -278,7 +337,8 @@ export default function ProfileSettings() {
                         setPasswordForm({...passwordForm, newPassword: e.target.value});
                         if (passwordErrors.newPassword) setPasswordErrors({...passwordErrors, newPassword: null});
                       }}
-                      className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 pr-10 text-sm outline-none transition-all ${passwordErrors.newPassword ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-800'}`} 
+                      className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 pr-10 text-sm outline-none transition-all ${passwordErrors.newPassword ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:bg-white dark:focus:bg-slate-800'}`} 
+                      style={!passwordErrors.newPassword ? { '--tw-ring-color': primaryColor } : {}}
                     />
                     <button 
                       type="button"
@@ -306,7 +366,8 @@ export default function ProfileSettings() {
                         setPasswordForm({...passwordForm, confirmPassword: e.target.value});
                         if (passwordErrors.confirmPassword) setPasswordErrors({...passwordErrors, confirmPassword: null});
                       }}
-                      className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 pr-10 text-sm outline-none transition-all ${passwordErrors.confirmPassword ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-800'}`} 
+                      className={`w-full bg-slate-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5 pr-10 text-sm outline-none transition-all ${passwordErrors.confirmPassword ? 'border border-red-500 focus:ring-1 focus:ring-red-500 focus:bg-white dark:focus:bg-slate-800' : 'border border-slate-200 dark:border-slate-700 focus:ring-2 focus:bg-white dark:focus:bg-slate-800'}`} 
+                      style={!passwordErrors.confirmPassword ? { '--tw-ring-color': primaryColor } : {}}
                     />
                     <button 
                       type="button"
@@ -325,10 +386,11 @@ export default function ProfileSettings() {
                 </div>
               </div>
             </div>
-            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
+            <div className="px-6 py-4 flex justify-end" style={{ backgroundColor: sectionBg }}>
               <button 
                 onClick={handleUpdatePasswordClick}
-                className="bg-primary hover:bg-primary-hover text-white font-bold py-2.5 px-6 rounded-lg text-sm transition-all shadow-sm"
+                className="text-white font-bold py-2.5 px-6 text-sm transition-all shadow-sm hover:brightness-110"
+                style={{ backgroundColor: primaryColor, borderRadius: `${borderRadius}px` }}
               >
                 Update Password
               </button>
@@ -362,14 +424,18 @@ export default function ProfileSettings() {
                 onClick={() => {
                   if (confirmAction === 'save-profile') {
                     updateProfileMutation.mutate({
-                      email: user?.email // Backend only supports email/password for now
+                      firstName: profileForm.firstName,
+                      lastName: profileForm.lastName,
+                      phone: profileForm.phone,
+                      email: user?.email
                     });
                   } else {
                     updatePasswordMutation.mutate(passwordForm.newPassword);
                   }
                 }}
                 disabled={updateProfileMutation.isPending || updatePasswordMutation.isPending}
-                className="flex-1 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-hover transition-colors shadow-sm flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 text-white text-sm font-bold transition-colors shadow-sm flex items-center justify-center gap-2 hover:brightness-110"
+                style={{ backgroundColor: primaryColor, borderRadius: `${borderRadius}px` }}
               >
                 {(updateProfileMutation.isPending || updatePasswordMutation.isPending) && <Loader2 className="w-4 h-4 animate-spin" />}
                 Confirm
