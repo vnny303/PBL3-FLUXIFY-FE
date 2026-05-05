@@ -128,20 +128,110 @@ export const orderService = {
         throw lastError || new Error('Unable to fetch customer orders');
     },
 
-    checkout: async ({ addressId, paymentMethod, orderNote, shippingMethod }) => {
+    checkout: async ({ addressId, paymentMethod, orderNote, shippingMethod, cartItems = [], cartTotal = 0, shippingFee = 0, user = null, finalAddress = null }) => {
+        if (!addressId) {
+            throw new Error("Missing addressId. Please select a saved address before checkout.");
+        }
+
+        const normalizedShippingMethod = String(shippingMethod || 'standard').toLowerCase();
+        if (normalizedShippingMethod !== 'standard' && normalizedShippingMethod !== 'express') {
+            throw new Error("Invalid shipping method. Must be standard or express.");
+        }
+
+        const CHECKOUT_MODE = import.meta.env.VITE_CHECKOUT_MODE || 'live';
+        const ENABLE_BANK_TRANSFER_MOCK = import.meta.env.VITE_ENABLE_BANK_TRANSFER_MOCK === 'true';
+
+        // ─── MOCK CHECKOUT MODE ───────────────────────────────────────────────────
+        // When VITE_CHECKOUT_MODE=mock, build a local demo order and skip the API call entirely.
+        if (CHECKOUT_MODE === 'mock') {
+            console.log('[checkout] Mock mode active – skipping API call.');
+
+            const demoOrderItems = cartItems.map((item) => ({
+                id: item.cartItemId || item.id || `demo-item-${Math.random().toString(36).slice(2)}`,
+                productSkuId: item.productSkuId || null,
+                productName: item.productName || item.name || 'Product',
+                quantity: item.quantity || 1,
+                unitPrice: item.price ?? item.unitPrice ?? 0,
+                image: item.image || item.imgUrl || null,
+                skuAttributes: item.skuAttributes || null,
+            }));
+
+            const demoSubtotal = cartTotal || demoOrderItems.reduce((sum, i) => sum + (i.unitPrice * i.quantity), 0);
+            const demoTotal = demoSubtotal + shippingFee;
+            const demoOrderCode = `DEMO-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            const demoOrder = {
+                id: `demo-${Date.now()}`,
+                orderCode: demoOrderCode,
+                customerId: user?.userId || null,
+                tenantId: user?.tenantId || null,
+                status: 'Pending',
+                paymentStatus: 'Pending',
+                paymentMethod,
+                orderNote: orderNote || null,
+                shippingMethod: normalizedShippingMethod,
+                shippingFee,
+                subtotal: demoSubtotal,
+                totalAmount: demoTotal,
+                addressSnapshot: finalAddress,
+                shippingAddress: finalAddress,
+                createdAt: new Date().toISOString(),
+                orderItems: demoOrderItems,
+                persisted: false,
+                source: 'demo-checkout',
+                // Bank Transfer mock if applicable
+                ...(paymentMethod === 'BankTransfer' ? {
+                    bankTransferInfo: createBankTransferInfo({
+                        orderCode: demoOrderCode,
+                        totalAmount: demoTotal,
+                    })
+                } : {}),
+            };
+
+            // Persist to sessionStorage for reload safety
+            try {
+                sessionStorage.setItem('fluxify_last_checkout_order', JSON.stringify(demoOrder));
+            } catch (e) { /* ignore quota errors */ }
+
+            // Persist to localStorage so My Orders can display demo history
+            if (user?.userId) {
+                const lsKey = `fluxify_demo_orders_${user.userId}`;
+                try {
+                    const existing = JSON.parse(localStorage.getItem(lsKey) || '[]');
+                    const updated = [demoOrder, ...existing].slice(0, 20); // keep max 20 demo orders
+                    localStorage.setItem(lsKey, JSON.stringify(updated));
+                } catch (e) { /* ignore */ }
+            }
+
+            return demoOrder;
+        }
+
+        // ─── LIVE CHECKOUT MODE ───────────────────────────────────────────────────
         // MOCK BYPASS: The backend strictly blocks "BankTransfer" if the tenant hasn't configured bank details.
         // If the frontend mock is enabled, we trick the backend by sending "COD" to bypass this check, 
         // but we'll mock the result locally as a Bank Transfer.
-        const actualPaymentMethod = (ENABLE_BANK_TRANSFER_MOCK && paymentMethod === 'BankTransfer') 
-            ? 'COD' 
+        const actualPaymentMethod = (ENABLE_BANK_TRANSFER_MOCK && paymentMethod === 'BankTransfer')
+            ? 'COD'
             : paymentMethod;
 
-        const body = { addressId, paymentMethod: actualPaymentMethod, orderNote, shippingMethod };
+        const body = {
+            addressId,
+            paymentMethod: actualPaymentMethod,
+            orderNote: orderNote || null,
+            shippingMethod: normalizedShippingMethod
+        };
+
+        console.log("Checkout payload being sent:", body);
+
         let data;
         try {
             data = await axiosClient.post('/api/customer/orders/checkout', body);
         } catch (error) {
-            console.error("Checkout API Error:", error?.response?.data);
+            console.error('Checkout API Error:', {
+                status: error?.response?.status,
+                data: error?.response?.data,
+                payload: body
+            });
             throw error;
         }
 

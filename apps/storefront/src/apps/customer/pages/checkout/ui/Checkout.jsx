@@ -85,34 +85,51 @@ export default function Checkout() {
 
   // Checkout Mutation
   const { mutate: placeOrder, isPending: isProcessing } = useMutation({
-    mutationFn: ({ addressId, paymentMethod: pm, orderNote, shippingMethod }) =>
-      orderService.checkout({ addressId, paymentMethod: pm, orderNote, shippingMethod }),
+    mutationFn: ({ addressId, paymentMethod: pm, orderNote, shippingMethod, finalAddress }) =>
+      orderService.checkout({
+        addressId,
+        paymentMethod: pm,
+        orderNote,
+        shippingMethod,
+        // Mock context – only used when VITE_CHECKOUT_MODE=mock
+        cartItems,
+        cartTotal,
+        shippingFee,
+        user,
+        finalAddress,
+      }),
     onSuccess: async (checkoutResponse, { finalAddress, apiPaymentMethod }) => {
-      // 1. Success: Clear locally (via refresh)
-      await refreshCart();
-      queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
+      const isDemo = checkoutResponse?.source === 'demo-checkout';
+
+      // Only clear cart and invalidate queries when dealing with a real persisted order
+      if (!isDemo) {
+        await refreshCart();
+        queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
+      }
       
       // Use fallback constructor for reload safety and incomplete backend responses
-      const orderData = createOrderConfirmationFallback(
-        checkoutResponse, 
-        cartItems, 
-        cartTotal, 
-        shippingFee, 
-        finalAddress, 
-        apiPaymentMethod
-      );
+      const orderData = isDemo
+        ? checkoutResponse
+        : createOrderConfirmationFallback(
+            checkoutResponse, 
+            cartItems, 
+            cartTotal, 
+            shippingFee, 
+            finalAddress, 
+            apiPaymentMethod
+          );
 
-      toast.success('Order placed successfully!');
+      toast.success(isDemo ? 'Demo order created! (not saved to database)' : 'Order placed successfully!');
       
-      // Save for reload safety
-      sessionStorage.setItem('fluxify_last_created_order', JSON.stringify(orderData));
+      // Save for reload safety using the unified key
+      sessionStorage.setItem('fluxify_last_checkout_order', JSON.stringify(orderData));
       
       // 2. Success: Redirect to Confirmation
       navigate('/order-confirmation', { state: { orderData } });
     },
     onError: (error) => {
       // 3. Error: Keep state, show toast
-      toast.error(error?.response?.data?.message || 'Checkout failed, please try again');
+      toast.error(error?.response?.data?.message || error?.message || 'Checkout failed, please try again');
     },
   });
 

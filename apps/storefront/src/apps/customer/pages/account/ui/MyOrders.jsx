@@ -106,6 +106,11 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
                 <div className="flex items-center gap-3">
                   <span className="text-lg font-bold">{getDisplayOrderCode(order)}</span>
                   <div className="flex flex-wrap gap-2">
+                    {order.persisted === false && (
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-700/50">
+                        Demo
+                      </span>
+                    )}
                     {order.status === 'Delivered' ? (
                       <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1">
                         <CheckCircle className="w-3.5 h-3.5" />

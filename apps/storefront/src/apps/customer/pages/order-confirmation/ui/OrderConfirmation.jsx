@@ -40,9 +40,9 @@ export default function OrderConfirmation() {
       return location.state.orderData;
     }
     
-    // 2. Try sessionStorage fallback
+    // 2. Try sessionStorage fallback (unified key)
     try {
-      const saved = sessionStorage.getItem('fluxify_last_created_order');
+      const saved = sessionStorage.getItem('fluxify_last_checkout_order');
       if (saved) {
         return JSON.parse(saved);
       }
@@ -136,6 +136,16 @@ export default function OrderConfirmation() {
   // ─── Render Order Details ────────────────────────────────────────────────
   return (
     <main className="max-w-7xl mx-auto px-6 py-10">
+      {/* Demo Order Banner */}
+      {orderData.persisted === false && (
+        <div className="mb-6 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 text-amber-800 dark:text-amber-300 rounded-xl px-5 py-4">
+          <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-bold">Demo Order — Not saved to database</p>
+            <p className="text-xs mt-0.5 opacity-80">This is a local simulation order created while the backend is under maintenance. It will not appear in order history once backend is live.</p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col items-center text-center mb-10">
         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
           <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />

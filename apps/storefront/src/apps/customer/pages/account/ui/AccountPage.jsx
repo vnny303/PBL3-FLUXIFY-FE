@@ -12,12 +12,12 @@ import { orderService } from '../../../../../shared/api/orderService';
 
 export default function AccountPage() {
   const location = useLocation();
-  const { isLoggedIn } = useAppContext();
+  const { isLoggedIn, user } = useAppContext();
   const [currentScreen, setCurrentScreen] = useState(location.state?.screen || 'my-orders');
   const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   const {
-    data: orders = [],
+    data: liveOrders = [],
     isLoading: isLoadingOrders,
     error: ordersErrorObj,
     refetch: fetchCustomerOrders,
@@ -32,6 +32,22 @@ export default function AccountPage() {
     enabled: isLoggedIn,
     select: (data) => Array.isArray(data) ? data : [],
   });
+
+  // Merge demo orders from localStorage with live orders
+  const orders = useMemo(() => {
+    const demo = (() => {
+      if (!user?.userId) return [];
+      try {
+        return JSON.parse(localStorage.getItem(`fluxify_demo_orders_${user.userId}`) || '[]');
+      } catch { return []; }
+    })();
+    const combined = [...demo, ...liveOrders];
+    // Dedupe by id and sort newest first
+    const seen = new Set();
+    return combined
+      .filter((o) => { if (!o?.id || seen.has(String(o.id))) return false; seen.add(String(o.id)); return true; })
+      .sort((a, b) => Date.parse(b?.createdAt || '') - Date.parse(a?.createdAt || ''));
+  }, [liveOrders, user?.userId]);
 
   const ordersError = ordersErrorObj?.response?.data?.message
     || ordersErrorObj?.message
