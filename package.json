@@ -4,6 +4,6 @@
   "scripts": {
     "dev:storefront": "pnpm --filter storefront dev",
     "dev:merchant": "pnpm --filter merchant dev",
-    "dev:all": "pnpm --filter storefront dev & pnpm --filter merchant dev"
+    "dev:all": "pnpm -r --parallel --filter storefront --filter merchant run dev"
   }
 }
