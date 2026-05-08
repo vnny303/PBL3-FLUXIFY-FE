@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Plus, X, Loader2 } from 'lucide-react';
+import { Select } from '../../../share/ui/Select';
 import { cartesian, computeSkuRows, skuLabel } from '../utils/productHelpers';
 import { useAddProduct } from '../hooks/useProducts';
 import { ImageUploadPreview } from '../components/ImageUploadPreview';
@@ -105,27 +106,23 @@ function GroupApplyBar({ attrGroups, skuRows, onApplyGroup }) {
 
             {/* Group + Value selectors */}
             <div className="flex flex-wrap gap-2 items-center">
-                <select
-                    value={selectedGroup}
-                    onChange={e => handleGroupChange(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white outline-none focus:border-black transition-colors"
-                >
-                    <option value="">Select attribute...</option>
-                    {activeGroups.map(g => (
-                        <option key={g.key} value={g.key}>{g.key}</option>
-                    ))}
-                </select>
+                <div className="w-48">
+                    <Select
+                        value={selectedGroup}
+                        onChange={e => handleGroupChange(e.target.value)}
+                        options={[{ value: '', label: 'Select attribute...' }, ...activeGroups]}
+                        placeholder="Select attribute..."
+                    />
+                </div>
                 {currentGroup && (
-                    <select
-                        value={selectedValue}
-                        onChange={e => setSelectedValue(e.target.value)}
-                        className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white outline-none focus:border-black transition-colors"
-                    >
-                        <option value="">Select value...</option>
-                        {currentGroup.values.map(v => (
-                            <option key={v} value={v}>{v}</option>
-                        ))}
-                    </select>
+                    <div className="w-48">
+                        <Select
+                            value={selectedValue}
+                            onChange={e => setSelectedValue(e.target.value)}
+                            options={[{ value: '', label: 'Select value...' }, ...currentGroup.values]}
+                            placeholder="Select value..."
+                        />
+                    </div>
                 )}
             </div>
 
@@ -332,14 +329,13 @@ export function AddProductModal({ tenantId, categories, onClose, onSuccess }) {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Category <span className="text-red-500">*</span></label>
-                                <select value={categoryId} onChange={e => { setCategoryId(e.target.value); setErrors(p => ({ ...p, categoryId: '' })); }}
-                                    className={`w-full px-3 py-2 rounded-lg border text-sm outline-none bg-white transition-colors ${errors.categoryId ? 'border-red-400' : 'border-[#e3e3e3] focus:border-black'}`}>
-                                    <option value="">Select category...</option>
-                                    {categories.map(cat => (
-                                        <option key={cat.categoryId || cat.id} value={cat.categoryId || cat.id}>{cat.name}</option>
-                                    ))}
-                                </select>
-                                {errors.categoryId && <p className="text-red-500 text-xs mt-1">{errors.categoryId}</p>}
+                                <Select 
+                                    value={categoryId} 
+                                    onChange={e => { setCategoryId(e.target.value); setErrors(p => ({ ...p, categoryId: '' })); }}
+                                    options={[{ value: '', label: 'Select category...' }, ...categories]}
+                                    placeholder="Select category..."
+                                    error={errors.categoryId}
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">

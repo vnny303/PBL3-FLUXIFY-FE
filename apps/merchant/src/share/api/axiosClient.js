@@ -1,7 +1,7 @@
 import { createApiClient } from '@fluxify/shared/api';
 import { clearAuthSession, getToken } from '@fluxify/shared';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5119';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5119/api';
 
 const handleUnauthorized = () => {
     clearAuthSession();

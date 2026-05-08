@@ -14,6 +14,7 @@ import {
 import { useUnsavedChangesGuard } from '../../share/lib/hooks/useUnsavedChangesGuard';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { getTenantBySubdomain, patchTenantTheme, patchTenantContent } from '../../share/api/tenantApi';
+import { Select } from '../../share/ui/Select';
 
 
 function AccordionSection({ title, isOpen, onToggle, children }) {
@@ -266,13 +267,11 @@ export default function OnlineStore() {
                     <AccordionSection title="🔠 Typography & Layout" isOpen={openAccordion === 'typography'} onToggle={() => setOpenAccordion(openAccordion === 'typography' ? 'headerFooter' : 'typography')}>
                         <label className="block space-y-2">
                             <span className="text-sm font-medium text-slate-700">Font Family</span>
-                            <select
+                            <Select
                                 value={theme.typography.fontFamily}
                                 onChange={(e) => setTheme((p) => ({ ...p, typography: { ...p.typography, fontFamily: e.target.value } }))}
-                                className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm outline-none focus:border-slate-600"
-                            >
-                                {FONT_OPTIONS.map((font) => <option key={font} value={font}>{font}</option>)}
-                            </select>
+                                options={FONT_OPTIONS.map(font => ({ value: font, label: font }))}
+                            />
                         </label>
                         <label className="block space-y-2">
                             <span className="text-sm font-medium text-slate-700">Border Radius (px)</span>

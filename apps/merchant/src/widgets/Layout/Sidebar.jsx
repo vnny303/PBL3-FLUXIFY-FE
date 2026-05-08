@@ -1,8 +1,10 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, ShoppingCart, Package, Users, BarChart2, Settings, ChevronDown, ChevronRight, Palette } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../entities/auth/AuthContext';
 
 export default function Sidebar() {
+    const { currentTenant } = useAuth();
     const location = useLocation(); // hook biet url hien tai
     const [isProductsOpen, setIsProductsOpen] = useState(false);
    
@@ -26,8 +28,10 @@ export default function Sidebar() {
           <div className="w-4 h-4 border-2 border-white rounded-sm transform rotate-45"></div>
         </div>
         <div className="flex flex-col overflow-hidden">
-          <span className="text-lg font-bold tracking-tighter text-slate-900 leading-none truncate">Modern Atelier</span>
-          <span className="text-[11px] font-medium tracking-tight text-on-surface-variant truncate mt-0.5">Shopify Admin</span>
+          <span className="text-lg font-bold tracking-tighter text-slate-900 leading-none truncate">
+            {currentTenant?.storename || currentTenant?.subdomain || 'Fluxify Store'}
+          </span>
+          <span className="text-[11px] font-medium tracking-tight text-on-surface-variant truncate mt-0.5">Fluxify Admin</span>
         </div>
       </div>
         {/*NavLink: Component link (tự động highlight nếu active) */}

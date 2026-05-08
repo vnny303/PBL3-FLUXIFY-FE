@@ -4,6 +4,7 @@ import {
     BarChart2, Loader2, AlertCircle, TrendingUp, TrendingDown,
     ShoppingCart, Users, DollarSign, Star, Package, RefreshCw,
 } from 'lucide-react';
+import { Select } from '../../share/ui/Select';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { getAnalyticsDashboard } from '../../share/api/analyticsApi';
 import { queryKeys } from '../../share/api/queryKeys';
@@ -314,13 +315,17 @@ export default function Analytics() {
                                 </p>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs text-slate-500">Show top</span>
-                                    <select
-                                        value={topTake}
-                                        onChange={(e) => setTopTake(Number(e.target.value))}
-                                        className="px-2 py-1 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
-                                    >
-                                        {[5, 10, 20].map((n) => <option key={n} value={n}>{n}</option>)}
-                                    </select>
+                                    <div className="w-20">
+                                        <Select
+                                            value={String(topTake)}
+                                            onChange={(e) => setTopTake(Number(e.target.value))}
+                                            options={[
+                                                { value: '5', label: '5' },
+                                                { value: '10', label: '10' },
+                                                { value: '20', label: '20' }
+                                            ]}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 

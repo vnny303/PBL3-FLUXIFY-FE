@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'; // ← Thêm useEffect
 import { Plus, X, Loader2, Tag, Trash2, Undo2 } from 'lucide-react'; // ← Thêm icon Undo2
+import { Select } from '../../../share/ui/Select';
 import { parseAttr, fmtVnd, getAllPossibleCombos, isDuplicateSku } from '../utils/productHelpers';
 import { useEditProduct } from '../hooks/useProducts';
 import { ImageUploadPreview } from '../components/ImageUploadPreview';
@@ -78,23 +79,23 @@ function EditGroupApplyBar({ productAttrs, visibleSkus, onApplyGroup }) {
             <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Apply by attribute group</p>
             
             <div className="flex flex-wrap gap-2 items-center">
-                <select
-                    value={selectedKey}
-                    onChange={e => handleKeyChange(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white outline-none focus:border-black transition-colors"
-                >
-                    <option value="">Select attribute...</option>
-                    {attrKeys.map(k => <option key={k} value={k}>{k}</option>)}
-                </select>
+                <div className="w-48">
+                    <Select
+                        value={selectedKey}
+                        onChange={e => handleKeyChange(e.target.value)}
+                        options={[{ value: '', label: 'Select attribute...' }, ...attrKeys]}
+                        placeholder="Select attribute..."
+                    />
+                </div>
                 {selectedKey && (
-                    <select
-                        value={selectedValue}
-                        onChange={e => setSelectedValue(e.target.value)}
-                        className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white outline-none focus:border-black transition-colors"
-                    >
-                        <option value="">Select value...</option>
-                        {(productAttrs[selectedKey] || []).map(v => <option key={v} value={v}>{v}</option>)}
-                    </select>
+                    <div className="w-48">
+                        <Select
+                            value={selectedValue}
+                            onChange={e => setSelectedValue(e.target.value)}
+                            options={[{ value: '', label: 'Select value...' }, ...(productAttrs[selectedKey] || [])]}
+                            placeholder="Select value..."
+                        />
+                    </div>
                 )}
             </div>
             
@@ -428,13 +429,12 @@ export function EditProductModal({ tenantId, product, categories, onClose, onSuc
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                                <select value={categoryId} onChange={e => setCategoryId(e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg border border-[#e3e3e3] focus:border-black text-sm outline-none bg-white transition-colors">
-                                    <option value="">No category</option>
-                                    {categories.map(cat => (
-                                        <option key={cat.categoryId || cat.id} value={cat.categoryId || cat.id}>{cat.name}</option>
-                                    ))}
-                                </select>
+                                <Select
+                                    value={categoryId}
+                                    onChange={e => setCategoryId(e.target.value)}
+                                    options={[{ value: '', label: 'No category' }, ...categories]}
+                                    placeholder="No category"
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -633,16 +633,12 @@ export function EditProductModal({ tenantId, product, categories, onClose, onSuc
                                         {attrKeys.map(k => (
                                             <div key={k}>
                                                 <label className="text-xs font-medium text-slate-600 mb-1 block capitalize">{k}</label>
-                                                <select
+                                                <Select
                                                     value={newSku[k] || ''}
                                                     onChange={e => { setNewSku(prev => ({ ...prev, [k]: e.target.value })); setAddError(''); }}
-                                                    className="w-full px-2 py-1.5 border border-[#e3e3e3] rounded-lg text-sm bg-white outline-none focus:border-black transition-colors"
-                                                >
-                                                    <option value="">Select...</option>
-                                                    {(productAttrs[k] || []).map(v => (
-                                                        <option key={v} value={v}>{v}</option>
-                                                    ))}
-                                                </select>
+                                                    options={[{ value: '', label: 'Select...' }, ...(productAttrs[k] || [])]}
+                                                    placeholder="Select..."
+                                                />
                                             </div>
                                         ))}
                                     </div>
