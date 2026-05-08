@@ -11,6 +11,7 @@ import {
   getToken,
   setAuthSession,
 } from '@fluxify/shared/lib';
+import { ROLES } from '@fluxify/shared/constants';
 
 import { authService } from '../../../shared/api/authService';
 import { normalizeUserProfile } from '../../../shared/lib/userProfile';
@@ -23,7 +24,7 @@ import {
 } from '../../../app/store/slices/authSlice';
 import { AuthContext } from './authContext';
 
-const CUSTOMER_ROLE = 'customer';
+const CUSTOMER_ROLE = ROLES.CUSTOMER;
 
 const mapAuthResponseToUser = (authResponse) =>
   normalizeUserProfile({

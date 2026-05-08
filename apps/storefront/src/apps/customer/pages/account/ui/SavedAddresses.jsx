@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Pencil, Trash, Loader2, MapPin, CheckCircle2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { addressService } from '../../../../../shared/api/addressService';
-import { useAppContext } from '../../../../../app/providers/useAppContext';
+import { useAddresses } from '../../../../../features/address-management/model/useAddresses';
 import AddressModal from '../../../../../features/address-management/ui/AddressModal';
 import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 
@@ -13,61 +10,21 @@ export default function SavedAddresses() {
   const borderRadius = theme?.layout?.borderRadius || 12;
   const bgColor = theme?.colors?.background || '#ffffff';
   const textColor = theme?.colors?.text || '#111827';
-  const cardBg = bgColor === '#ffffff' ? '#ffffff' : `${bgColor}CC`; // Slightly transparent if dark
+  const cardBg = bgColor === '#ffffff' ? '#ffffff' : `${bgColor}CC`;
 
-  const queryClient = useQueryClient();
-  const { user } = useAppContext();
+  const { 
+    addresses, 
+    isLoading, 
+    saveAddress, 
+    isSaving, 
+    deleteAddress, 
+    isDeleting, 
+    setDefault 
+  } = useAddresses();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [addressToDelete, setAddressToDelete] = useState(null);
-
-  // Fetch addresses
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['customer-addresses', user?.userId],
-    queryFn: () => addressService.getAddresses(user?.tenantId, user?.userId),
-    enabled: !!user?.userId
-  });
-
-  const addresses = response?.data || [];
-
-  // Mutations
-  const { mutate: saveAddress, isPending: isSaving } = useMutation({
-    mutationFn: (data) => {
-      if (data.id && typeof data.id === 'string' && !data.id.startsWith('mock')) {
-         return addressService.updateAddress(user?.tenantId, user?.userId, data.id, data);
-      } else if (data.id && data.id.startsWith('mock')) {
-         // Even for mock IDs, we treat as update in our local mock logic
-         return addressService.updateAddress(user?.tenantId, user?.userId, data.id, data);
-      }
-      return addressService.createAddress(user?.tenantId, user?.userId, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customer-addresses', user?.userId] });
-      setIsModalOpen(false);
-      setEditingAddress(null);
-      toast.success('Address saved successfully!');
-    },
-    onError: () => toast.error('Failed to save address')
-  });
-
-  const { mutate: deleteAddress, isPending: isDeleting } = useMutation({
-    mutationFn: (id) => addressService.deleteAddress(user?.tenantId, user?.userId, id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customer-addresses', user?.userId] });
-      setAddressToDelete(null);
-      toast.success('Address deleted successfully!');
-    },
-    onError: () => toast.error('Failed to delete address')
-  });
-
-  const { mutate: setDefault } = useMutation({
-    mutationFn: (id) => addressService.updateAddress(user?.tenantId, user?.userId, id, { isDefault: true }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customer-addresses', user?.userId] });
-      toast.success('Default address updated!');
-    }
-  });
 
   const handleAdd = () => {
     setEditingAddress(null);
@@ -79,13 +36,17 @@ export default function SavedAddresses() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (id) => {
-    setAddressToDelete(id);
+  const handleSave = (data) => {
+    saveAddress(data, {
+      onSuccess: () => setIsModalOpen(false)
+    });
   };
 
   const confirmDelete = () => {
     if (addressToDelete) {
-      deleteAddress(addressToDelete);
+      deleteAddress(addressToDelete, {
+        onSuccess: () => setAddressToDelete(null)
+      });
     }
   };
 
@@ -188,7 +149,7 @@ export default function SavedAddresses() {
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button 
-                      onClick={() => handleDeleteClick(addr.id)} 
+                      onClick={() => setAddressToDelete(addr.id)} 
                       className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
                       style={{ borderRadius: `${borderRadius}px` }}
                       title="Delete"
@@ -226,9 +187,10 @@ export default function SavedAddresses() {
       </div>
 
       <AddressModal 
+        key={editingAddress?.id || 'new'}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={saveAddress}
+        onSave={handleSave}
         initialData={editingAddress}
         isSaving={isSaving}
       />

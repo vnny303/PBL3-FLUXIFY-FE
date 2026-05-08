@@ -1,70 +1,82 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { useMerchantAuth } from './providers/AuthProvider';
-import DashboardLayout from '../widgets/Layout/ui/DashboardLayout';
-import Home from '../pages/Home/Home';
-import Orders from '../pages/Orders/Orders';
-import OrderDetails from '../pages/OrderDetails/OrderDetails';
-import CreateOrder from '../pages/CreateOrder/CreateOrder';
-import Products from '../pages/Products/Products';
-import AddProduct from '../pages/AddProduct/AddProduct';
-import CreateCategory from '../pages/CreateCategory/CreateCategory';
-import Inventory from '../pages/Inventory/Inventory';
-import Customers from '../pages/Customers/Customers';
-import CustomerProfile from '../pages/CustomerProfile/CustomerProfile';
-import Analytics from '../pages/Analytics/Analytics';
-import Settings from '../pages/Settings/Settings';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from '../entities/auth/AuthContext';
+
+// Pages
+import Start from '../pages/start/Start';
+import Register from '../pages/register/Register';
+import Login from '../pages/login/Login';
+import DashboardLayout from '../widgets/Layout/DashboardLayout';
+import Products from '../pages/products/Products';
+import Categories from '../pages/categories/Categories';
+import Orders from '../pages/orders/Orders';
 import OnlineStore from '../pages/OnlineStore/OnlineStore';
-import PageManager from '../pages/PageManager/PageManager';
-import Login from '../pages/Login/Login';
+import Customers from '../pages/customers/Customers';
+import Analytics from '../pages/analytics/Analytics';
 
-function RequireMerchant({ children }) {
-    const { isHydrating, isLoggedIn, role } = useMerchantAuth();
 
-    if (isHydrating) {
-        return <div className="min-h-screen flex items-center justify-center text-sm text-slate-500">Đang kiểm tra phiên đăng nhập...</div>;
+
+const Home = () => <div className="p-8"><h1 className="text-xl font-bold">Home Page Coming Soon</h1></div>;
+
+function PrivateRoute({ children }) {
+    const { isAuthenticated, isLoading } = useAuth();
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+                    <p>Loading...</p>
+                </div>
+            </div>
+        );
     }
 
-    if (!isLoggedIn || role !== 'merchant') {
+    if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
     return children;
 }
 
+function AppContent() {
+    return (
+        <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Start />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+
+            {/* Protected Routes */}
+            <Route
+                path="/home/*"
+                element={
+                    <PrivateRoute>
+                        <DashboardLayout />
+                    </PrivateRoute>
+                }
+            >
+                <Route index element={<Home />} />
+                <Route path="products" element={<Products />} />
+                <Route path="products/categories" element={<Categories />} />
+                <Route path="orders" element={<Orders />} />
+                <Route path="customers" element={<Customers />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="admin/themes" element={<OnlineStore />} />
+
+            </Route>
+
+            {/* Catch all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    );
+}
+
 export default function App() {
     return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-
-          <Route
-            path="/"
-            element={
-              <RequireMerchant>
-                <DashboardLayout />
-              </RequireMerchant>
-            }
-          >
-            <Route index element={<Home />} />
-            <Route path="orders" element={<Orders />} />
-            <Route path="orders/create" element={<CreateOrder />} />
-            <Route path="orders/:id" element={<OrderDetails />} />
-            <Route path="products" element={<Products />} />
-            <Route path="products/add" element={<AddProduct />} />
-            <Route path="products/categories/create" element={<CreateCategory />} />
-            <Route path="products/inventory" element={<Inventory />} />
-            <Route path="customers" element={<Customers />} />
-            <Route path="customers/:id" element={<CustomerProfile />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="online-store" element={<Navigate to="/admin/themes" replace />} />
-            <Route path="admin/themes" element={<OnlineStore />} />
-            <Route path="admin/pages" element={<PageManager />} />
-          </Route>
-        </Routes>
-
-        <Toaster position="top-right" richColors />
-      </BrowserRouter>
+        <BrowserRouter>
+            <AuthProvider>
+                <AppContent /> 
+            </AuthProvider>
+        </BrowserRouter>
     );
 }

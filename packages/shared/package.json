@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
   "exports": {
+    ".": "./lib/index.js",
     "./ui": "./ui/index.js",
     "./api": "./api/index.js",
-    "./lib": "./lib/index.js"
+    "./lib": "./lib/index.js",
+    "./constants": "./constants/index.js"
   },
   "peerDependencies": {
     "react": "^18.2.0",
