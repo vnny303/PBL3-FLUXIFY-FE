@@ -1,9 +1,7 @@
-//Call API
-
 import axiosClient from "./axiosClient";
-import {
-  clearAuthSession,
-} from "@fluxify/shared/lib";
+import { clearAuthSession } from "@fluxify/shared/lib";
+
+const IS_MOCK_AVATAR = import.meta.env.VITE_ENABLE_AUTH_AVATAR_MOCK === 'true';
 
 export const getTenantBySubdomain = async (subdomain) => {
   return axiosClient.get(
@@ -14,21 +12,14 @@ export const getTenantBySubdomain = async (subdomain) => {
 export const registerCustomer = async ({ email, password, subdomain }) => {
   return axiosClient.post(
     `/api/auth/customer/register?subdomain=${encodeURIComponent(subdomain)}`,
-    {
-      email,
-      password,
-    }
+    { email, password }
   );
 };
 
 export const loginCustomer = async ({ email, password, subdomain }) => {
   return axiosClient.post(
     `/api/auth/customer/login?subdomain=${encodeURIComponent(subdomain)}`,
-    {
-      email,
-      password,
-      subdomain
-    }
+    { email, password, subdomain }
   );
 };
 
@@ -49,22 +40,23 @@ export const updateCustomer = async (customerId, data) => {
 };
 
 export const uploadAvatar = async (customerId, file) => {
-  // Vì Backend hiện tại chưa có endpoint xử lý File Upload cho Avatar,
-  // tôi sẽ giả lập (Mock) quá trình này để bạn có thể test luồng giao diện.
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const mockAvatarUrl = URL.createObjectURL(file);
-      resolve({ avatarUrl: mockAvatarUrl });
-    }, 1500);
-  });
-  
-  /* Logic thật khi Backend đã sẵn sàng:
+  if (IS_MOCK_AVATAR) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const mockAvatarUrl = URL.createObjectURL(file);
+        resolve({ avatarUrl: mockAvatarUrl });
+      }, 1500);
+    });
+  }
+
   const formData = new FormData();
   formData.append('file', file);
-  return axiosClient.post(`/api/auth/customer/${customerId}/avatar`, formData, {
+  
+  const response = await axiosClient.post(`/api/auth/customer/${customerId}/avatar`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-  */
+  
+  return response?.data ?? response;
 };
 
 export const authService = {

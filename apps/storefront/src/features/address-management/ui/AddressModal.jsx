@@ -6,6 +6,7 @@ const AddressModal = ({ isOpen, onClose, onSave, isSaving, initialData }) => {
   const { theme } = useStorefrontConfig();
   const primaryColor = theme?.colors?.primary || '#1754cf';
   const borderRadius = theme?.layout?.borderRadius || 12;
+
   const [formData, setFormData] = useState({
     receiverName: '',
     phone: '',
@@ -17,14 +18,14 @@ const AddressModal = ({ isOpen, onClose, onSave, isSaving, initialData }) => {
     country: 'Vietnam'
   });
 
+  // Synchronize state when initialData changes or modal opens
+  // Note: In a cleaner refactor, we would use 'key' on the component in the parent to reset state.
   useEffect(() => {
-    if (initialData) {
-      setFormData({
+    if (isOpen) {
+      setFormData(initialData ? {
         ...initialData,
         isDefault: !!initialData.isDefault
-      });
-    } else {
-      setFormData({
+      } : {
         receiverName: '',
         phone: '',
         province: '',
@@ -39,10 +40,20 @@ const AddressModal = ({ isOpen, onClose, onSave, isSaving, initialData }) => {
 
   if (!isOpen) return null;
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave(formData);
   };
+
+  const inputClasses = "w-full px-4 py-3 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm outline-none focus:ring-2 transition-all";
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
@@ -64,81 +75,88 @@ const AddressModal = ({ isOpen, onClose, onSave, isSaving, initialData }) => {
             <div className="md:col-span-1">
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Receiver Name</label>
               <input
+                name="receiverName"
                 required
-                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm outline-none focus:ring-2 transition-all"
+                className={inputClasses}
                 style={{ borderRadius: `${borderRadius}px`, '--tw-ring-color': primaryColor }}
                 placeholder="e.g. Nguyen Van A"
                 value={formData.receiverName}
-                onChange={(e) => setFormData({ ...formData, receiverName: e.target.value })}
+                onChange={handleChange}
               />
             </div>
             <div className="md:col-span-1">
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
               <input
+                name="phone"
                 required
-                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm outline-none focus:ring-2 transition-all"
+                className={inputClasses}
                 style={{ borderRadius: `${borderRadius}px`, '--tw-ring-color': primaryColor }}
                 placeholder="09xxx"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={handleChange}
               />
             </div>
 
             <div className="md:col-span-2">
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Province / City</label>
               <input
+                name="province"
                 required
-                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm outline-none focus:ring-2 transition-all"
+                className={inputClasses}
                 style={{ borderRadius: `${borderRadius}px`, '--tw-ring-color': primaryColor }}
                 placeholder="e.g. TP.HCM"
                 value={formData.province}
-                onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                onChange={handleChange}
               />
             </div>
 
             <div className="md:col-span-1">
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">District</label>
               <input
+                name="district"
                 required
-                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm outline-none focus:ring-2 transition-all"
+                className={inputClasses}
                 style={{ borderRadius: `${borderRadius}px`, '--tw-ring-color': primaryColor }}
                 placeholder="e.g. District 1"
                 value={formData.district}
-                onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                onChange={handleChange}
               />
             </div>
             <div className="md:col-span-1">
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Ward</label>
               <input
+                name="ward"
                 required
-                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm outline-none focus:ring-2 transition-all"
+                className={inputClasses}
                 style={{ borderRadius: `${borderRadius}px`, '--tw-ring-color': primaryColor }}
                 placeholder="e.g. Ward 5"
                 value={formData.ward}
-                onChange={(e) => setFormData({ ...formData, ward: e.target.value })}
+                onChange={handleChange}
               />
             </div>
 
             <div className="md:col-span-2">
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Street Address</label>
               <input
+                name="streetAddress"
                 required
-                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm outline-none focus:ring-2 transition-all"
+                className={inputClasses}
                 style={{ borderRadius: `${borderRadius}px`, '--tw-ring-color': primaryColor }}
                 placeholder="e.g. 12 Nguyen Trai"
                 value={formData.streetAddress}
-                onChange={(e) => setFormData({ ...formData, streetAddress: e.target.value })}
+                onChange={handleChange}
               />
             </div>
 
             <div className="md:col-span-2 flex items-center gap-2">
               <input
+                name="isDefault"
                 type="checkbox"
                 id="isDefault"
                 className="w-4 h-4 border-slate-300 rounded focus:ring-2 focus:ring-offset-1"
                 style={{ color: primaryColor, '--tw-ring-color': primaryColor }}
                 checked={formData.isDefault}
-                onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
+                onChange={handleChange}
               />
               <label htmlFor="isDefault" className="text-sm text-slate-600 dark:text-slate-400">Set as default address</label>
             </div>
@@ -156,10 +174,10 @@ const AddressModal = ({ isOpen, onClose, onSave, isSaving, initialData }) => {
             <button
               type="submit"
               disabled={isSaving}
-              className="px-8 py-2 text-white font-bold disabled:opacity-70 transition-all flex items-center gap-2 hover:brightness-110"
+              className="px-8 py-2 text-white font-bold disabled:opacity-70 transition-all flex items-center justify-center gap-2 hover:brightness-110"
               style={{ backgroundColor: primaryColor, borderRadius: `${borderRadius}px` }}
             >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               {initialData ? 'Update Address' : 'Save Address'}
             </button>
           </div>

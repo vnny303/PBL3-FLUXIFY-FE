@@ -1,147 +1,381 @@
-import React from 'react';
-import { Search, Filter, Download, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useCustomers } from './useCustomers';
-import { formatCurrency } from '../../shared/lib/formatters/formatters';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import {
+    Users, Search, Loader2, AlertCircle, X,
+    SlidersHorizontal, ChevronLeft, ChevronRight,
+    ShoppingBag, DollarSign, Calendar, CheckCircle2, XCircle,
+} from 'lucide-react';
+import { useAuth } from '../../entities/auth/AuthContext';
+import { getCustomers } from '../../share/api/customerApi';
+import { queryKeys } from '../../share/api/queryKeys';
 
-// --- Subcomponents ---
+const SORT_OPTIONS = [
+    { value: 'createdAt', label: 'Joined date' },
+    { value: 'email', label: 'Email' },
+];
 
-const PageHeader = () => (
-    <div className="flex justify-between items-center mb-8">
-        <div>
-            <h2 className="text-2xl font-bold text-on-surface tracking-tight">Customers</h2>
-        </div>
-        <div className="flex space-x-3">
-            <button type="button" className="px-4 py-2 bg-surface-container-lowest border border-outline-variant/40 rounded-lg text-sm font-semibold text-on-surface shadow-sm hover:bg-surface-container-low transition-colors flex items-center">
-                <Download className="w-4 h-4 mr-2"/>
-                Export
-            </button>
-            <button type="button" className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold shadow-sm hover:bg-primary/90 transition-colors flex items-center">
-                <Plus className="w-4 h-4 mr-2"/>
-                Add customer
-            </button>
-        </div>
-    </div>
-);
+const fmt = (val) => val != null
+    ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val)
+    : '—';
 
-const FilterBar = () => (
-    <div className="p-4 border-b border-outline-variant/20 flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant"/>
-            <input type="text" placeholder="Search customers..." className="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"/>
-        </div>
-        <button type="button" className="px-3 py-2 border border-outline-variant/40 rounded-lg text-sm font-medium text-on-surface flex items-center hover:bg-surface-container-low transition-colors">
-            <Filter className="w-4 h-4 mr-2"/>
-            Filter
-        </button>
-    </div>
-);
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
 
-const getInitials = (name) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-};
+const emailName = (email) => email ? email.split('@')[0] : '—';
 
-const CustomerTable = ({ customers, isLoading, handleRowClick }) => {
+function deriveStats(customer) {
+    const orders = Array.isArray(customer.orders) ? customer.orders : [];
+    
+    const totalOrders = orders.length;
+    const totalSpent = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
+    const lastOrder = orders.length > 0
+        ? orders.reduce((latest, o) =>
+            new Date(o.createdAt) > new Date(latest.createdAt) ? o : latest
+        )
+        : null;
+    return { totalOrders, totalSpent, lastOrder };
+}
+
+function CustomerDetailModal({ customer, onClose }) {
+    const { totalOrders, totalSpent, lastOrder } = deriveStats(customer);
     return (
-        <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-                <thead>
-                    <tr className="bg-surface-container-low/50 text-xs font-semibold text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/30">
-                        <th className="px-6 py-4 w-10">
-                            <input type="checkbox" className="rounded border-outline-variant/50 text-primary focus:ring-primary"/>
-                        </th>
-                        <th className="px-6 py-4">Customer name</th>
-                        <th className="px-6 py-4">Location</th>
-                        <th className="px-6 py-4">Orders</th>
-                        <th className="px-6 py-4 text-right">Amount spent</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/20">
-                    {isLoading ? (
-                        Array.from({ length: 5 }).map((_, idx) => (
-                            <tr key={idx} className="hover:bg-surface-container-low/50 transition-colors">
-                                <td className="px-6 py-4"><div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div></td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center">
-                                        <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse mr-3"></div>
-                                        <div>
-                                            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-1"></div>
-                                            <div className="h-3 w-32 bg-gray-200 rounded animate-pulse"></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4"><div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div></td>
-                                <td className="px-6 py-4"><div className="h-4 w-8 bg-gray-200 rounded animate-pulse"></div></td>
-                                <td className="px-6 py-4 text-right"><div className="h-4 w-16 bg-gray-200 rounded animate-pulse ml-auto"></div></td>
-                            </tr>
-                        ))
-                    ) : customers.length === 0 ? (
-                        <tr>
-                            <td colSpan={5} className="px-6 py-8 text-center text-sm text-on-surface-variant">No customers found.</td>
-                        </tr>
-                    ) : (
-                        customers.map((customer) => (
-                            <tr key={customer.id} onClick={() => handleRowClick(customer.id)} className="hover:bg-surface-container-low/50 transition-colors group cursor-pointer">
-                                <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                                    <input type="checkbox" className="rounded border-outline-variant/50 text-primary focus:ring-primary"/>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center">
-                                        <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface-variant mr-3">
-                                            {getInitials(customer.name)}
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">{customer.name}</p>
-                                            <p className="text-xs text-on-surface-variant">{customer.email}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-on-surface-variant">{customer.location}</td>
-                                <td className="px-6 py-4 text-sm text-on-surface-variant">{customer.ordersCount}</td>
-                                <td className="px-6 py-4 text-sm font-medium text-on-surface text-right">{formatCurrency(customer.totalSpent)}</td>
-                            </tr>
-                        ))
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[#e3e3e3] sticky top-0 bg-white z-10">
+                    <h2 className="text-base font-semibold text-black">Customer Details</h2>
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#f1f2f4] text-slate-500">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+                <div className="p-6 space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-600">
+                            {emailName(customer.email)[0]?.toUpperCase() || '?'}
+                        </div>
+                        <div>
+                            <p className="text-base font-semibold text-slate-900">{emailName(customer.email)}</p>
+                            <p className="text-sm text-slate-500">{customer.email}</p>
+                            <span className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs font-medium border ${customer.isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                                {customer.isActive ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                                {customer.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-[#f8f8f8] rounded-xl p-3">
+                            <p className="text-xs text-slate-500">Total Orders</p>
+                            <p className="text-xl font-bold text-slate-900 mt-1">{totalOrders}</p>
+                        </div>
+                        <div className="bg-[#f8f8f8] rounded-xl p-3">
+                            <p className="text-xs text-slate-500">Total Spent</p>
+                            <p className="text-lg font-bold text-slate-900 mt-1">{fmt(totalSpent)}</p>
+                        </div>
+                        <div className="bg-[#f8f8f8] rounded-xl p-3">
+                            <p className="text-xs text-slate-500">Joined</p>
+                            <p className="text-sm font-semibold text-slate-900 mt-1">{fmtDate(customer.createdAt)}</p>
+                        </div>
+                    </div>
+
+                    {/* Orders list */}
+                    {customer.orders && customer.orders.length > 0 && (
+                        <div>
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Orders</p>
+                            <div className="border border-[#e3e3e3] rounded-lg overflow-hidden">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="bg-[#f8f8f8] border-b border-[#e3e3e3]">
+                                            <th className="text-left px-3 py-2 text-xs font-semibold text-slate-600">Order ID</th>
+                                            <th className="text-left px-3 py-2 text-xs font-semibold text-slate-600">Date</th>
+                                            <th className="text-left px-3 py-2 text-xs font-semibold text-slate-600">Status</th>
+                                            <th className="text-right px-3 py-2 text-xs font-semibold text-slate-600">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#e3e3e3]">
+                                        {customer.orders.map((o) => (
+                                            <tr key={o.id}>
+                                                <td className="px-3 py-2 font-mono text-xs text-slate-500">#{String(o.id).slice(-8).toUpperCase()}</td>
+                                                <td className="px-3 py-2 text-slate-500 text-xs">{fmtDate(o.createdAt)}</td>
+                                                <td className="px-3 py-2">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border bg-slate-50 text-slate-700 border-slate-200">
+                                                        {o.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-2 text-right font-medium text-slate-900">{fmt(o.totalAmount)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     )}
-                </tbody>
-            </table>
+
+                    {/* Cart info */}
+                    {customer.cart && Array.isArray(customer.cart.cartItems) && (
+                        <div>
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Cart</p>
+                            <p className="text-sm text-slate-700">
+                                {customer.cart.cartItems.length} item{customer.cart.cartItems.length !== 1 ? 's' : ''} in cart
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
-};
-
-const Pagination = ({ customersCount }) => (
-    <div className="p-4 border-t border-outline-variant/30 flex justify-between items-center bg-surface-container-low/30">
-        <p className="text-xs text-on-surface-variant">Showing {Math.min(5, customersCount)} of {customersCount} customers</p>
-        <div className="flex space-x-2">
-            <button type="button" disabled className="px-3 py-1 border border-outline-variant/40 rounded-md bg-surface-container-lowest opacity-50 cursor-not-allowed text-sm font-medium">
-                Previous
-            </button>
-            <button type="button" className="px-3 py-1 border border-outline-variant/40 rounded-md bg-surface-container-lowest hover:bg-surface-container-low text-sm font-medium">
-                Next
-            </button>
-        </div>
-    </div>
-);
-
-// --- Main Page Component ---
+}
 
 export default function Customers() {
-    const navigate = useNavigate();
-    const { state } = useCustomers();
-    const { customers, isLoading, error } = state;
-    
-    const handleRowClick = (customerId) => {
-        navigate(`/customers/${customerId}`);
-    };
-    
-    return (
-        <div className="p-8 max-w-[1400px] mx-auto pb-16">
-            <PageHeader />
+    const { currentTenant } = useAuth();
+    const tenantId = currentTenant?.tenantId;
 
-            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
-                <FilterBar />
-                <CustomerTable customers={customers} isLoading={isLoading} handleRowClick={handleRowClick} />
-                <Pagination customersCount={customers.length} />
+    const [searchInput, setSearchInput] = useState('');
+    const [search, setSearch] = useState('');
+    const [isActiveFilter, setIsActiveFilter] = useState('');
+    const [createdFrom, setCreatedFrom] = useState('');
+    const [createdTo, setCreatedTo] = useState('');
+    const [sortBy, setSortBy] = useState('createdAt');
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
+    const [page, setPage] = useState(1);
+    const PAGE_SIZE = 20;
+
+    const params = useMemo(() => ({
+        search: search || undefined,
+        isActive: isActiveFilter !== '' ? isActiveFilter === 'true' : undefined,
+        createdFrom: createdFrom || undefined,
+        createdTo: createdTo || undefined,
+        sortBy: sortBy || undefined,
+    }), [search, isActiveFilter, createdFrom, createdTo, sortBy]);
+
+    const customersQuery = useQuery({
+        queryKey: queryKeys.customers.list(tenantId, params),
+        queryFn: () => getCustomers(tenantId, params),
+        enabled: !!tenantId,
+    });
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        setSearch(searchInput);
+        setPage(1);
+    };
+
+    const handleReset = () => {
+        setSearchInput(''); setSearch('');
+        setIsActiveFilter('');
+        setCreatedFrom(''); setCreatedTo('');
+        setSortBy('createdAt');
+        setPage(1);
+    };
+
+    const allCustomers = useMemo(() => {
+        
+        const data = customersQuery.data;
+        console.log(customersQuery.data);
+        return Array.isArray(data) ? data : (data?.items || data?.data || []);
+    }, [customersQuery.data]);
+
+    const pagedCustomers = useMemo(() => {
+        const start = (page - 1) * PAGE_SIZE;
+        return allCustomers.slice(start, start + PAGE_SIZE);
+    }, [allCustomers, page]);
+
+    const totalPages = Math.max(1, Math.ceil(allCustomers.length / PAGE_SIZE));
+
+    if (!tenantId) {
+        return (
+            <div className="p-8 flex items-center gap-3 text-slate-500">
+                <AlertCircle className="w-5 h-5" />
+                <span>Please select a store to view customers.</span>
             </div>
+        );
+    }
+
+    return (
+        <div className="p-6 space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-xl font-bold text-slate-900">Customers</h1>
+                    <p className="text-sm text-slate-500 mt-0.5">Manage and analyse your customer base</p>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                    <Users className="w-4 h-4" />
+                    <span>{allCustomers.length} customer{allCustomers.length !== 1 ? 's' : ''}</span>
+                </div>
+            </div>
+
+            {/* Filters */}
+            <div className="bg-white rounded-xl border border-[#e3e3e3] p-4 space-y-3">
+                <div className="flex flex-wrap gap-3 items-center">
+                    <form onSubmit={handleSearch} className="flex items-center gap-2 bg-[#f8f8f8] rounded-lg px-3 py-2 border border-transparent focus-within:border-[#e3e3e3] flex-1 min-w-[200px]">
+                        <Search className="w-4 h-4 text-slate-400 shrink-0" />
+                        <input
+                            type="text"
+                            placeholder="Search by email..."
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+                        />
+                        {searchInput && (
+                            <button type="button" onClick={() => { setSearchInput(''); setSearch(''); setPage(1); }}>
+                                <X className="w-3.5 h-3.5 text-slate-400" />
+                            </button>
+                        )}
+                    </form>
+                    <select
+                        value={isActiveFilter}
+                        onChange={(e) => { setIsActiveFilter(e.target.value); setPage(1); }}
+                        className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                    <button
+                        type="button"
+                        onClick={() => setShowAdvanced((v) => !v)}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${showAdvanced ? 'border-slate-900 bg-slate-900 text-white' : 'border-[#e3e3e3] text-slate-600 hover:bg-[#f8f8f8]'}`}
+                    >
+                        <SlidersHorizontal className="w-4 h-4" />
+                        Filters
+                    </button>
+                </div>
+
+                {showAdvanced && (
+                    <div className="flex flex-wrap gap-3 items-end pt-2 border-t border-[#f0f0f0]">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-slate-500">Joined from</label>
+                            <input type="date" value={createdFrom} onChange={(e) => { setCreatedFrom(e.target.value); setPage(1); }}
+                                className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm outline-none focus:border-black" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-slate-500">Joined to</label>
+                            <input type="date" value={createdTo} onChange={(e) => { setCreatedTo(e.target.value); setPage(1); }}
+                                className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm outline-none focus:border-black" />
+                        </div>
+                        <div className="flex flex-col gap-1 min-w-[140px]">
+                            <label className="text-xs font-medium text-slate-500">Sort by</label>
+                            <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
+                                className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black">
+                                {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </select>
+                        </div>
+                        <button type="button" onClick={handleReset}
+                            className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm text-slate-600 hover:bg-[#f8f8f8] transition-colors">
+                            Reset all
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* Table */}
+            <div className="bg-white rounded-xl border border-[#e3e3e3] overflow-hidden">
+                {customersQuery.isLoading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                        <span className="ml-2 text-slate-500 text-sm">Loading customers...</span>
+                    </div>
+                ) : customersQuery.isError ? (
+                    <div className="flex items-center justify-center gap-2 py-20 text-red-500">
+                        <AlertCircle className="w-5 h-5" />
+                        <span className="text-sm">Failed to load customers. Please try again.</span>
+                    </div>
+                ) : (
+                    <>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-[#e3e3e3] bg-[#f8f8f8]">
+                                        <th className="text-left px-4 py-3 font-semibold text-slate-600">Customer</th>
+                                        <th className="text-left px-4 py-3 font-semibold text-slate-600">Status</th>
+                                        <th className="text-right px-4 py-3 font-semibold text-slate-600">
+                                            <span className="flex items-center justify-end gap-1"><ShoppingBag className="w-3.5 h-3.5" /> Orders</span>
+                                        </th>
+                                        <th className="text-right px-4 py-3 font-semibold text-slate-600">
+                                            <span className="flex items-center justify-end gap-1"><DollarSign className="w-3.5 h-3.5" /> Total Spent</span>
+                                        </th>
+                                        <th className="text-left px-4 py-3 font-semibold text-slate-600">
+                                            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Last Order</span>
+                                        </th>
+                                        <th className="text-left px-4 py-3 font-semibold text-slate-600">Joined</th>
+                                        <th className="text-right px-4 py-3 font-semibold text-slate-600">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[#e3e3e3]">
+                                    {pagedCustomers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="text-center py-16 text-slate-400">No customers found.</td>
+                                        </tr>
+                                    ) : (
+                                        pagedCustomers.map((c) => {
+                                            const { totalOrders, totalSpent, lastOrder } = deriveStats(c);
+                                            return (
+                                                <tr key={c.id} className="hover:bg-[#f8f8f8] transition-colors">
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-600 shrink-0">
+                                                                {emailName(c.email)[0]?.toUpperCase() || '?'}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-slate-900">{emailName(c.email)}</p>
+                                                                <p className="text-xs text-slate-400">{c.email}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${c.isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                                                            {c.isActive ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                                                            {c.isActive ? 'Active' : 'Inactive'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right font-medium text-slate-900">{totalOrders}</td>
+                                                    <td className="px-4 py-3 text-right font-medium text-slate-900">{fmt(totalSpent)}</td>
+                                                    <td className="px-4 py-3 text-slate-500 text-sm">
+                                                        {lastOrder ? fmtDate(lastOrder.createdAt) : '—'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-slate-500 text-sm">{fmtDate(c.createdAt)}</td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        <button
+                                                            onClick={() => setSelectedCustomer(c)}
+                                                            className="px-3 py-1.5 rounded-lg border border-[#e3e3e3] text-xs font-medium text-slate-600 hover:bg-[#f8f8f8] transition-colors"
+                                                        >
+                                                            View
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {allCustomers.length > PAGE_SIZE && (
+                            <div className="flex items-center justify-between px-4 py-3 border-t border-[#e3e3e3]">
+                                <span className="text-sm text-slate-500">
+                                    Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, allCustomers.length)} of {allCustomers.length}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                    <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#e3e3e3] disabled:opacity-40 hover:bg-[#f8f8f8] transition-colors">
+                                        <ChevronLeft className="w-4 h-4" />
+                                    </button>
+                                    <span className="px-3 text-sm font-medium text-slate-700">{page} / {totalPages}</span>
+                                    <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#e3e3e3] disabled:opacity-40 hover:bg-[#f8f8f8] transition-colors">
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+
+            {selectedCustomer && (
+                <CustomerDetailModal customer={selectedCustomer} onClose={() => setSelectedCustomer(null)} />
+            )}
         </div>
     );
 }
