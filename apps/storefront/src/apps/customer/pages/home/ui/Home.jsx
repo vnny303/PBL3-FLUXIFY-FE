@@ -62,7 +62,7 @@ export default function Home() {
     return (
       <div className="flex flex-col justify-center items-center min-h-[60vh] px-4 text-center">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4">{tenantError}</h1>
-        <p className="text-slate-500">Vui lòng kiểm tra lại đường dẫn cửa hàng.</p>
+        <p className="text-slate-500">Please check the store URL and try again.</p>
       </div>
     );
   }
@@ -147,7 +147,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
-            Chưa có sản phẩm nổi bật nào.
+            No featured products yet.
           </div>
         )}
       </section>
@@ -184,7 +184,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
-            Chưa có danh mục nào.
+            No categories yet.
           </div>
         )}
       </section>
