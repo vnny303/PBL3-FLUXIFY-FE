@@ -1,6 +1,5 @@
 import React from 'react';
 import { MapPin, CreditCard, Building, StickyNote, AlertCircle } from 'lucide-react';
-import { getBankTransferQrUrl } from '../../../shared/lib/mocks/bankTransferMock';
 import { formatVnd, parsePrice } from '../../../shared/lib/formatters';
 import { isBankTransferMethod } from '../../../shared/lib/paymentMethod';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
@@ -42,8 +41,6 @@ export default function OrderSummaryCard({ order }) {
   const isBankTransfer = isBankTransferMethod(order.paymentMethod) || isBankTransferMethod(order.payment?.methodName);
   const isPending = (order.status || order.paymentStatus) === 'Pending';
   const bankInfo = order.bankTransferInfo;
-  const qrUrl = getBankTransferQrUrl(bankInfo);
-
   return (
     <div className="space-y-6">
       {/* Shipping Details */}
@@ -113,11 +110,6 @@ export default function OrderSummaryCard({ order }) {
                   <span className="text-xs font-bold uppercase" style={{ color: primaryColor }}>{bankInfo.transferContent}</span>
                 </div>
               </div>
-              {qrUrl && (
-                <div className="flex justify-center bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-100">
-                   <img src={qrUrl} alt="QR" className="w-24 h-24 object-contain" />
-                </div>
-              )}
             </div>
           </div>
         )}

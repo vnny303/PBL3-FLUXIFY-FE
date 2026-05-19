@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { merchantLogin } from '../../share/api/authApi';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
@@ -66,7 +67,7 @@ export default function Login() {
                 role: response.role,
                 tenants: response.tenants 
             });
-            alert("Đăng nhập đã thành công")
+            toast.success("Đăng nhập thành công!");
             navigate('/home', { replace: true });
 
         } catch (err) {

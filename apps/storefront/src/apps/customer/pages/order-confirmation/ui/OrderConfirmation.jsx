@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Copy, CheckCircle2, ShoppingBag, ListChecks, MapPin, CreditCard, Package, AlertCircle } from 'lucide-react';
-import { getBankTransferQrUrl } from '../../../../../shared/lib/mocks/bankTransferMock';
 import { orderService } from '../../../../../shared/api/orderService';
 
 import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
@@ -111,8 +110,6 @@ export default function OrderConfirmation() {
   const handleContinueShopping = () => navigate('/shop');
   const handleViewOrders = () => navigate('/account', { state: { screen: 'my-orders' } });
 
-  const qrUrl = getBankTransferQrUrl(syncedBankInfo);
-
   const copyToClipboard = (text, label) => {
     navigator.clipboard.writeText(String(text));
     toast.success(`Copied ${label} to clipboard`);
@@ -158,16 +155,6 @@ export default function OrderConfirmation() {
   // ─── Render Order Details ────────────────────────────────────────────────
   return (
     <main className="max-w-7xl mx-auto px-6 py-10">
-      {/* Demo Order Banner */}
-      {orderData.persisted === false && (
-        <div className="mb-6 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 text-amber-800 dark:text-amber-300 rounded-xl px-5 py-4">
-          <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-          <div>
-            <p className="text-sm font-bold">Demo Order — Not saved to database</p>
-            <p className="text-xs mt-0.5 opacity-80">This is a local simulation order created while the backend is under maintenance. It will not appear in order history once backend is live.</p>
-          </div>
-        </div>
-      )}
       <div className="flex flex-col items-center text-center mb-10">
         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
           <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
@@ -244,14 +231,8 @@ export default function OrderConfirmation() {
                 </div>
 
                 <div className="flex flex-col items-center space-y-4">
-                  {qrUrl && (
-                    <div className="p-4 bg-white dark:bg-white rounded-xl border border-slate-100 shadow-sm">
-                      <img src={qrUrl} alt="Payment QR" className="w-40 h-40 object-contain" />
-                    </div>
-                  )}
                   <div className="text-center">
-                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Scan to pay</p>
-                    <p className="text-[10px] text-slate-400 mt-1 max-w-[180px]">If you cannot scan the QR code, please transfer manually.</p>
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Please transfer manually</p>
                   </div>
                 </div>
               </div>

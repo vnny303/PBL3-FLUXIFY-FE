@@ -29,7 +29,7 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
     : productSkus.find(s => s.imgUrl)?.imgUrl
     || product.image 
     || product.images?.[0]
-    || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop';
+    || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?auto=format&fit=crop&q=80&w=800';
 
   // 4. Price Logic (Min price of in-stock SKUs)
   const priceInfo = useMemo(() => {

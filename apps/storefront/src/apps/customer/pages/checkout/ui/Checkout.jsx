@@ -8,8 +8,6 @@ import { useAppContext } from '../../../../../app/providers/useAppContext';
 import { orderService } from '../../../../../shared/api/orderService';
 import { addressService } from '../../../../../shared/api/addressService';
 import { SHIPPING_METHODS } from '../../../../../shared/lib/constants';
-import { createOrderConfirmationFallback } from '../../../../../shared/lib/mocks/orderMock';
-
 export default function Checkout() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -20,7 +18,6 @@ export default function Checkout() {
   const [shippingMethodId, setShippingMethodId] = useState(SHIPPING_METHODS.STANDARD.id);
   const [orderNote, setOrderNote] = useState('');
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const CHECKOUT_MODE = import.meta.env.VITE_CHECKOUT_MODE || 'live';
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/login', { state: { from: '/checkout' } });
@@ -90,36 +87,18 @@ export default function Checkout() {
         paymentMethod: pm,
         orderNote,
         shippingMethod,
-        // Mock context – only used when VITE_CHECKOUT_MODE=mock
-        cartItems,
-        cartTotal,
         shippingFee,
         user,
         finalAddress,
         selectedAddress,
       }),
     onSuccess: async (checkoutResponse, { finalAddress, apiPaymentMethod }) => {
-      const isDemo = checkoutResponse?.source === 'demo-checkout';
-
-      // Only clear cart and invalidate queries when dealing with a real persisted order
-      if (!isDemo) {
-        await refreshCart();
-        queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
-      }
+      await refreshCart();
+      queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
       
-      // Use fallback constructor for reload safety and incomplete backend responses
-      const orderData = isDemo
-        ? checkoutResponse
-        : createOrderConfirmationFallback(
-            checkoutResponse, 
-            cartItems, 
-            cartTotal, 
-            shippingFee, 
-            finalAddress, 
-            apiPaymentMethod
-          );
+      const orderData = checkoutResponse;
 
-      toast.success(isDemo ? 'Demo order created! (not saved to database)' : 'Order placed successfully!');
+      toast.success('Order placed successfully!');
       
       // Save for reload safety using the unified key
       sessionStorage.setItem('fluxify_last_checkout_order', JSON.stringify(orderData));
@@ -154,11 +133,6 @@ export default function Checkout() {
     if (!selectedAddress) { 
       toast.error('Please select a shipping address'); 
       return; 
-    }
-    if (CHECKOUT_MODE !== 'mock' && selectedAddress?.isMock) {
-      const message = 'Please select a real saved address before live checkout.';
-      toast.error(message);
-      return;
     }
     if (!paymentMethod) {
       toast.error('Please select a payment method');

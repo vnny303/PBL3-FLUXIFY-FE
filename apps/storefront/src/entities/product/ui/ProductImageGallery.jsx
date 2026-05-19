@@ -21,7 +21,7 @@ export default function ProductImageGallery({ product, selectedSku }) {
 
   const normalizedActiveIdx = Math.min(activeIdx, Math.max(allImages.length - 1, 0));
   const activeImageIdx = skuImageIndex >= 0 ? skuImageIndex : normalizedActiveIdx;
-  const mainImage = allImages[activeImageIdx] || 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000';
+  const mainImage = allImages[activeImageIdx] || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?auto=format&fit=crop&q=80&w=800';
 
   return (
     <div className="w-full lg:w-1/2">

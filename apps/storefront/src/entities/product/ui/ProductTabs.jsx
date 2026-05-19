@@ -53,7 +53,14 @@ const normalizeDetailSections = (raw) => {
     .filter((section) => section.title && section.content);
 };
 
-export default function ProductTabs({ product, selectedSku }) {
+export default function ProductTabs({ 
+  product, 
+  selectedSku, 
+  reviews = [], 
+  reviewSummary = {},
+  isLoadingReviews = false,
+  onRefreshReviews
+}) {
   const [activeTab, setActiveTab] = useState('DETAILS');
   const [openSections, setOpenSections] = useState({ 'Product details': true });
   const { tenantId } = useStorefrontTenant();
@@ -105,29 +112,8 @@ export default function ProductTabs({ product, selectedSku }) {
   }, [product]);
 
   // 2. Review Summary
-  const productSkus = product?.productSkus || product?.skus || [];
-  const skuIds = Array.from(
-    new Set(
-      productSkus
-        .map((sku) => sku?.id || sku?.productSkuId || sku?.skuId)
-        .filter(Boolean)
-    )
-  );
-  const skuIdsKey = skuIds.join('|');
+  const reviewCount = reviews.length;
   const selectedSkuId = selectedSku?.id || selectedSku?.productSkuId || selectedSku?.skuId || null;
-
-  const { data: mergedReviews = [] } = useQuery({
-    queryKey: ['product-reviews', product?.id, skuIdsKey],
-    queryFn: () => reviewService.getProductReviews({
-      tenantId,
-      productId: product?.id,
-      skuIds,
-      filters: { pageSize: 200 },
-    }),
-    enabled: !!tenantId && !!product?.id && skuIds.length > 0,
-    staleTime: 30_000,
-  });
-  const reviewCount = mergedReviews.length;
 
   const toggleSection = (title) => {
     setOpenSections(prev => ({ ...prev, [title]: !prev[title] }));
@@ -256,7 +242,13 @@ export default function ProductTabs({ product, selectedSku }) {
 
       {activeTab === 'REVIEWS' && (
         <div className="animate-in fade-in duration-500">
-          <ReviewList product={product} selectedSkuId={selectedSkuId} />
+          <ReviewList 
+            product={product} 
+            selectedSkuId={selectedSkuId} 
+            reviews={reviews}
+            isLoadingReviews={isLoadingReviews}
+            onRefresh={onRefreshReviews}
+          />
         </div>
       )}
     </div>

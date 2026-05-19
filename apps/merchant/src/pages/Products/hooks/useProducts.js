@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { useAuth } from '../../../entities/auth/AuthContext';
 import {
     getProducts, createProduct, updateProduct, deleteProduct,
@@ -96,7 +97,7 @@ export function useProducts() {
             setDeleteTarget(null);
         } catch (err) {
             const msg = err?.response?.data?.message || 'Failed to delete product.';
-            alert(typeof msg === 'string' ? msg : JSON.stringify(msg));
+            toast.error(typeof msg === 'string' ? msg : JSON.stringify(msg));
         } finally {
             setIsDeleting(false);
         }
@@ -180,7 +181,7 @@ export function useEditProduct(tenantId, productId, onSuccess, onClose) {
             await updateSku(tenantId, productId, skuId, data);
             onSuccess();
         } catch {
-            alert('Failed to update variant.');
+            toast.error('Failed to update variant.');
         } finally {
             setSavingSkuId(null);
         }
@@ -195,7 +196,7 @@ export function useEditProduct(tenantId, productId, onSuccess, onClose) {
             onSuccess();
         } catch (err) {
             const msg = err?.response?.data?.message || 'Failed to delete variant.';
-            alert(typeof msg === 'string' ? msg : JSON.stringify(msg));
+            toast.error(typeof msg === 'string' ? msg : JSON.stringify(msg));
         } finally {
             setDeletingSkuId(null);
         }
@@ -208,7 +209,7 @@ export function useEditProduct(tenantId, productId, onSuccess, onClose) {
             onAdded(created);
             onSuccess();
         } catch {
-            alert('Failed to add variant.');
+            toast.error('Failed to add variant.');
         } finally {
             setAddingSkuLoading(false);
         }

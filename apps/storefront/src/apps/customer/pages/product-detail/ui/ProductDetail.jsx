@@ -92,16 +92,42 @@ export default function ProductDetail() {
 
   const reviewSummaryKey = useMemo(() => productSkuIds.join(','), [productSkuIds]);
 
-  const { data: reviewSummary } = useQuery({
-    queryKey: ['product-review-summary', tenantId, product?.id, reviewSummaryKey],
-    queryFn: () => reviewService.getProductReviewSummary({
+  const { 
+    data: reviews = [], 
+    isLoading: isLoadingReviews, 
+    refetch: refetchReviews 
+  } = useQuery({
+    queryKey: ['product-reviews', tenantId, product?.id, reviewSummaryKey],
+    queryFn: () => reviewService.getProductReviews({
       tenantId,
       productId: product?.id,
       skuIds: productSkuIds,
+      filters: { pageSize: 200 }
     }),
     enabled: !!tenantId && !!product?.id && productSkuIds.length > 0,
     staleTime: 30_000,
   });
+
+  const reviewSummary = useMemo(() => {
+    const ratingBuckets = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    const totalReviews = reviews.length;
+    const totalRating = reviews.reduce((sum, r) => {
+      const rating = Number(r.rating) || 0;
+      const rounded = Math.round(rating);
+      if (rounded >= 1 && rounded <= 5) ratingBuckets[rounded] += 1;
+      return sum + rating;
+    }, 0);
+
+    return {
+      totalReviews,
+      averageRating: totalReviews > 0 ? totalRating / totalReviews : 0,
+      oneStarCount: ratingBuckets[1],
+      twoStarCount: ratingBuckets[2],
+      threeStarCount: ratingBuckets[3],
+      fourStarCount: ratingBuckets[4],
+      fiveStarCount: ratingBuckets[5],
+    };
+  }, [reviews]);
 
   // 3. Ensure quantity doesn't exceed selected SKU stock
   React.useEffect(() => {
@@ -199,7 +225,14 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <ProductTabs product={product} selectedSku={selectedSku} />
+      <ProductTabs 
+        product={product} 
+        selectedSku={selectedSku} 
+        reviews={reviews}
+        reviewSummary={reviewSummary}
+        isLoadingReviews={isLoadingReviews}
+        onRefreshReviews={refetchReviews}
+      />
     </main>
   );
 }

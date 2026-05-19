@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { merchantRegister } from '../../share/api/authApi';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
@@ -73,7 +74,7 @@ export default function Register() {
                 tenantId: response.tenantId,
                 subdomain: response.subdomain
             });
-            alert("Đăng ký đã thành công")
+            toast.success("Đăng ký tài khoản thành công!");
             navigate('/home', { replace: true });
         } catch (err) {
             console.error('Register error:', err);

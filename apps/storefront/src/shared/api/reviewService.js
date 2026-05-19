@@ -106,11 +106,17 @@ export const reviewService = {
    * Query params: page, pageSize, sortBy (rating|createdAt|id), sortDir (asc|desc), rating (1-5), search
    */
   getReviews: async (tenantId, productSkuId, filters = {}) => {
-    const query = new URLSearchParams(filters).toString();
-    const response = await axiosClient.get(
-      `/api/tenants/${tenantId}/product-skus/${productSkuId}/reviews${query ? `?${query}` : ''}`
-    );
-    return dedupeAndSortReviews(extractReviewList(response));
+    try {
+      const query = new URLSearchParams(filters).toString();
+      const response = await axiosClient.get(
+        `/api/tenants/${tenantId}/product-skus/${productSkuId}/reviews${query ? `?${query}` : ''}`
+      );
+      return dedupeAndSortReviews(extractReviewList(response));
+    } catch (error) {
+      // Gracefully handle 404 or other errors for reviews
+      console.warn(`Failed to fetch reviews for SKU ${productSkuId}:`, error.message);
+      return [];
+    }
   },
 
   getReviewsBySkuIds: async (tenantId, skuIds = [], filters = {}) => {
@@ -137,11 +143,13 @@ export const reviewService = {
           `/api/tenants/${tenantId}/products/${productId}/reviews${query ? `?${query}` : ''}`
         );
         const list = dedupeAndSortReviews(extractReviewList(response));
-        if (list.length > 0 || (skuIds || []).length === 0) {
+        // If we found reviews at the product level, use them. 
+        // Otherwise, we might still want to try SKU level if that's how data is structured.
+        if (list.length > 0) {
           return list;
         }
-      } catch {
-        // Fallback to per-SKU fetching when product-level endpoint is not available.
+      } catch (error) {
+        console.warn(`Product-level reviews not found for ${productId}, trying SKUs...`);
       }
     }
 

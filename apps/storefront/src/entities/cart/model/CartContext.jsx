@@ -66,7 +66,7 @@ export function CartProvider({ children }) {
         price: apiItem.productSku?.price ?? apiItem.product?.price ?? apiItem.productPrice ?? apiItem.unitPrice ?? apiItem.price ?? 0,
         quantity: apiItem.quantity || 1,
         skuAttributes: safeParseJson(apiItem.productSku?.attributes || apiItem.skuAttributes, {}),
-        image: apiItem.productSku?.imgUrl || apiItem.skuImgUrl || apiItem.productSku?.image || apiItem.product?.imgUrls?.[0] || apiItem.product?.images?.[0] || apiItem.image || 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000',
+        image: apiItem.skuImageUrl || apiItem.productSku?.imgUrl || apiItem.skuImgUrl || apiItem.productSku?.image || apiItem.product?.imgUrls?.[0] || apiItem.product?.images?.[0] || apiItem.image || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?auto=format&fit=crop&q=80&w=800',
       }));
       dispatch(setCartItemsAction(normalizedItems));
     } catch (error) {

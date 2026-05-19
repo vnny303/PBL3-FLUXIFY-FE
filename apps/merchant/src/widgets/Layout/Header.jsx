@@ -1,6 +1,7 @@
-import { Search, Bell, CircleHelp, Plus } from 'lucide-react'; // Thu vien icon
-import { useState, useRef, useEffect } from 'react'; // Hook trang thai, hook thay the cho bien, hook chay moi khi vao chuong trinh
-import { useNavigate } from 'react-router-dom'; // Hook dieu huong
+import { Search, Bell, CircleHelp, Plus } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../../entities/auth/AuthContext';
 import TenantSwitcher from './TenantSwitcher';
 import CreateStoreModal from './CreateStoreModal';
@@ -34,12 +35,12 @@ export default function Header() {
         setIsProfileOpen(false);
     };
     const handleHelpCenter = () => {
-        alert('Help center is coming soon!');
+        toast.info('Help center is coming soon!');
         setIsProfileOpen(false);
     };
     const handleLogout = () => {
         logout();
-        alert('Logged out successfully!');
+        toast.success('Logged out successfully!');
         navigate('/');
         setIsProfileOpen(false);
     };
