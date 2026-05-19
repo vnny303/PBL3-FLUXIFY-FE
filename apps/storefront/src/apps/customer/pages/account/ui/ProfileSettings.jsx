@@ -74,7 +74,7 @@ export default function ProfileSettings() {
     if (confirmAction === 'save-profile') {
       updateProfile({ ...profileForm, email: user?.email }, { onSuccess: () => setConfirmAction(null) });
     } else {
-      updatePassword(passwordForm.newPassword, { 
+      updatePassword({ oldPass: passwordForm.currentPassword, password: passwordForm.newPassword }, { 
         onSuccess: () => {
           setConfirmAction(null);
           setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });

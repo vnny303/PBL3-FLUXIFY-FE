@@ -1,5 +1,5 @@
 import axiosClient from "./axiosClient";
-import { clearAuthSession } from "@fluxify/shared/lib";
+import { clearAuthSession, getSubdomain } from "@fluxify/shared/lib";
 
 
 export const getTenantBySubdomain = async (subdomain) => {
@@ -35,7 +35,8 @@ export const logout = async () => {
 };
 
 export const updateCustomer = async (customerId, data) => {
-  return axiosClient.put(`/api/auth/customer/${customerId}`, data);
+  const subdomain = getSubdomain();
+  return axiosClient.put(`/api/auth/customer/${customerId}?subdomain=${encodeURIComponent(subdomain)}`, data);
 };
 
 export const uploadAvatar = async (customerId, file) => {

@@ -34,7 +34,7 @@ function ReviewModalContent({ onClose, product, initialReview, onSubmitReview })
     setPhotos(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0) {
       setError('Please provide a rating before submitting.');
       return;
@@ -47,14 +47,17 @@ function ReviewModalContent({ onClose, product, initialReview, onSubmitReview })
     setError('');
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
       if (onSubmitReview) {
-        onSubmitReview({ rating, text: reviewText, photos });
+        await onSubmitReview({ rating, comment: reviewText });
       }
       onClose();
-    }, 1500);
+    } catch (err) {
+      const errorMessage = err?.response?.data?.message || err.message || 'An error occurred while submitting.';
+      setError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -83,17 +86,26 @@ function ReviewModalContent({ onClose, product, initialReview, onSubmitReview })
               </div>
             )}
               {/* Product Info */}
-              <div className="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                <img
-                  src={product?.image || 'https://picsum.photos/seed/headphones/100/100'}
-                  alt="Product"
-                  className="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-slate-700"
-                />
-                <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm">{product?.name || 'Premium Headphones'}</h3>
-                  <p className="text-xs text-slate-500">{product?.variant || 'Space Gray'}</p>
-                </div>
-              </div>
+              <div className="flex items-center space-x-4 mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl">
+          <img 
+            src={product?.image || product?.imageUrl || 'https://via.placeholder.com/64'} 
+            alt={product?.name || 'Product'} 
+            className="w-16 h-16 rounded-lg object-cover bg-white dark:bg-slate-800"
+          />
+          <div>
+            <h3 className="font-semibold text-slate-900 dark:text-white leading-tight">
+              {product?.name || 'Product'}
+            </h3>
+            {product?.variant && (
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                {product.variant}
+              </p>
+            )}
+            <p className="text-xs text-red-500 mt-1">
+              DEBUG SkuId: {product?.productSkuId || product?.id || 'MISSING'}
+            </p>
+          </div>
+        </div>
 
               {/* Rating */}
               <div className="space-y-2">

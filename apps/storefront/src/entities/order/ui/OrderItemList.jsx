@@ -2,7 +2,7 @@ import React from 'react';
 import { Loader2, Star, Edit } from 'lucide-react';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
-export default function OrderItemList({ items, reviewedItems, buyingItemIds, onWriteReview, onBuyItem }) {
+export default function OrderItemList({ items, reviewedItems, buyingItemIds, onWriteReview, onBuyItem, orderStatus }) {
   const { theme } = useStorefrontConfig();
   const primaryColor = theme?.colors?.primary || '#1754cf';
   return (
@@ -30,19 +30,25 @@ export default function OrderItemList({ items, reviewedItems, buyingItemIds, onW
                   <p className="font-bold text-slate-900 dark:text-white text-sm">{productPrice}</p>
                 </div>
                 <div className="flex justify-between items-center mt-4">
-                  <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded">Qty: 1</span>
+                  <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded">Qty: {item.quantity || 1}</span>
                   <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => onWriteReview({ name: productName, variant: productVariant, image: productImage })}
-                      className="text-xs font-bold hover:underline transition-colors flex items-center gap-1"
-                      style={{ color: primaryColor }}
-                    >
-                      {reviewedItems[productName] ? (
-                        <><Edit className="w-3 h-3" style={{ color: primaryColor }} />Edit Review</>
+                    {orderStatus === 'Completed' || orderStatus === 'Delivered' ? (
+                      item.productSkuId ? (
+                        <button
+                          onClick={() => onWriteReview(item)}
+                          className="text-xs font-bold hover:underline transition-colors flex items-center gap-1"
+                          style={{ color: primaryColor }}
+                        >
+                          {reviewedItems[item.productSkuId] ? (
+                            <><Edit className="w-3 h-3" style={{ color: primaryColor }} />Edit Review</>
+                          ) : (
+                            <><Star className="w-3 h-3 fill-amber-400 text-amber-400" />Write a Review</>
+                          )}
+                        </button>
                       ) : (
-                        <><Star className="w-3 h-3 fill-amber-400 text-amber-400" />Write a Review</>
-                      )}
-                    </button>
+                        <span className="text-xs text-slate-400 italic">Cannot review</span>
+                      )
+                    ) : null}
                     <button
                       onClick={() => onBuyItem(item, idx)}
                       disabled={buyingItemIds[idx]}

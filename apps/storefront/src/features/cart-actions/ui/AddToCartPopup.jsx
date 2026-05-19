@@ -57,7 +57,7 @@ export default function AddToCartPopup() {
 
           <div className="bg-slate-50 rounded-xl p-4 flex gap-4 mb-6 border border-slate-100">
             <div className="w-20 h-20 rounded-lg bg-white overflow-hidden shrink-0 border border-slate-200">
-              <img src={lastAddedItem.imgUrls?.[0] || lastAddedItem.img} alt={lastAddedItem.name} className="w-full h-full object-cover" />
+              <img src={lastAddedItem.image || lastAddedItem.imgUrls?.[0] || lastAddedItem.img} alt={lastAddedItem.name} className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col justify-center">
               <h3 className="text-sm font-bold text-slate-900 mb-1">{lastAddedItem.name}</h3>

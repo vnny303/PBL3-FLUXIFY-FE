@@ -92,13 +92,28 @@ export default function Checkout() {
         finalAddress,
         selectedAddress,
       }),
-    onSuccess: async (checkoutResponse, { finalAddress, apiPaymentMethod }) => {
-      await refreshCart();
-      queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
-      
-      const orderData = checkoutResponse;
+    onSuccess: async (checkoutResponse, variables) => {
+      const { finalAddress, apiPaymentMethod, cartItemsSnapshot, cartTotalSnapshot, shippingFeeSnapshot } = variables;
+      // Build full order object because backend might only return id/orderCode
+      const orderData = {
+        ...checkoutResponse,
+        shippingAddress: checkoutResponse?.shippingAddress || finalAddress,
+        paymentMethod: checkoutResponse?.paymentMethod || apiPaymentMethod,
+        orderItems: checkoutResponse?.orderItems?.length ? checkoutResponse.orderItems : cartItemsSnapshot.map(item => ({
+            id: item.id || item.cartItemId,
+            productName: item.productName || item.name,
+            quantity: item.quantity,
+            unitPrice: item.price ?? item.unitPrice,
+            image: item.image || item.imgUrl,
+            skuAttributes: item.skuAttributes,
+        })),
+        totalAmount: checkoutResponse?.totalAmount ?? (cartTotalSnapshot + shippingFeeSnapshot),
+        shippingFee: checkoutResponse?.shippingFee ?? shippingFeeSnapshot,
+      };
 
       toast.success('Order placed successfully!');
+      await refreshCart();
+      queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
       
       // Save for reload safety using the unified key
       sessionStorage.setItem('fluxify_last_checkout_order', JSON.stringify(orderData));
@@ -149,7 +164,10 @@ export default function Checkout() {
       orderNote: orderNote,
       shippingMethod: apiShippingMethod,
       finalAddress: addressString,
-      apiPaymentMethod,
+      // Pass cart snapshot explicitly to ensure it is available in onSuccess
+      cartItemsSnapshot: cartItems,
+      cartTotalSnapshot: cartTotal,
+      shippingFeeSnapshot: shippingFee,
     });
   };
 

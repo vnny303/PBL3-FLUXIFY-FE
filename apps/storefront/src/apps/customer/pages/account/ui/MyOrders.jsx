@@ -33,6 +33,7 @@ const resolveOrderItemImage = (item, idx) => {
 
   return (
     item.image ||
+    item.imageUrl ||
     item.imgUrl ||
     item.thumbnail ||
     item.productImage ||

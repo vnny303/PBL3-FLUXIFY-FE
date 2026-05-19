@@ -24,7 +24,7 @@ export function useProfile() {
   });
 
   const updatePasswordMutation = useMutation({
-    mutationFn: (password) => authService.updateCustomer(user?.userId, { password }),
+    mutationFn: (data) => authService.updateCustomer(user?.userId, data),
     onSuccess: () => {
       toast.success('Password updated successfully!');
     },

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import ReviewModal from '../../../../../features/product-review/ui/ReviewModal';
 import { orderService } from '../../../../../shared/api/orderService';
+import { reviewService } from '../../../../../shared/api/reviewService';
 import { useAppContext } from '../../../../../app/providers/useAppContext';
 import OrderItemList from '../../../../../entities/order/ui/OrderItemList';
 import OrderStatusTimeline from '../../../../../entities/order/ui/OrderStatusTimeline';
@@ -27,7 +28,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   const [isBuyingWholeOrder, setIsBuyingWholeOrder] = useState(false);
 
   const cancelOrderMutation = useMutation({
-    mutationFn: () => orderService.cancelOrder(order?.id),
+    mutationFn: () => orderService.cancelOrder(order?.id, cancelReason),
     onSuccess: () => {
       setOrderStatus('Cancelled');
       setIsCancelModalOpen(false);
@@ -36,6 +37,27 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     },
     onError: (error) => {
       toast.error(error?.response?.data?.message || 'Failed to cancel order');
+    }
+  });
+
+  const submitReviewMutation = useMutation({
+    mutationFn: (data) => reviewService.createReview({
+      productSkuId: selectedProduct?.productSkuId || selectedProduct?.id,
+      rating: data.rating,
+      comment: data.comment,
+    }),
+    onSuccess: (response, variables) => {
+      setReviewedItems(prev => ({ ...prev, [selectedProduct.productSkuId]: variables }));
+      setIsReviewModalOpen(false);
+      toast.success('Review Submitted! Thank you for sharing your experience.');
+      queryClient.invalidateQueries({ queryKey: ['product-reviews'] });
+    },
+    onError: (error) => {
+      if (error?.response?.status === 409) {
+        toast.error('You have already reviewed this item.');
+      } else {
+        toast.error(error?.response?.data?.message || 'Failed to submit review');
+      }
     }
   });
 
@@ -67,7 +89,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     id: item.id || item.name,
     name: item.productName || item.name,
     variant: item.variant || (item.skuAttributes ? `${item.skuAttributes.color || ''} • ${item.skuAttributes.size || ''}` : ''),
-    image: item.image || `https://picsum.photos/seed/${item.productName || 'product'}/200/300`,
+    image: item.imageUrl || item.image || item.imgUrl || item.productImage || `https://picsum.photos/seed/${item.productName || 'product'}/200/300`,
     price: item.unitPrice != null ? formatVnd(item.unitPrice) : formatVnd(parsePrice(item.price)),
     quantity: item.quantity || 1,
     productSkuId: item.productSkuId,
@@ -95,7 +117,14 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   };
 
 
-  const handleWriteReview = (product) => { setSelectedProduct(product); setIsReviewModalOpen(true); };
+  const handleWriteReview = (product) => { 
+    if (!product?.productSkuId) {
+      toast.error('Cannot review this product because the SKU ID is missing.');
+      return;
+    }
+    setSelectedProduct(product); 
+    setIsReviewModalOpen(true); 
+  };
 
   const handleConfirmCancel = () => {
     cancelOrderMutation.mutate();
@@ -115,7 +144,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
           productName: item.name || 'Product',
           name: item.name || 'Product',
           price: unitPrice,
-          image: item.image || `https://picsum.photos/seed/product${idx}/200/300`,
+          image: item.imageUrl || item.image || item.imgUrl || item.productImage || `https://picsum.photos/seed/product${idx}/200/300`,
         },
         {
           id: item.productSkuId || item.id || `product-${idx}`,
@@ -148,7 +177,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
             productName: item.name || 'Product',
             name: item.name || 'Product',
             price: unitPrice,
-            image: item.image || `https://picsum.photos/seed/product${idx}/200/300`,
+            image: item.imageUrl || item.image || item.imgUrl || item.productImage || `https://picsum.photos/seed/product${idx}/200/300`,
           },
           {
             id: item.productSkuId || item.id || `product-${idx}`,
@@ -240,6 +269,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
             buyingItemIds={buyingItemIds}
             onWriteReview={handleWriteReview}
             onBuyItem={handleBuyItem}
+            orderStatus={orderStatus}
           />
           <OrderStatusTimeline orderStatus={orderStatus} currentIndex={currentIndex} progressWidth={progressWidth} />
         </div>
@@ -251,9 +281,8 @@ export default function OrderDetails({ setCurrentScreen, order }) {
         onClose={() => setIsReviewModalOpen(false)}
         product={selectedProduct}
         initialReview={selectedProduct ? reviewedItems[selectedProduct.name] : null}
-        onSubmitReview={(data) => {
-          setReviewedItems(prev => ({ ...prev, [selectedProduct.name]: data }));
-          toast.success('Review Submitted! Thank you for sharing your experience.');
+        onSubmitReview={async (data) => {
+          await submitReviewMutation.mutateAsync(data);
         }}
       />
 

@@ -50,7 +50,11 @@ const normalizeOrder = (order) => {
         totalAmount: order.totalAmount ?? order.total_amount ?? order.total ?? 0,
         total: order.total ?? order.totalAmount ?? order.total_amount ?? 0,
         createdAt: order.createdAt || order.created_at || null,
-        orderItems,
+        orderItems: orderItems.map(item => ({
+            ...item,
+            image: item.imageUrl || item.image || item.imgUrl || item.thumbnail || item.productImage || item.productImgUrl || null,
+            productName: item.productName || item.name || item.product_name,
+        })),
         items: orderItems,
     };
 };
@@ -235,7 +239,7 @@ export const orderService = {
             status,
         });
     },
-    cancelOrder: async (orderId) => {
-        return await axiosClient.post(`/api/customer/orders/${orderId}/cancel`);
+    cancelOrder: async (orderId, reason = '') => {
+        return await axiosClient.put(`/api/customer/orders/${orderId}/cancel`, { reason });
     },
 };
