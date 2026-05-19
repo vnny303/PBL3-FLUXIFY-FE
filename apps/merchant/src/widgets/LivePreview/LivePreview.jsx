@@ -74,10 +74,10 @@ export default function LivePreview({ themeData, pageData, activePage, storeData
                 {product.price}
               </span>
               <button
-                className={`flex items-center justify-center text-white transition-opacity hover:opacity-90 ${compact ? 'h-8 w-8' : 'h-9 w-9'}`}
+                className={`flex items-center justify-center text-white transition-opacity hover:opacity-90 ${compact ? 'h-8 w-8' : 'h-10 w-10'}`}
                 style={{ backgroundColor: themeData.colors.primary, borderRadius: `${Math.min(themeData.layout.borderRadius, 7)}px` }}
               >
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingCart className={compact ? 'h-4 w-4' : 'h-5 w-5'} />
               </button>
             </div>
           </div>

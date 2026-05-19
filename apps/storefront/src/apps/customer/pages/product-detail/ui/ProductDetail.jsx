@@ -186,7 +186,7 @@ export default function ProductDetail() {
   }
 
   return (
-    <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
+    <main className="grow w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
       {/* Breadcrumbs */}
       <nav className="flex text-sm text-slate-500 mb-8">
         <button onClick={() => navigate('/shop')} className="hover:text-slate-900">Store</button>
@@ -198,13 +198,13 @@ export default function ProductDetail() {
         <span className="text-slate-900 font-medium truncate max-w-[200px]">{product.name}</span>
       </nav>
 
-      <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.85fr)] gap-8 lg:gap-12 xl:gap-16 items-start">
         <ProductImageGallery
           product={product}
           selectedSku={selectedSku}
         />
 
-        <div className="w-full lg:w-1/2">
+        <div className="w-full flex flex-col">
           <ProductInfo
             product={product}
             selectedSku={selectedSku}

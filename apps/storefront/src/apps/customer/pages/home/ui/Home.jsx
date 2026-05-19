@@ -9,12 +9,44 @@ import { useStorefrontConfig } from '../../../../../features/theme/useStorefront
 import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
 import { reviewService } from '../../../../../shared/api/reviewService';
 
-// Category images for the "Shop by Category" section
-const CATEGORY_IMAGES = {
-  'cat-001': 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=600&q=80',
-  'cat-002': 'https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=600&q=80',
-  'cat-003': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80',
-  'cat-004': 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80',
+// Dynamic Category Cover Image Derivation Helper
+const getCategoryCoverImage = (cat, globalProducts) => {
+  if (!cat) return null;
+  
+  // 1. Future backend response support
+  if (cat.imageUrl) return cat.imageUrl;
+
+  const getProductImage = (prod) => {
+    if (!prod) return null;
+    if (prod.imgUrls && prod.imgUrls.length > 0) return prod.imgUrls[0];
+    if (prod.images && prod.images.length > 0) return prod.images[0];
+    if (prod.imageUrl) return prod.imageUrl;
+    if (prod.thumbnail) return prod.thumbnail;
+    if (prod.productImage) return prod.productImage;
+    return null;
+  };
+
+  // 2. First product image from category.products
+  if (cat.products && cat.products.length > 0) {
+    for (const prod of cat.products) {
+      const img = getProductImage(prod);
+      if (img) return img;
+    }
+  }
+
+  // 3. First product in global list with matching categoryId or categoryName
+  if (globalProducts && globalProducts.length > 0) {
+    const matchingProds = globalProducts.filter(
+      p => p.categoryId === cat.id || 
+      (p.categoryName && cat.name && p.categoryName.toLowerCase() === cat.name.toLowerCase())
+    );
+    for (const prod of matchingProds) {
+      const img = getProductImage(prod);
+      if (img) return img;
+    }
+  }
+
+  return null;
 };
 
 
@@ -68,12 +100,16 @@ export default function Home() {
   }
 
   return (
-    <main className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
-      <section className="relative overflow-hidden rounded-xl bg-slate-900 mb-16">
-        <div
-          className="absolute inset-0 mix-blend-overlay"
-          style={{ opacity: content.home.heroOverlayOpacity }}
-        >
+    <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
+      <section 
+        className="relative overflow-hidden rounded-xl mb-16"
+        style={{
+          borderRadius: `${theme.layout.borderRadius}px`,
+          backgroundColor: '#0f172a'
+        }}
+      >
+        {/* Background Image */}
+        <div className="absolute inset-0">
           <div
             className="w-full h-full bg-cover bg-center"
             style={{
@@ -81,6 +117,14 @@ export default function Home() {
             }}
           ></div>
         </div>
+
+        {/* Overlay */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundColor: `rgba(0, 0, 0, ${content.home.heroOverlayOpacity ?? 0.5})`
+          }}
+        ></div>
 
         <div className="relative px-8 py-12 md:py-20 flex flex-col items-center text-center max-w-3xl mx-auto">
           <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
@@ -162,21 +206,46 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {categories.filter(c => c.isActive !== false).map((cat) => {
               const catProducts = products.filter(p => p.categoryId === cat.id);
+              const coverImage = getCategoryCoverImage(cat, products);
+              
               return (
                 <button
                   key={cat.id}
                   onClick={() => navigate('/shop', { state: { categoryId: cat.id } })}
-                  className="group relative block aspect-[4/5] overflow-hidden rounded-xl bg-slate-200 w-full text-left"
+                  className="group relative block aspect-[4/5] overflow-hidden w-full text-left"
+                  style={{ borderRadius: `${theme.layout.borderRadius}px` }}
                 >
-                  <img
-                    alt={cat.name}
-                    src={CATEGORY_IMAGES[cat.id] || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=600&q=80'}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
-                  <div className="absolute bottom-6 left-6">
-                    <h3 className="text-xl font-bold text-white">{cat.name}</h3>
-                    <p className="text-sm text-slate-300">{catProducts.length}+ Items</p>
+                  {coverImage ? (
+                    <>
+                      <img
+                        alt={cat.name}
+                        src={coverImage}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+                    </>
+                  ) : (
+                    <div 
+                      className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center transition-colors duration-500"
+                      style={{
+                        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                      }}
+                    >
+                      <div 
+                        className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mb-4 shadow transition-transform duration-500 group-hover:scale-110"
+                        style={{
+                          backgroundColor: `${theme.colors.primary}1A`,
+                          color: theme.colors.primary,
+                        }}
+                      >
+                        {cat.name ? cat.name.charAt(0).toUpperCase() : 'C'}
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent"></div>
+                    </div>
+                  )}
+                  <div className="absolute bottom-6 left-6 z-10">
+                    <h3 className={`text-xl font-bold ${coverImage ? 'text-white' : 'text-slate-800'}`}>{cat.name}</h3>
+                    <p className={`text-sm ${coverImage ? 'text-slate-300' : 'text-slate-500'}`}>{catProducts.length}+ Items</p>
                   </div>
                 </button>
               );

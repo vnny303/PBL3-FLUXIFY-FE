@@ -24,23 +24,22 @@ export default function ProductImageGallery({ product, selectedSku }) {
   const mainImage = allImages[activeImageIdx] || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?auto=format&fit=crop&q=80&w=800';
 
   return (
-    <div className="w-full lg:w-1/2">
-      <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 mb-4">
+    <div className="w-full">
+      <div className="relative aspect-[4/3] max-h-[520px] w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 mb-4 flex items-center justify-center">
         <img
           src={mainImage}
           alt={product?.name || 'Product image'}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
         />
-
       </div>
 
       {allImages.length > 1 && (
-        <div className="grid grid-cols-4 gap-3">
+        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
           {allImages.map((url, i) => (
             <button
               key={i}
               onClick={() => setActiveIdx(i)}
-              className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+              className={`w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] shrink-0 rounded-xl overflow-hidden border-2 transition-all ${
                 activeImageIdx === i
                   ? 'border-blue-600 ring-2 ring-blue-100'
                   : 'border-slate-200 hover:border-slate-300'

@@ -132,7 +132,7 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
               className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm" 
               style={{ 
                 borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
-                backgroundColor: productCardTheme.badge || '#f59e0b'
+                backgroundColor: '#f59e0b'
               }}
             >
               Best Seller
@@ -208,12 +208,12 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className={`p-2.5 transition-all flex items-center justify-center shadow-md hover:scale-110 active:scale-95 ${
+            className={`w-10 h-10 shrink-0 transition-all flex items-center justify-center shadow hover:scale-110 active:scale-95 ${
               isOutOfStock ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none' : 'text-white'
             }`}
             style={{
               backgroundColor: isOutOfStock ? undefined : theme.colors.primary,
-              borderRadius: `${Math.max(theme.layout.borderRadius - 4, 10)}px`,
+              borderRadius: `${Math.min(theme.layout.borderRadius, 7)}px`,
             }}
             aria-label="Add to cart"
             type="button"

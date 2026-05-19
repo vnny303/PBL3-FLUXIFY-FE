@@ -122,7 +122,7 @@ export default function ProductTabs({
   const hasContent = details.description || details.detailSections.length > 0 || details.specifications.length > 0;
 
   return (
-    <div className="mt-20">
+    <div className="mt-12">
       <div className="flex border-b border-slate-200 mb-10 overflow-x-auto no-scrollbar">
         <button 
           onClick={() => setActiveTab('DETAILS')}

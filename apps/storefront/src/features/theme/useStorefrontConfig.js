@@ -25,7 +25,7 @@ export const useStorefrontConfig = () => {
     if (!finalContent.general) finalContent.general = {};
     finalContent.general.siteName = tenantState.storeName;
     
-    if (finalContent.home) {
+    if (finalContent.home && !tenantState.tenant?.contentConfig?.home?.title) {
       finalContent.home.title = tenantState.storeName;
     }
   }
