@@ -34,13 +34,13 @@ const parseAttributes = (value) => {
 };
 
 const buildVariantLabel = (sku) => {
-  if (!sku) return 'Không rõ';
+  if (!sku) return 'Unknown';
   const attributes = parseAttributes(sku.attributes);
   const values = Object.values(attributes).filter((item) => typeof item === 'string' && item.trim());
 
   if (values.length > 0) return values.join(' / ');
   if (sku.skuCode) return sku.skuCode;
-  return 'Không rõ';
+  return 'Unknown';
 };
 
 // ─── Rating Stars Input ────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ function StarInput({ value, onChange, disabled }) {
 function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
   const isOwner = review.customerId === currentUserId;
   const formattedDate = review.createdAt
-    ? new Date(review.createdAt).toLocaleDateString('vi-VN', {
+    ? new Date(review.createdAt).toLocaleDateString('en-US', {
         year: 'numeric', month: 'short', day: 'numeric',
       })
     : 'Recently';
@@ -105,7 +105,7 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
         <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
       )}
       <p className="text-xs text-slate-500 mt-2">
-        Phân loại đã mua: {review.purchasedVariantLabel || 'Không rõ'}
+        Purchased Variant: {review.purchasedVariantLabel || 'Unknown'}
       </p>
     </div>
   );

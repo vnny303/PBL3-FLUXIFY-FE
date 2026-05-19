@@ -341,7 +341,7 @@ export default function Header() {
                           onClick={async () => {
                             await logout();
                             setShowDropdown(false);
-                            toast.success('Đã đăng xuất tài khoản!');
+                            toast.success('Logged out successfully!');
                           }}
                           className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 flex items-center gap-3 transition-colors"
                         >

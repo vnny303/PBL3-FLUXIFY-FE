@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Button({ children, type = 'button', onClick, isLoading = false, loadingText = 'Vui lòng chờ...', className = '', fullWidth = true }) {
+export default function Button({ children, type = 'button', onClick, isLoading = false, loadingText = 'Please wait...', className = '', fullWidth = true }) {
   const baseClasses = "bg-[#1754cf] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-[#1754cf]/20 transition-all duration-200";
   const widthClass = fullWidth ? "w-full" : "";
   const stateClasses = isLoading 

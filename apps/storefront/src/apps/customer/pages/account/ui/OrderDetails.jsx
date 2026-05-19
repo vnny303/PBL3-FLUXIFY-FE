@@ -41,13 +41,30 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   });
 
   const submitReviewMutation = useMutation({
-    mutationFn: (data) => reviewService.createReview({
-      productSkuId: selectedProduct?.productSkuId || selectedProduct?.id,
-      rating: data.rating,
-      comment: data.comment,
-    }),
+    mutationFn: (data) => {
+      const existing = reviewedItems[selectedProduct?.productSkuId];
+      if (existing?.id) {
+        return reviewService.updateReview(existing.id, {
+          rating: data.rating,
+          comment: data.comment,
+        });
+      }
+      return reviewService.createReview({
+        productSkuId: selectedProduct?.productSkuId || selectedProduct?.id,
+        rating: data.rating,
+        comment: data.comment,
+      });
+    },
     onSuccess: (response, variables) => {
-      setReviewedItems(prev => ({ ...prev, [selectedProduct.productSkuId]: variables }));
+      const reviewData = response?.data || response;
+      setReviewedItems(prev => ({ 
+        ...prev, 
+        [selectedProduct.productSkuId]: {
+          id: reviewData?.id || prev[selectedProduct.productSkuId]?.id,
+          rating: variables.rating,
+          comment: variables.comment,
+        }
+      }));
       setIsReviewModalOpen(false);
       toast.success('Review Submitted! Thank you for sharing your experience.');
       queryClient.invalidateQueries({ queryKey: ['product-reviews'] });

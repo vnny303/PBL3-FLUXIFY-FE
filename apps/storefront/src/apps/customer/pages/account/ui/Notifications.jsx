@@ -3,10 +3,16 @@ import { Package, Tag, CheckCircle, Info, Bell } from 'lucide-react';
 import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 
 const initialNotifications = [
-  { id: 1, title: 'Order Delivered', desc: 'Your order #FLX-9823 has been delivered successfully.', time: '2 mins ago', icon: Package, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', isRead: false },
-  { id: 2, title: 'Flash Sale Alert', desc: 'Get up to 50% off on premium Developer Tools. Limited time only!', time: '2 hours ago', icon: Tag, iconBg: 'bg-blue-100', iconColor: 'text-blue-600', isRead: false },
-  { id: 3, title: 'Payment Confirmed', desc: 'We received your payment for the Nexus Core subscription.', time: '1 day ago', icon: CheckCircle, iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', isRead: true },
-  { id: 4, title: 'Account Security', desc: 'New login detected from Chrome on Windows. If this was not you, secure your account immediately.', time: '2 days ago', icon: Info, iconBg: 'bg-amber-100', iconColor: 'text-amber-600', isRead: true },
+  { 
+    id: 1, 
+    title: 'Welcome to Fluxify!', 
+    desc: 'Welcome to our store. We hope you have an amazing shopping experience with us!', 
+    time: 'Just now', 
+    icon: Info, 
+    iconBg: 'bg-blue-100', 
+    iconColor: 'text-blue-600', 
+    isRead: false 
+  }
 ];
 
 export default function Notifications() {

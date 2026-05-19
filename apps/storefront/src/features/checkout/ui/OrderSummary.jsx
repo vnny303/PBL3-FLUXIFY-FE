@@ -24,7 +24,7 @@ export default function OrderSummary({ cartItems = [], cartSubtotal = 0, shippin
             
             <div className="space-y-4 mb-8">
               {cartItems.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-4">Không có sản phẩm trong giỏ hàng.</p>
+                <p className="text-sm text-slate-500 text-center py-4">No products in your cart.</p>
               ) : (
                 cartItems.map((item) => (
                   <div key={item.cartId} className="flex gap-4">

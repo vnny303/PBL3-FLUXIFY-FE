@@ -103,7 +103,7 @@ export default function Sidebar({ currentScreen, setCurrentScreen }) {
                   setShowLogoutConfirm(false);
                   await logout();
                   navigate('/');
-                  toast.success('Đã đăng xuất tài khoản!');
+                  toast.success('Logged out successfully!');
                 }}
                 className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-colors shadow-sm"
               >

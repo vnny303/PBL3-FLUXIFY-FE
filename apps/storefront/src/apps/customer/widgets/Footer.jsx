@@ -15,10 +15,10 @@ export default function Footer() {
 
   const handleSubscribe = () => {
     if (emailRef.current && emailRef.current.value) {
-      toast.success('Đăng ký nhận bản tin thành công!');
+      toast.success('Successfully subscribed to our newsletter!');
       emailRef.current.value = '';
     } else {
-      toast.error('Vui lòng nhập email của bạn!');
+      toast.error('Please enter your email address!');
     }
   };
 
