@@ -92,16 +92,42 @@ export default function ProductDetail() {
 
   const reviewSummaryKey = useMemo(() => productSkuIds.join(','), [productSkuIds]);
 
-  const { data: reviewSummary } = useQuery({
-    queryKey: ['product-review-summary', tenantId, product?.id, reviewSummaryKey],
-    queryFn: () => reviewService.getProductReviewSummary({
+  const { 
+    data: reviews = [], 
+    isLoading: isLoadingReviews, 
+    refetch: refetchReviews 
+  } = useQuery({
+    queryKey: ['product-reviews', tenantId, product?.id, reviewSummaryKey],
+    queryFn: () => reviewService.getProductReviews({
       tenantId,
       productId: product?.id,
       skuIds: productSkuIds,
+      filters: { pageSize: 200 }
     }),
     enabled: !!tenantId && !!product?.id && productSkuIds.length > 0,
     staleTime: 30_000,
   });
+
+  const reviewSummary = useMemo(() => {
+    const ratingBuckets = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    const totalReviews = reviews.length;
+    const totalRating = reviews.reduce((sum, r) => {
+      const rating = Number(r.rating) || 0;
+      const rounded = Math.round(rating);
+      if (rounded >= 1 && rounded <= 5) ratingBuckets[rounded] += 1;
+      return sum + rating;
+    }, 0);
+
+    return {
+      totalReviews,
+      averageRating: totalReviews > 0 ? totalRating / totalReviews : 0,
+      oneStarCount: ratingBuckets[1],
+      twoStarCount: ratingBuckets[2],
+      threeStarCount: ratingBuckets[3],
+      fourStarCount: ratingBuckets[4],
+      fiveStarCount: ratingBuckets[5],
+    };
+  }, [reviews]);
 
   // 3. Ensure quantity doesn't exceed selected SKU stock
   React.useEffect(() => {
@@ -136,7 +162,7 @@ export default function ProductDetail() {
 
   if (isLoadingProduct && !product) {
     return (
-      <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-20 flex justify-center">
+      <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-20 flex justify-center">
         <div 
           className="animate-spin rounded-full h-12 w-12 border-b-2" 
           style={{ borderColor: primaryColor, borderBottomColor: 'transparent' }} 
@@ -148,7 +174,7 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+      <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-20 text-center">
         <h1 className="text-2xl font-bold text-slate-800 mb-4">
           {productError || 'Product not found'}
         </h1>
@@ -160,7 +186,7 @@ export default function ProductDetail() {
   }
 
   return (
-    <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main className="grow w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
       {/* Breadcrumbs */}
       <nav className="flex text-sm text-slate-500 mb-8">
         <button onClick={() => navigate('/shop')} className="hover:text-slate-900">Store</button>
@@ -172,13 +198,13 @@ export default function ProductDetail() {
         <span className="text-slate-900 font-medium truncate max-w-[200px]">{product.name}</span>
       </nav>
 
-      <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.85fr)] gap-8 lg:gap-12 xl:gap-16 items-start">
         <ProductImageGallery
           product={product}
           selectedSku={selectedSku}
         />
 
-        <div className="w-full lg:w-1/2">
+        <div className="w-full flex flex-col">
           <ProductInfo
             product={product}
             selectedSku={selectedSku}
@@ -199,7 +225,14 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <ProductTabs product={product} selectedSku={selectedSku} />
+      <ProductTabs 
+        product={product} 
+        selectedSku={selectedSku} 
+        reviews={reviews}
+        reviewSummary={reviewSummary}
+        isLoadingReviews={isLoadingReviews}
+        onRefreshReviews={refetchReviews}
+      />
     </main>
   );
 }

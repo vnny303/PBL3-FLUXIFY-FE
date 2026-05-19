@@ -5,7 +5,7 @@ export const storefrontContentFallback = {
   header: {
     navLinks: [
       { label: 'Home', path: '/' },
-      { label: 'Shop / Products', path: '/shop' },
+      { label: 'Products', path: '/shop' },
       { label: 'About Us', path: '/about' },
       { label: 'Contact', path: '/contact' },
     ],

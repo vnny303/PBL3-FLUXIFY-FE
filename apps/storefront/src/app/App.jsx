@@ -25,15 +25,16 @@ import QuickAddModal from '../features/cart-actions/ui/QuickAddModal';
 import { useAppContext } from './providers/useAppContext';
 import { useStorefrontConfig } from '../features/theme/useStorefrontConfig';
 
-const MainLayout = () => {
-  const { showModal } = useAppContext();
+const ThemeGlobalWrapper = ({ children }) => {
   const { theme } = useStorefrontConfig();
 
   useEffect(() => {
     if (!theme) return;
     
     const root = document.documentElement;
-    if (theme.colors?.primary) root.style.setProperty('--color-primary', theme.colors.primary);
+    if (theme.colors?.primary) {
+      root.style.setProperty('--color-primary', theme.colors.primary);
+    }
     if (theme.colors?.background) {
       root.style.setProperty('--color-background-light', theme.colors.background);
       document.body.style.backgroundColor = theme.colors.background;
@@ -43,9 +44,29 @@ const MainLayout = () => {
       document.body.style.color = theme.colors.text;
     }
     if (theme.typography?.fontFamily) {
-      root.style.setProperty('--font-sans', theme.typography.fontFamily);
+      const font = theme.typography.fontFamily;
+      root.style.setProperty('--font-sans', `"${font}", ui-sans-serif, system-ui, sans-serif`);
+      document.body.style.fontFamily = `"${font}", ui-sans-serif, system-ui, sans-serif`;
+
+      // Dynamically load Google Font
+      const fontId = 'storefront-google-font';
+      let link = document.getElementById(fontId);
+      if (!link) {
+        link = document.createElement('link');
+        link.id = fontId;
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+      link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@300;400;500;600;700;800;900&display=swap`;
     }
   }, [theme]);
+
+  return children;
+};
+
+const MainLayout = () => {
+  const { showModal } = useAppContext();
+  const { theme } = useStorefrontConfig();
 
   const bgColor = theme?.colors?.background || '#ffffff';
   const textColor = theme?.colors?.text || '#111827';
@@ -72,26 +93,28 @@ const MainLayout = () => {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/login" element={<Login />} />
+    <ThemeGlobalWrapper>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<Login />} />
 
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
-          <Route path="shop" element={<Shop />} />
-          <Route path="product/:id" element={<ProductDetail />} />
-          <Route path="about" element={<About />} />
-          <Route path="contact" element={<Contact />} />
-          <Route path="account" element={<AccountPage />} />
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Home />} />
+            <Route path="shop" element={<Shop />} />
+            <Route path="product/:id" element={<ProductDetail />} />
+            <Route path="about" element={<About />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="account" element={<AccountPage />} />
 
-          <Route path="order-confirmation" element={<OrderConfirmation />} />
-        </Route>
+            <Route path="order-confirmation" element={<OrderConfirmation />} />
+          </Route>
 
-        <Route element={<CheckoutLayout />}>
-          <Route path="/checkout" element={<Checkout />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          <Route element={<CheckoutLayout />}>
+            <Route path="/checkout" element={<Checkout />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ThemeGlobalWrapper>
   );
 }

@@ -19,9 +19,6 @@ export function useAddresses() {
   // Mutations
   const saveMutation = useMutation({
     mutationFn: (data) => {
-      const isUpdate = data.id && (typeof data.id === 'string' && !data.id.startsWith('mock') || data.id.toString().length > 10); // Simple heuristic for real IDs
-      // Actually, better to check if it has an ID that isn't a temporary one.
-      // Based on SavedAddresses.jsx logic:
       if (data.id) {
          return addressService.updateAddress(user?.tenantId, user?.userId, data.id, data);
       }

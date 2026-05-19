@@ -1,10 +1,7 @@
 import axiosClient from './axiosClient';
-import { createBankTransferInfo } from '../lib/mocks/bankTransferMock';
 import { getTenantId, getUserId } from '@fluxify/shared/lib';
 import { normalizePaymentMethod } from '../lib/paymentMethod';
 
-const ENABLE_BANK_TRANSFER_MOCK = import.meta.env.VITE_ENABLE_BANK_TRANSFER_MOCK === 'true';
-const CHECKOUT_MODE = import.meta.env.VITE_CHECKOUT_MODE || 'live';
 const LAST_CHECKOUT_ORDER_KEY = 'fluxify_last_checkout_order';
 const DEMO_ORDERS_KEY_PREFIX = 'fluxify_demo_orders_';
 
@@ -53,7 +50,11 @@ const normalizeOrder = (order) => {
         totalAmount: order.totalAmount ?? order.total_amount ?? order.total ?? 0,
         total: order.total ?? order.totalAmount ?? order.total_amount ?? 0,
         createdAt: order.createdAt || order.created_at || null,
-        orderItems,
+        orderItems: orderItems.map(item => ({
+            ...item,
+            image: item.imageUrl || item.image || item.imgUrl || item.thumbnail || item.productImage || item.productImgUrl || null,
+            productName: item.productName || item.name || item.product_name,
+        })),
         items: orderItems,
     };
 };
@@ -180,70 +181,10 @@ export const orderService = {
             throw new Error("Invalid shipping method. Must be standard or express.");
         }
 
-        // ─── MOCK CHECKOUT MODE ───────────────────────────────────────────────────
-        // When VITE_CHECKOUT_MODE=mock, build a local demo order and skip the API call entirely.
-        if (CHECKOUT_MODE === 'mock') {
-            const demoOrderItems = cartItems.map((item) => ({
-                id: item.cartItemId || item.id || `demo-item-${Math.random().toString(36).slice(2)}`,
-                productSkuId: item.productSkuId || null,
-                productName: item.productName || item.name || 'Product',
-                quantity: item.quantity || 1,
-                unitPrice: item.price ?? item.unitPrice ?? 0,
-                image: item.image || item.imgUrl || null,
-                skuAttributes: item.skuAttributes || null,
-            }));
-
-            const demoSubtotal = cartTotal || demoOrderItems.reduce((sum, i) => sum + (i.unitPrice * i.quantity), 0);
-            const demoTotal = demoSubtotal + shippingFee;
-            const demoOrderCode = `DEMO-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-            const demoOrder = {
-                id: `demo-${Date.now()}`,
-                orderCode: demoOrderCode,
-                customerId: user?.userId || null,
-                tenantId: user?.tenantId || null,
-                status: 'Pending',
-                paymentStatus: 'Pending',
-                paymentMethod,
-                orderNote: orderNote || null,
-                shippingMethod: normalizedShippingMethod,
-                shippingFee,
-                subtotal: demoSubtotal,
-                totalAmount: demoTotal,
-                addressSnapshot: finalAddress,
-                shippingAddress: finalAddress,
-                createdAt: new Date().toISOString(),
-                orderItems: demoOrderItems,
-                persisted: false,
-                source: 'demo-checkout',
-                // Bank Transfer mock if applicable
-                ...(paymentMethod === 'BankTransfer' ? {
-                    bankTransferInfo: createBankTransferInfo({
-                        orderCode: demoOrderCode,
-                        totalAmount: demoTotal,
-                    })
-                } : {}),
-            };
-
-            persistDemoOrder(demoOrder, user?.userId || demoOrder.customerId);
-
-            return demoOrder;
-        }
-
         // ─── LIVE CHECKOUT MODE ───────────────────────────────────────────────────
-        if (selectedAddress?.isMock) {
-            throw new Error('Please select a real saved address before live checkout.');
-        }
-
-        // MOCK BYPASS: The backend strictly blocks "BankTransfer" if the tenant hasn't configured bank details.
-        // If enabled, send COD to backend and restore BankTransfer in FE response.
-        const actualPaymentMethod = (ENABLE_BANK_TRANSFER_MOCK && paymentMethod === 'BankTransfer')
-            ? 'COD'
-            : paymentMethod;
-
         const body = {
             addressId,
-            paymentMethod: actualPaymentMethod,
+            paymentMethod,
             orderNote: orderNote || null,
             shippingMethod: normalizedShippingMethod
         };
@@ -258,17 +199,6 @@ export const orderService = {
                 payload: body
             });
             throw error;
-        }
-
-        if (ENABLE_BANK_TRANSFER_MOCK && paymentMethod === 'BankTransfer') {
-            data = {
-                ...data,
-                paymentMethod: 'BankTransfer',
-                bankTransferInfo: createBankTransferInfo({
-                    orderCode: data?.id || data?.orderCode,
-                    totalAmount: data?.totalAmount ?? data?.total_amount ?? data?.total ?? 0,
-                })
-            };
         }
 
         return data;
@@ -309,7 +239,7 @@ export const orderService = {
             status,
         });
     },
-    cancelOrder: async (orderId) => {
-        return await axiosClient.post(`/api/customer/orders/${orderId}/cancel`);
+    cancelOrder: async (orderId, reason = '') => {
+        return await axiosClient.put(`/api/customer/orders/${orderId}/cancel`, { reason });
     },
 };

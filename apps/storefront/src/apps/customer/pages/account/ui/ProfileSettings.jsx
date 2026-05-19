@@ -74,7 +74,7 @@ export default function ProfileSettings() {
     if (confirmAction === 'save-profile') {
       updateProfile({ ...profileForm, email: user?.email }, { onSuccess: () => setConfirmAction(null) });
     } else {
-      updatePassword(passwordForm.newPassword, { 
+      updatePassword({ oldPass: passwordForm.currentPassword, password: passwordForm.newPassword }, { 
         onSuccess: () => {
           setConfirmAction(null);
           setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -93,7 +93,7 @@ export default function ProfileSettings() {
         
         <div className="flex flex-col gap-8">
           <div 
-            className="rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-6"
+            className="rounded-xl border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 overflow-hidden p-6"
             style={{ backgroundColor: bgColor === '#ffffff' ? '#ffffff' : `${bgColor}E6`, color: textColor }}
           >
             <AvatarSection 

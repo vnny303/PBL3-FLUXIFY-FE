@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Store, Check, Trash2, Loader2, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { deleteTenant } from '../../share/api/tenantApi';
 
@@ -37,7 +38,7 @@ export default function TenantSwitcher() {
             setConfirmDeleteId(null);
             setIsOpen(false);
         } catch {
-            alert('Failed to delete store. Please try again.');
+            toast.error('Failed to delete store. Please try again.');
         } finally {
             setDeletingId(null);
         }

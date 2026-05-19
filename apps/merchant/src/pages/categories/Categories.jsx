@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Loader2, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../../share/api/categoryApi';
@@ -148,7 +149,7 @@ export default function Categories() {
             queryClient.invalidateQueries({ queryKey: queryKeys.categories.list(tenantId) });
             setDeleteTarget(null);
         } catch {
-            alert('Failed to delete category.');
+            toast.error('Failed to delete category.');
         } finally {
             setIsDeleting(false);
         }

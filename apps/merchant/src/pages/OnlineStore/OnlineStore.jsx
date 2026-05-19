@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Loader2, AlertCircle } from 'lucide-react';
+import {
+    ChevronDown, ChevronUp, Loader2, AlertCircle,
+    Palette, Layout, Columns, ShoppingBag, Image, Star, BookOpen
+} from 'lucide-react';
+
 import LivePreview from '../../widgets/LivePreview/LivePreview';
 import {
     DEFAULT_PAGE_CONTENT,
@@ -14,13 +18,17 @@ import {
 import { useUnsavedChangesGuard } from '../../share/lib/hooks/useUnsavedChangesGuard';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { getTenantBySubdomain, patchTenantTheme, patchTenantContent } from '../../share/api/tenantApi';
+import { Select } from '../../share/ui/Select';
 
 
-function AccordionSection({ title, isOpen, onToggle, children }) {
+function AccordionSection({ title, icon: Icon, isOpen, onToggle, children }) {
     return (
-        <section className="rounded-xl border border-slate-200 bg-white">
-            <button type="button" onClick={onToggle} className="flex w-full items-center justify-between px-4 py-3 text-left">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-700">{title}</span>
+        <section className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <button type="button" onClick={onToggle} className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition-colors">
+                <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+                    {Icon && <Icon className="h-4 w-4 text-slate-500 shrink-0" />}
+                    {title}
+                </span>
                 {isOpen ? <ChevronUp className="h-4 w-4 text-slate-500" /> : <ChevronDown className="h-4 w-4 text-slate-500" />}
             </button>
             {isOpen && <div className="space-y-4 border-t border-slate-100 px-4 py-4">{children}</div>}
@@ -256,23 +264,21 @@ export default function OnlineStore() {
                 </div>
 
                 {/* ── THEME SECTIONS ── */}
-                <AccordionSection title="🎨 Colors" isOpen={openAccordion === 'colors'} onToggle={() => setOpenAccordion(openAccordion === 'colors' ? 'typography' : 'colors')}>
+                <AccordionSection title="Colors" icon={Palette} isOpen={openAccordion === 'colors'} onToggle={() => setOpenAccordion(openAccordion === 'colors' ? 'typography' : 'colors')}>
                     <ColorField label="Primary" value={theme.colors.primary} onChange={(v) => setTheme((p) => ({ ...p, colors: { ...p.colors, primary: v } }))} />
                     <ColorField label="Background Main" value={theme.colors.backgroundMain} onChange={(v) => setTheme((p) => ({ ...p, colors: { ...p.colors, backgroundMain: v } }))} />
                     <ColorField label="Text Primary" value={theme.colors.textPrimary} onChange={(v) => setTheme((p) => ({ ...p, colors: { ...p.colors, textPrimary: v } }))} />
                 </AccordionSection>
 
                 <div className="mt-3">
-                    <AccordionSection title="🔠 Typography & Layout" isOpen={openAccordion === 'typography'} onToggle={() => setOpenAccordion(openAccordion === 'typography' ? 'headerFooter' : 'typography')}>
+                    <AccordionSection title="Typography & Layout" icon={Layout} isOpen={openAccordion === 'typography'} onToggle={() => setOpenAccordion(openAccordion === 'typography' ? 'headerFooter' : 'typography')}>
                         <label className="block space-y-2">
                             <span className="text-sm font-medium text-slate-700">Font Family</span>
-                            <select
+                            <Select
                                 value={theme.typography.fontFamily}
                                 onChange={(e) => setTheme((p) => ({ ...p, typography: { ...p.typography, fontFamily: e.target.value } }))}
-                                className="h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm outline-none focus:border-slate-600"
-                            >
-                                {FONT_OPTIONS.map((font) => <option key={font} value={font}>{font}</option>)}
-                            </select>
+                                options={FONT_OPTIONS.map(font => ({ value: font, label: font }))}
+                            />
                         </label>
                         <label className="block space-y-2">
                             <span className="text-sm font-medium text-slate-700">Border Radius (px)</span>
@@ -289,7 +295,7 @@ export default function OnlineStore() {
                 </div>
 
                 <div className="mt-3">
-                    <AccordionSection title="🧩 Header & Footer" isOpen={openAccordion === 'headerFooter'} onToggle={() => setOpenAccordion(openAccordion === 'headerFooter' ? 'productCard' : 'headerFooter')}>
+                    <AccordionSection title="Header & Footer" icon={Columns} isOpen={openAccordion === 'headerFooter'} onToggle={() => setOpenAccordion(openAccordion === 'headerFooter' ? 'productCard' : 'headerFooter')}>
                         <ColorField label="Header Background" value={theme.header.backgroundColor} onChange={(v) => setTheme((p) => ({ ...p, header: { ...p.header, backgroundColor: v } }))} />
                         <ColorField label="Header Text" value={theme.header.textColor} onChange={(v) => setTheme((p) => ({ ...p, header: { ...p.header, textColor: v } }))} />
                         <ColorField label="Footer Background" value={theme.footer.backgroundColor} onChange={(v) => setTheme((p) => ({ ...p, footer: { ...p.footer, backgroundColor: v } }))} />
@@ -298,7 +304,7 @@ export default function OnlineStore() {
                 </div>
 
                 <div className="mt-3">
-                    <AccordionSection title="🛍️ Product Card" isOpen={openAccordion === 'productCard'} onToggle={() => setOpenAccordion(openAccordion === 'productCard' ? 'heroBanner' : 'productCard')}>
+                    <AccordionSection title="Product Card" icon={ShoppingBag} isOpen={openAccordion === 'productCard'} onToggle={() => setOpenAccordion(openAccordion === 'productCard' ? 'heroBanner' : 'productCard')}>
                         <ColorField label="Background" value={theme.productCard.backgroundColor} onChange={(v) => setTheme((p) => ({ ...p, productCard: { ...p.productCard, backgroundColor: v } }))} />
                         <ColorField label="Text Color" value={theme.productCard.textColor} onChange={(v) => setTheme((p) => ({ ...p, productCard: { ...p.productCard, textColor: v } }))} />
                         <ColorField label="Price Color" value={theme.productCard.price} onChange={(v) => setTheme((p) => ({ ...p, productCard: { ...p.productCard, price: v } }))} />
@@ -312,7 +318,7 @@ export default function OnlineStore() {
                 </div>
 
                 <div className="mt-2">
-                    <AccordionSection title="🖼️ Hero Banner" isOpen={openAccordion === 'heroBanner'} onToggle={() => setOpenAccordion(openAccordion === 'heroBanner' ? 'featuredSection' : 'heroBanner')}>
+                    <AccordionSection title="Hero Banner" icon={Image} isOpen={openAccordion === 'heroBanner'} onToggle={() => setOpenAccordion(openAccordion === 'heroBanner' ? 'featuredSection' : 'heroBanner')}>
                         <label className="block space-y-2">
                             <span className="text-sm font-medium text-slate-700">Image URL</span>
                             <input
@@ -358,7 +364,7 @@ export default function OnlineStore() {
                 </div>
 
                 <div className="mt-3">
-                    <AccordionSection title="⭐ Featured Section" isOpen={openAccordion === 'featuredSection'} onToggle={() => setOpenAccordion(openAccordion === 'featuredSection' ? 'aboutStory' : 'featuredSection')}>
+                    <AccordionSection title="Featured Section" icon={Star} isOpen={openAccordion === 'featuredSection'} onToggle={() => setOpenAccordion(openAccordion === 'featuredSection' ? 'aboutStory' : 'featuredSection')}>
                         <label className="block space-y-2">
                             <span className="text-sm font-medium text-slate-700">Title</span>
                             <input
@@ -381,7 +387,7 @@ export default function OnlineStore() {
                 </div>
 
                 <div className="mt-3">
-                    <AccordionSection title="📖 About Story" isOpen={openAccordion === 'aboutStory'} onToggle={() => setOpenAccordion(openAccordion === 'aboutStory' ? 'colors' : 'aboutStory')}>
+                    <AccordionSection title="About Story" icon={BookOpen} isOpen={openAccordion === 'aboutStory'} onToggle={() => setOpenAccordion(openAccordion === 'aboutStory' ? 'colors' : 'aboutStory')}>
                         <label className="block space-y-2">
                             <span className="text-sm font-medium text-slate-700">Paragraphs</span>
                             <textarea

@@ -4,6 +4,7 @@ import {
     ShoppingCart, Search, ChevronLeft, ChevronRight,
     Loader2, AlertCircle, Eye, X, SlidersHorizontal,
 } from 'lucide-react';
+import { Select } from '../../share/ui/Select';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { getOrders, getOrderById, updateOrderStatus } from '../../share/api/orderApi';
 import { getCustomers } from '../../share/api/customerApi';
@@ -179,20 +180,18 @@ function OrderDetailModal({ tenantId, orderId, customerMap, onClose }) {
                                     <div className="mb-2 bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg">{serverError}</div>
                                 )}
                                 <div className="flex items-center gap-3">
-                                    <select
-                                        value={selectedStatus || order.status || ''}
-                                        onChange={(e) => setSelectedStatus(e.target.value)}
-                                        className="flex-1 px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
-                                    >
-                                        <option value="">Select new status</option>
-                                        {ORDER_STATUSES.map((s) => (
-                                            <option key={s} value={s}>{s}</option>
-                                        ))}
-                                    </select>
+                                    <div className="flex-1">
+                                        <Select
+                                            value={selectedStatus || order.status || ''}
+                                            onChange={(e) => setSelectedStatus(e.target.value)}
+                                            options={[{ value: '', label: 'Select new status' }, ...ORDER_STATUSES]}
+                                            placeholder="Select new status"
+                                        />
+                                    </div>
                                     <button
                                         onClick={handleStatusUpdate}
                                         disabled={updatingStatus || !selectedStatus || selectedStatus === order.status}
-                                        className="px-4 py-2 rounded-lg bg-black text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center gap-2"
+                                        className="px-4 py-2 rounded-lg bg-black text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center gap-2 h-[42px]"
                                     >
                                         {updatingStatus && <Loader2 className="w-4 h-4 animate-spin" />}
                                         Update
@@ -340,24 +339,22 @@ export default function Orders() {
                             </button>
                         )}
                     </form>
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                        className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
-                    >
-                        <option value="">All Statuses</option>
-                        {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    <select
-                        value={customerIdFilter}
-                        onChange={(e) => { setCustomerIdFilter(e.target.value); setPage(1); }}
-                        className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black min-w-[160px]"
-                    >
-                        <option value="">All Customers</option>
-                        {customerOptions.map((c) => (
-                            <option key={c.id} value={c.id}>{emailName(c.email) || c.id}</option>
-                        ))}
-                    </select>
+                    <div className="w-44">
+                        <Select
+                            value={statusFilter}
+                            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                            options={[{ value: '', label: 'All Statuses' }, ...ORDER_STATUSES]}
+                            placeholder="All Statuses"
+                        />
+                    </div>
+                    <div className="w-48">
+                        <Select
+                            value={customerIdFilter}
+                            onChange={(e) => { setCustomerIdFilter(e.target.value); setPage(1); }}
+                            options={[{ value: '', label: 'All Customers' }, ...customerOptions.map(c => ({ value: c.id, label: emailName(c.email) || c.id }))]}
+                            placeholder="All Customers"
+                        />
+                    </div>
                     <button
                         type="button"
                         onClick={() => setShowAdvanced((v) => !v)}
@@ -371,29 +368,23 @@ export default function Orders() {
                 {/* Row 2: Advanced filters */}
                 {showAdvanced && (
                     <div className="flex flex-wrap gap-3 items-end pt-2 border-t border-[#f0f0f0]">
-                        <div className="flex flex-col gap-1 min-w-[140px]">
+                        <div className="flex flex-col gap-1 w-40">
                             <label className="text-xs font-medium text-slate-500">Payment Method</label>
-                            <select
+                            <Select
                                 value={paymentMethod}
-                                
-                                onChange={(e) => { 
-                                   setPaymentMethod(e.target.value); setPage(1); }}
-                                className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
-                            >
-                                <option value="">Any</option>
-                                {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
-                            </select>
+                                onChange={(e) => { setPaymentMethod(e.target.value); setPage(1); }}
+                                options={[{ value: '', label: 'Any' }, ...PAYMENT_METHODS]}
+                                placeholder="Any"
+                            />
                         </div>
-                        <div className="flex flex-col gap-1 min-w-[140px]">
+                        <div className="flex flex-col gap-1 w-40">
                             <label className="text-xs font-medium text-slate-500">Payment Status</label>
-                            <select
+                            <Select
                                 value={paymentStatus}
                                 onChange={(e) => { setPaymentStatus(e.target.value); setPage(1); }}
-                                className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
-                            >
-                                <option value="">Any</option>
-                                {PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                            </select>
+                                options={[{ value: '', label: 'Any' }, ...PAYMENT_STATUSES]}
+                                placeholder="Any"
+                            />
                         </div>
                         <div className="flex flex-col gap-1">
                             <label className="text-xs font-medium text-slate-500">Total from (VND)</label>
@@ -435,15 +426,13 @@ export default function Orders() {
                                 className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm outline-none focus:border-black"
                             />
                         </div>
-                        <div className="flex flex-col gap-1 min-w-[160px]">
+                        <div className="flex flex-col gap-1 w-44">
                             <label className="text-xs font-medium text-slate-500">Sort by</label>
-                            <select
+                            <Select
                                 value={sortBy}
                                 onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
-                                className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
-                            >
-                                {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                            </select>
+                                options={SORT_OPTIONS}
+                            />
                         </div>
                         <button
                             type="button"

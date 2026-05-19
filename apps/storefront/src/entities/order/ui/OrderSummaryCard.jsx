@@ -1,6 +1,5 @@
 import React from 'react';
 import { MapPin, CreditCard, Building, StickyNote, AlertCircle } from 'lucide-react';
-import { getBankTransferQrUrl } from '../../../shared/lib/mocks/bankTransferMock';
 import { formatVnd, parsePrice } from '../../../shared/lib/formatters';
 import { isBankTransferMethod } from '../../../shared/lib/paymentMethod';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
@@ -42,12 +41,10 @@ export default function OrderSummaryCard({ order }) {
   const isBankTransfer = isBankTransferMethod(order.paymentMethod) || isBankTransferMethod(order.payment?.methodName);
   const isPending = (order.status || order.paymentStatus) === 'Pending';
   const bankInfo = order.bankTransferInfo;
-  const qrUrl = getBankTransferQrUrl(bankInfo);
-
   return (
     <div className="space-y-6">
       {/* Shipping Details */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-xl shadow-slate-200/50">
         <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2 mb-4">
           <MapPin className="w-4 h-4" style={{ color: primaryColor }} />
           Shipping Address
@@ -72,7 +69,7 @@ export default function OrderSummaryCard({ order }) {
       </div>
 
       {/* Payment & Status */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm space-y-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-xl shadow-slate-200/50 space-y-6">
         <div>
           <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2 mb-4">
             <CreditCard className="w-4 h-4" style={{ color: primaryColor }} />
@@ -113,18 +110,13 @@ export default function OrderSummaryCard({ order }) {
                   <span className="text-xs font-bold uppercase" style={{ color: primaryColor }}>{bankInfo.transferContent}</span>
                 </div>
               </div>
-              {qrUrl && (
-                <div className="flex justify-center bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-100">
-                   <img src={qrUrl} alt="QR" className="w-24 h-24 object-contain" />
-                </div>
-              )}
             </div>
           </div>
         )}
       </div>
 
       {/* Order Summary */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-xl shadow-slate-200/50">
         <h2 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white mb-6">Order Summary</h2>
         <div className="space-y-4 text-sm">
           <div className="flex justify-between text-slate-500">

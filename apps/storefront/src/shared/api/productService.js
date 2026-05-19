@@ -1,7 +1,5 @@
 import axiosClient from './axiosClient';
-import { mockProducts, mockCategories } from '../lib/mocks/productMock';
 
-const isMockEnabled = import.meta.env.VITE_ENABLE_PRODUCTS_MOCK === 'true';
 
 const toNumber = (value, fallback = 0) => {
     const numeric = Number(value);
@@ -159,21 +157,13 @@ export const productService = {
     getProducts: async (tenantId, filters = {}) => {
         let products = [];
 
-        if (isMockEnabled) {
-            let filtered = [...mockProducts];
-            if (filters.categoryId) {
-                filtered = filtered.filter(p => p.categoryId === filters.categoryId);
-            }
-            products = filtered.map(normalizeProduct);
-        } else {
-            const query = new URLSearchParams(filters).toString();
-            const response = await axiosClient.get(`/api/tenants/${tenantId}/products${query ? `?${query}` : ''}`);
-            
-            if (response && Array.isArray(response.items)) {
-                products = response.items.map(normalizeProduct);
-            } else if (Array.isArray(response)) {
-                products = response.map(normalizeProduct);
-            }
+        const query = new URLSearchParams(filters).toString();
+        const response = await axiosClient.get(`/api/tenants/${tenantId}/products${query ? `?${query}` : ''}`);
+        
+        if (response && Array.isArray(response.items)) {
+            products = response.items.map(normalizeProduct);
+        } else if (Array.isArray(response)) {
+            products = response.map(normalizeProduct);
         }
 
         // Sort: In-stock items first, Out-of-stock last
@@ -185,21 +175,12 @@ export const productService = {
 
     // GET /api/tenants/{tenantId}/products/{id}
     getProductById: async (tenantId, productId) => {
-        if (isMockEnabled) {
-            const found = mockProducts.find(p => p.id === productId);
-            return found ? normalizeProduct(found) : null;
-        }
-
         const response = await axiosClient.get(`/api/tenants/${tenantId}/products/${productId}`);
         return normalizeProduct(response);
     },
 
     // GET /api/tenants/{tenantId}/categories
     getCategories: async (tenantId) => {
-        if (isMockEnabled) {
-            return mockCategories.map(normalizeCategory);
-        }
-
         const response = await axiosClient.get(`/api/tenants/${tenantId}/categories`);
         if (response && Array.isArray(response.items)) {
             return response.items.map(normalizeCategory);

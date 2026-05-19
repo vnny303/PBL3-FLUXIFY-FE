@@ -1,8 +1,16 @@
 import { useState, useCallback } from 'react';
 import { Plus, X, Loader2 } from 'lucide-react';
+import { Select } from '../../../share/ui/Select';
 import { cartesian, computeSkuRows, skuLabel } from '../utils/productHelpers';
 import { useAddProduct } from '../hooks/useProducts';
 import { ImageUploadPreview } from '../components/ImageUploadPreview';
+import {
+    DetailContentEditor,
+    DEFAULT_DETAIL_SECTIONS,
+    DEFAULT_SPECIFICATIONS,
+    cleanDetailSections,
+    cleanSpecifications,
+} from '../components/DetailContentEditor';
 
 
 const MAX_ATTR_GROUPS = 2;
@@ -105,27 +113,23 @@ function GroupApplyBar({ attrGroups, skuRows, onApplyGroup }) {
 
             {/* Group + Value selectors */}
             <div className="flex flex-wrap gap-2 items-center">
-                <select
-                    value={selectedGroup}
-                    onChange={e => handleGroupChange(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white outline-none focus:border-black transition-colors"
-                >
-                    <option value="">Select attribute...</option>
-                    {activeGroups.map(g => (
-                        <option key={g.key} value={g.key}>{g.key}</option>
-                    ))}
-                </select>
+                <div className="w-48">
+                    <Select
+                        value={selectedGroup}
+                        onChange={e => handleGroupChange(e.target.value)}
+                        options={[{ value: '', label: 'Select attribute...' }, ...activeGroups]}
+                        placeholder="Select attribute..."
+                    />
+                </div>
                 {currentGroup && (
-                    <select
-                        value={selectedValue}
-                        onChange={e => setSelectedValue(e.target.value)}
-                        className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white outline-none focus:border-black transition-colors"
-                    >
-                        <option value="">Select value...</option>
-                        {currentGroup.values.map(v => (
-                            <option key={v} value={v}>{v}</option>
-                        ))}
-                    </select>
+                    <div className="w-48">
+                        <Select
+                            value={selectedValue}
+                            onChange={e => setSelectedValue(e.target.value)}
+                            options={[{ value: '', label: 'Select value...' }, ...currentGroup.values]}
+                            placeholder="Select value..."
+                        />
+                    </div>
                 )}
             </div>
 
@@ -186,6 +190,8 @@ export function AddProductModal({ tenantId, categories, onClose, onSuccess }) {
     const [newAttrKey, setNewAttrKey] = useState('');
     const [skuRows, setSkuRows] = useState([{ combination: {}, price: '', stock: '0', imgUrl: '' }]);
     const [errors, setErrors] = useState({});
+    const [detailSections, setDetailSections] = useState(DEFAULT_DETAIL_SECTIONS);
+    const [specifications, setSpecifications] = useState(DEFAULT_SPECIFICATIONS);
 
     const { isLoading, serverError, submit } = useAddProduct(tenantId, onSuccess, onClose);
 
@@ -284,6 +290,8 @@ export function AddProductModal({ tenantId, categories, onClose, onSuccess }) {
                 attributes: Object.keys(r.combination).length ? r.combination : undefined,
                 imgUrl: r.imgUrl.trim() || '',
             })),
+            detailSections: cleanDetailSections(detailSections),
+            specifications: cleanSpecifications(specifications),
         };
 
         await submit(payload);
@@ -332,14 +340,13 @@ export function AddProductModal({ tenantId, categories, onClose, onSuccess }) {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Category <span className="text-red-500">*</span></label>
-                                <select value={categoryId} onChange={e => { setCategoryId(e.target.value); setErrors(p => ({ ...p, categoryId: '' })); }}
-                                    className={`w-full px-3 py-2 rounded-lg border text-sm outline-none bg-white transition-colors ${errors.categoryId ? 'border-red-400' : 'border-[#e3e3e3] focus:border-black'}`}>
-                                    <option value="">Select category...</option>
-                                    {categories.map(cat => (
-                                        <option key={cat.categoryId || cat.id} value={cat.categoryId || cat.id}>{cat.name}</option>
-                                    ))}
-                                </select>
-                                {errors.categoryId && <p className="text-red-500 text-xs mt-1">{errors.categoryId}</p>}
+                                <Select 
+                                    value={categoryId} 
+                                    onChange={e => { setCategoryId(e.target.value); setErrors(p => ({ ...p, categoryId: '' })); }}
+                                    options={[{ value: '', label: 'Select category...' }, ...categories]}
+                                    placeholder="Select category..."
+                                    error={errors.categoryId}
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -428,10 +435,25 @@ export function AddProductModal({ tenantId, categories, onClose, onSuccess }) {
                         )}
                     </div>
 
-                    {/* ── Section 3: Variants & Pricing ── */}
+                    {/* ── Section 3: Detail Content ── */}
                     <div className="p-6 space-y-4">
                         <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                             <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-bold">3</span>
+                            Product Detail Content
+                            <span className="text-xs font-normal text-slate-400">(optional · shown on storefront product page)</span>
+                        </h3>
+                        <DetailContentEditor
+                            detailSections={detailSections}
+                            setDetailSections={setDetailSections}
+                            specifications={specifications}
+                            setSpecifications={setSpecifications}
+                        />
+                    </div>
+
+                    {/* ── Section 4: Variants & Pricing ── */}
+                    <div className="p-6 space-y-4">
+                        <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-bold">4</span>
                             Variants &amp; Pricing
                             <span className="text-xs font-normal text-slate-400">({skuRows.length} variant{skuRows.length !== 1 ? 's' : ''})</span>
                         </h3>

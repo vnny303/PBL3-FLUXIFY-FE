@@ -13,7 +13,7 @@ export const useStorefrontTenant = () => {
     storeName: cachedTenantData?.storeName || null,
     subdomain: cachedTenantData?.subdomain || initialSubdomain || null,
     isLoadingTenant: !cachedTenantData && Boolean(initialSubdomain),
-    tenantError: !cachedTenantData && !initialSubdomain ? 'Không tìm thấy subdomain' : null,
+    tenantError: !cachedTenantData && !initialSubdomain ? 'Subdomain not found' : null,
   });
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export const useStorefrontTenant = () => {
         setTenantState(prev => ({
           ...prev,
           isLoadingTenant: false,
-          tenantError: err?.response?.data?.message || 'Không tìm thấy cửa hàng'
+          tenantError: err?.response?.data?.message || 'Store not found'
         }));
       });
   }, [initialSubdomain]);

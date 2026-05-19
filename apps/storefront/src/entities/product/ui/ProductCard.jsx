@@ -29,7 +29,7 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
     : productSkus.find(s => s.imgUrl)?.imgUrl
     || product.image 
     || product.images?.[0]
-    || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop';
+    || 'https://images.unsplash.com/photo-1560393464-5c69a73c5770?auto=format&fit=crop&q=80&w=800';
 
   // 4. Price Logic (Min price of in-stock SKUs)
   const priceInfo = useMemo(() => {
@@ -92,9 +92,17 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
-          {isOutOfStock && (
-            <span className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider bg-slate-500/90 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+          {isOutOfStock ? (
+            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider bg-slate-500 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
               Sold Out
+            </span>
+          ) : isLowStock ? (
+            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider bg-red-500 animate-pulse shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+              Only {totalStock} Left
+            </span>
+          ) : (
+            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider bg-emerald-500 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+              In Stock
             </span>
           )}
           {product.isSale && (
@@ -124,7 +132,7 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
               className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm" 
               style={{ 
                 borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
-                backgroundColor: productCardTheme.badge || '#f59e0b'
+                backgroundColor: '#f59e0b'
               }}
             >
               Best Seller
@@ -186,21 +194,6 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
           ) : (
             <span className="text-[10px] font-medium italic opacity-50" style={{ color: productCardTheme.text }}>No reviews yet</span>
           )}
-          <div className="flex-1 flex justify-end">
-            {isOutOfStock ? (
-              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-slate-100/10 text-slate-400 rounded-full border border-slate-200/20">
-                Sold Out
-              </span>
-            ) : isLowStock ? (
-              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-red-500/10 text-red-500 rounded-full border border-red-500/20 animate-pulse">
-                Only {totalStock} Left
-              </span>
-            ) : (
-              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
-                In Stock
-              </span>
-            )}
-          </div>
         </div>
 
         {/* Price & Action */}
@@ -215,12 +208,12 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className={`p-2.5 transition-all flex items-center justify-center shadow-md hover:scale-110 active:scale-95 ${
+            className={`w-10 h-10 shrink-0 transition-all flex items-center justify-center shadow hover:scale-110 active:scale-95 ${
               isOutOfStock ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none' : 'text-white'
             }`}
             style={{
               backgroundColor: isOutOfStock ? undefined : theme.colors.primary,
-              borderRadius: `${Math.max(theme.layout.borderRadius - 4, 10)}px`,
+              borderRadius: `${Math.min(theme.layout.borderRadius, 7)}px`,
             }}
             aria-label="Add to cart"
             type="button"

@@ -1,4 +1,5 @@
 import { Search } from 'lucide-react';
+import { Select } from '../../../share/ui/Select';
 
 export function ProductFilters({
     searchInput, setSearchInput, handleSearch,
@@ -7,6 +8,22 @@ export function ProductFilters({
     pageSize, handlePageSizeChange,
     categories,
 }) {
+    const sortOptions = [
+        { value: 'id-asc', label: 'ID A–Z' },
+        { value: 'id-desc', label: 'ID Z–A' },
+        { value: 'categoryId-desc', label: 'Category A–Z' },
+        { value: 'categoryId-asc', label: 'Category Z–A' },
+        { value: 'name-asc', label: 'Name A–Z' },
+        { value: 'name-desc', label: 'Name Z–A' },
+    ];
+
+    const pageSizeOptions = [
+        { value: '5', label: '5 / page' },
+        { value: '10', label: '10 / page' },
+        { value: '20', label: '20 / page' },
+        { value: '50', label: '50 / page' },
+    ];
+
     return (
         <div className="bg-white rounded-xl border border-[#e3e3e3] p-4 flex flex-wrap gap-3 items-center">
             <form onSubmit={handleSearch}
@@ -21,43 +38,33 @@ export function ProductFilters({
                 />
             </form>
 
-            <select
-                value={categoryId}
-                onChange={e => { setCategoryId(e.target.value); setPage(1); }}
-                className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
-            >
-                <option value="">All Categories</option>
-                {categories.map(cat => (
-                    <option key={cat.categoryId || cat.id} value={cat.categoryId || cat.id}>{cat.name}</option>
-                ))}
-            </select>
+            <div className="w-48">
+                <Select
+                    value={categoryId}
+                    onChange={e => { setCategoryId(e.target.value); setPage(1); }}
+                    options={[{ value: '', label: 'All Categories' }, ...categories]}
+                    placeholder="All Categories"
+                />
+            </div>
 
-            <select
-                value={`${sortBy}-${sortDir}`}
-                onChange={e => {
-                    const [sb, sd] = e.target.value.split('-');
-                    setSortBy(sb); setSortDir(sd); setPage(1);
-                }}
-                className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
-            >
-                <option value="id-asc">ID A–Z</option>
-                <option value="id-desc">ID Z–A</option>
-                <option value="categoryId-desc">Category A–Z</option>
-                <option value="categoryId-asc">Category Z–A</option>
-                <option value="name-asc">Name A–Z</option>
-                <option value="name-desc">Name Z–A</option>
-            </select>
+            <div className="w-44">
+                <Select
+                    value={`${sortBy}-${sortDir}`}
+                    onChange={e => {
+                        const [sb, sd] = e.target.value.split('-');
+                        setSortBy(sb); setSortDir(sd); setPage(1);
+                    }}
+                    options={sortOptions}
+                />
+            </div>
 
-            <select
-                value={pageSize}
-                onChange={e => handlePageSizeChange(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
-            >
-                <option value={5}>5 / page</option>
-                <option value={10}>10 / page</option>
-                <option value={20}>20 / page</option>
-                <option value={50}>50 / page</option>
-            </select>
+            <div className="w-32">
+                <Select
+                    value={String(pageSize)}
+                    onChange={e => handlePageSizeChange(e.target.value)}
+                    options={pageSizeOptions}
+                />
+            </div>
         </div>
     );
-}
+}

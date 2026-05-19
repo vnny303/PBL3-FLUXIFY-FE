@@ -5,6 +5,7 @@ import {
     SlidersHorizontal, ChevronLeft, ChevronRight,
     ShoppingBag, DollarSign, Calendar, CheckCircle2, XCircle,
 } from 'lucide-react';
+import { Select } from '../../share/ui/Select';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { getCustomers } from '../../share/api/customerApi';
 import { queryKeys } from '../../share/api/queryKeys';
@@ -223,15 +224,18 @@ export default function Customers() {
                             </button>
                         )}
                     </form>
-                    <select
-                        value={isActiveFilter}
-                        onChange={(e) => { setIsActiveFilter(e.target.value); setPage(1); }}
-                        className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black"
-                    >
-                        <option value="">All Statuses</option>
-                        <option value="true">Active</option>
-                        <option value="false">Inactive</option>
-                    </select>
+                    <div className="w-44">
+                        <Select
+                            value={isActiveFilter}
+                            onChange={(e) => { setIsActiveFilter(e.target.value); setPage(1); }}
+                            options={[
+                                { value: '', label: 'All Statuses' },
+                                { value: 'true', label: 'Active' },
+                                { value: 'false', label: 'Inactive' }
+                            ]}
+                            placeholder="All Statuses"
+                        />
+                    </div>
                     <button
                         type="button"
                         onClick={() => setShowAdvanced((v) => !v)}
@@ -254,12 +258,13 @@ export default function Customers() {
                             <input type="date" value={createdTo} onChange={(e) => { setCreatedTo(e.target.value); setPage(1); }}
                                 className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm outline-none focus:border-black" />
                         </div>
-                        <div className="flex flex-col gap-1 min-w-[140px]">
+                        <div className="flex flex-col gap-1 w-44">
                             <label className="text-xs font-medium text-slate-500">Sort by</label>
-                            <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
-                                className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white text-slate-700 outline-none focus:border-black">
-                                {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                            </select>
+                            <Select
+                                value={sortBy}
+                                onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
+                                options={SORT_OPTIONS}
+                            />
                         </div>
                         <button type="button" onClick={handleReset}
                             className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm text-slate-600 hover:bg-[#f8f8f8] transition-colors">

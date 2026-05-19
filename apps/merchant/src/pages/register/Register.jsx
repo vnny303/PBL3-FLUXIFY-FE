@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { merchantRegister } from '../../share/api/authApi';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, UserPlus, Loader2 } from 'lucide-react';
 
 
 export default function Register() {
@@ -73,7 +74,7 @@ export default function Register() {
                 tenantId: response.tenantId,
                 subdomain: response.subdomain
             });
-            alert("Đăng ký đã thành công")
+            toast.success("Đăng ký tài khoản thành công!");
             navigate('/home', { replace: true });
         } catch (err) {
             console.error('Register error:', err);
@@ -238,9 +239,19 @@ export default function Register() {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-slate-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                        className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-slate-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6 flex items-center justify-center gap-2"
                     >
-                        {isLoading ? '🔄 Đang xử lý...' : '✨ Đăng Ký'}
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Đang xử lý...
+                            </>
+                        ) : (
+                            <>
+                                <UserPlus className="w-5 h-5" />
+                                Đăng Ký
+                            </>
+                        )}
                     </button>
                 </form>
 

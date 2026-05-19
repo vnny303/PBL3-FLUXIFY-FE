@@ -1,27 +1,54 @@
 import React from 'react';
 import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
+import { useAppContext } from '../../../../../app/providers/useAppContext';
 
 export default function About() {
-  const { content } = useStorefrontConfig();
+  const { content, theme } = useStorefrontConfig();
+  const { products } = useAppContext();
   const siteName = content?.general?.siteName || 'Fluxify';
   const story = content?.about?.story;
 
+  const textColor = theme?.colors?.text || '#111827';
+  const textColorSecondary = theme?.colors?.text ? `${theme.colors.text}b3` : '#64748b'; // 70% opacity for secondary text
+  const borderColor = theme?.colors?.text ? `${theme.colors.text}20` : '#e2e8f0';
+
+  // Resolve About cover image dynamically from products or contentConfig
+  const getAboutImage = () => {
+    if (content?.about?.imageUrl) return content.about.imageUrl;
+    
+    // Fallback to first available product image in the store
+    if (products && products.length > 0) {
+      for (const prod of products) {
+        if (prod.imgUrls && prod.imgUrls.length > 0) return prod.imgUrls[0];
+        if (prod.images && prod.images.length > 0) return prod.images[0];
+        if (prod.imageUrl) return prod.imageUrl;
+        if (prod.thumbnail) return prod.thumbnail;
+        if (prod.productImage) return prod.productImage;
+      }
+    }
+    
+    // Default safe fallback if no products are created yet
+    return 'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?auto=format&fit=crop&w=1200&q=80';
+  };
+
+  const aboutImage = getAboutImage();
+
   return (
-    <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16" style={{ color: textColor }}>
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4">About {siteName}</h1>
-        <p className="text-lg text-slate-500">{content?.home?.subtitle || 'Curating the best modern essentials for your lifestyle.'}</p>
+        <h1 className="text-4xl font-black mb-4" style={{ color: textColor }}>About {siteName}</h1>
+        <p className="text-lg" style={{ color: textColorSecondary }}>{content?.home?.subtitle || 'Curating the best modern essentials for your lifestyle.'}</p>
       </div>
       
-      <div className="rounded-2xl overflow-hidden mb-12 h-64 sm:h-96 bg-slate-200">
+      <div className="rounded-2xl overflow-hidden mb-12 h-64 sm:h-96 bg-slate-200" style={{ borderRadius: `${theme?.layout?.borderRadius}px` }}>
         <img 
-          src="https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?auto=format&fit=crop&w=1200&q=80" 
+          src={aboutImage} 
           alt="Our Store" 
           className="w-full h-full object-cover"
         />
       </div>
 
-      <div className="space-y-8 text-slate-700 dark:text-slate-300 leading-relaxed">
+      <div className="space-y-8 leading-relaxed" style={{ color: textColor }}>
         {story ? (
           <div className="whitespace-pre-line">
             {story}
@@ -36,18 +63,18 @@ export default function About() {
             </p>
           </>
         )}
-        <div className="grid sm:grid-cols-3 gap-8 pt-8 border-t border-slate-200 dark:border-slate-800 mt-12">
+        <div className="grid sm:grid-cols-3 gap-8 pt-8 mt-12" style={{ borderTop: `1px solid ${borderColor}` }}>
           <div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Quality First</h3>
-            <p className="text-sm text-slate-500">We never compromise on materials or craftsmanship. Built to last.</p>
+            <h3 className="text-xl font-bold mb-2" style={{ color: textColor }}>Quality First</h3>
+            <p className="text-sm" style={{ color: textColorSecondary }}>We never compromise on materials or craftsmanship. Built to last.</p>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Modern Design</h3>
-            <p className="text-sm text-slate-500">Clean lines, functional forms, and timeless aesthetics.</p>
+            <h3 className="text-xl font-bold mb-2" style={{ color: textColor }}>Modern Design</h3>
+            <p className="text-sm" style={{ color: textColorSecondary }}>Clean lines, functional forms, and timeless aesthetics.</p>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Sustainable</h3>
-            <p className="text-sm text-slate-500">Working towards a greener future with eco-friendly packaging.</p>
+            <h3 className="text-xl font-bold mb-2" style={{ color: textColor }}>Sustainable</h3>
+            <p className="text-sm" style={{ color: textColorSecondary }}>Working towards a greener future with eco-friendly packaging.</p>
           </div>
         </div>
       </div>

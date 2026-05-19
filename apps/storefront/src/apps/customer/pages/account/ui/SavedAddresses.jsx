@@ -53,7 +53,7 @@ export default function SavedAddresses() {
   return (
     <section className="flex-1">
       <div 
-        className="rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 md:p-8"
+        className="rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-slate-800 p-6 md:p-8"
         style={{ backgroundColor: cardBg, color: textColor }}
       >
         <div className="flex flex-wrap justify-between items-start gap-4 mb-8">

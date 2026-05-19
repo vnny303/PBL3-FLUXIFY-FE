@@ -25,6 +25,12 @@ export default function ProductInfo({
 }) {
   const { theme } = useStorefrontConfig();
   const primaryColor = theme?.colors?.primary || '#1754cf';
+  const productCardTheme = theme?.components?.productCard || {
+    background: '#ffffff',
+    text: '#1e293b',
+    badge: '#ef4444',
+    price: '#2563eb'
+  };
 
   if (!product) return null;
 
@@ -34,7 +40,6 @@ export default function ProductInfo({
 
   const isAvailable = selectedSku ? selectedSku.stock > 0 : product.isInStock;
   const stockText = isAvailable ? "IN STOCK" : "OUT OF STOCK";
-  const stockStyle = isAvailable ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700";
   const displayRating = reviewSummary?.averageRating ?? product.rating ?? 0;
   const displayReviewCount = reviewSummary?.totalReviews ?? product.reviewCount ?? 0;
 
@@ -45,21 +50,45 @@ export default function ProductInfo({
   return (
     <>
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <span className={`px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${stockStyle}`}>
+        <span 
+          className="px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider"
+          style={{ 
+            backgroundColor: isAvailable ? '#10b9811A' : '#ef44441A',
+            color: isAvailable ? '#10b981' : '#ef4444'
+          }}
+        >
           {stockText}
         </span>
         {product.isSale && (
-          <span className="px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider bg-red-100 text-red-600">
+          <span 
+            className="px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider"
+            style={{ 
+              backgroundColor: `${productCardTheme.badge || '#ef4444'}1A`,
+              color: productCardTheme.badge || '#ef4444'
+            }}
+          >
             {product.discountLabel || 'Sale'}
           </span>
         )}
         {product.isNew && (
-          <span className="px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider bg-blue-100 text-blue-600">
+          <span 
+            className="px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider"
+            style={{ 
+              backgroundColor: `${primaryColor}1A`,
+              color: primaryColor
+            }}
+          >
             New Arrival
           </span>
         )}
         {product.isBestSeller && (
-          <span className="px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider bg-amber-100 text-amber-600">
+          <span 
+            className="px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider"
+            style={{ 
+              backgroundColor: '#f59e0b1A',
+              color: '#f59e0b'
+            }}
+          >
             Best Seller
           </span>
         )}
@@ -74,10 +103,10 @@ export default function ProductInfo({
         </div>
       </div>
 
-      <h1 className="text-4xl font-black text-slate-900 leading-tight mb-2">{product.name}</h1>
+      <h1 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight mb-2">{product.name}</h1>
 
       <div className="flex items-end gap-4 mb-6">
-        <span className="text-4xl font-extrabold" style={{ color: primaryColor }}>{displayPrice}</span>
+        <span className="text-3xl font-extrabold" style={{ color: primaryColor }}>{displayPrice}</span>
         {selectedSku && (
           <span className="text-sm text-slate-500 pb-1.5 font-medium">
             ({selectedSku.stock} units available)
@@ -85,11 +114,11 @@ export default function ProductInfo({
         )}
       </div>
 
-      {product.description && (
-        <div className="border-l-4 pl-4 py-1 mb-8" style={{ borderLeftColor: `${primaryColor}33` }}>
-          <p className="text-slate-600 italic">"{product.description}"</p>
-        </div>
-      )}
+      <div className="mb-8">
+        <p className="text-base text-slate-600 leading-relaxed whitespace-pre-line">
+          {product.description || "No description available."}
+        </p>
+      </div>
 
       {/* Dynamic option groups derived from SKUs */}
       {optionGroups.map((group) => {

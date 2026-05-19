@@ -1,7 +1,7 @@
 /**
  * Simple deep merge for configuration objects
  * @param {Object} target - The base object (fallback)
- * @param {Object} source - The overlay object (API or Mock data)
+ * @param {Object} source - The overlay object (API data)
  * @returns {Object} A new merged object
  */
 export const deepMerge = (target, source) => {

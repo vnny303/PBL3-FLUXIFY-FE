@@ -36,7 +36,7 @@ export default function CheckoutForm({
     <div className="lg:w-[60%] space-y-6">
       {/* Contact Information */}
       <section 
-        className="shadow-sm p-6 border border-slate-100 dark:border-slate-800 transition-all"
+        className="shadow-xl shadow-slate-200/50 p-6 border border-slate-100 dark:border-slate-800 transition-all"
         style={{ borderRadius: `${borderRadius}px`, backgroundColor: cardBg, color: textColor }}
       >
         <h2 className="text-lg font-semibold flex items-center gap-2 mb-6" style={{ color: textColor }}>
@@ -72,7 +72,7 @@ export default function CheckoutForm({
 
       {/* Shipping Address */}
       <section 
-        className="shadow-sm p-6 border border-slate-100 dark:border-slate-800"
+        className="shadow-xl shadow-slate-200/50 p-6 border border-slate-100 dark:border-slate-800 transition-all"
         style={{ borderRadius: `${borderRadius}px`, backgroundColor: cardBg, color: textColor }}
       >
         <div className="flex items-center justify-between mb-6">
@@ -163,7 +163,7 @@ export default function CheckoutForm({
 
       {/* Order Note */}
       <section 
-        className="shadow-sm p-6 border border-slate-100 dark:border-slate-800"
+        className="shadow-xl shadow-slate-200/50 p-6 border border-slate-100 dark:border-slate-800 transition-all"
         style={{ borderRadius: `${borderRadius}px`, backgroundColor: cardBg, color: textColor }}
       >
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: textColor }}>
@@ -185,7 +185,7 @@ export default function CheckoutForm({
 
       {/* Shipping Method */}
       <section 
-        className="shadow-sm p-6 border border-slate-100 dark:border-slate-800"
+        className="shadow-xl shadow-slate-200/50 p-6 border border-slate-100 dark:border-slate-800 transition-all"
         style={{ borderRadius: `${borderRadius}px`, backgroundColor: cardBg, color: textColor }}
       >
         <h2 className="text-lg font-semibold mb-6 flex items-center gap-2" style={{ color: textColor }}>
@@ -229,7 +229,7 @@ export default function CheckoutForm({
 
       {/* Payment Method */}
       <section 
-        className="shadow-sm p-6 border border-slate-100 dark:border-slate-800"
+        className="shadow-xl shadow-slate-200/50 p-6 border border-slate-100 dark:border-slate-800 transition-all"
         style={{ borderRadius: `${borderRadius}px`, backgroundColor: cardBg, color: textColor }}
       >
         <h2 className="text-lg font-semibold mb-6 flex items-center gap-2" style={{ color: textColor }}>

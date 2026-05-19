@@ -132,13 +132,17 @@ export default function Shop() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [sortDropdownRef]);
 
+  const textColor = theme?.colors?.text || '#111827';
+  const textColorSecondary = theme?.colors?.text ? `${theme.colors.text}b3` : '#64748b'; // 70% opacity for secondary text
+  const borderColor = theme?.colors?.text ? `${theme.colors.text}20` : '#e2e8f0';
+
   return (
-    <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[600px]">
+    <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-10 min-h-[600px]">
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 min-h-[70vh]">
         <aside className="w-full lg:w-64 shrink-0 space-y-8">
           <div className="lg:sticky lg:top-24">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-slate-900">Filters</h2>
+              <h2 className="text-lg font-bold" style={{ color: textColor }}>Filters</h2>
               <button
                 onClick={clearFilters}
                 className="text-xs font-semibold hover:underline uppercase tracking-wider"
@@ -148,8 +152,8 @@ export default function Shop() {
               </button>
             </div>
 
-            <div className="mb-8 pb-8 border-b border-slate-200">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Price Range</h3>
+            <div className="mb-8 pb-8" style={{ borderBottom: `1px solid ${borderColor}` }}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: textColorSecondary }}>Price Range</h3>
               <div className="px-2">
                 <div className="relative h-1 bg-slate-200 rounded-full mb-6 flex items-center">
                   <div 
@@ -186,12 +190,12 @@ export default function Shop() {
                         type="number"
                         value={priceRange[0]}
                         onChange={e => setPriceRange([Number(e.target.value), priceRange[1]])}
-                        className="w-full pr-7 pl-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:border-transparent outline-none"
+                        className="w-full pr-7 pl-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:border-transparent outline-none text-slate-900"
                         style={{ '--tw-ring-color': `${primaryColor}33`, borderRadius: `${borderRadius}px` }}
                       />
                     </div>
                   </div>
-                  <span className="text-slate-400">-</span>
+                  <span style={{ color: textColorSecondary }}>-</span>
                   <div className="flex-1">
                     <div className="relative">
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">đ</span>
@@ -199,7 +203,7 @@ export default function Shop() {
                         type="number"
                         value={priceRange[1]}
                         onChange={e => setPriceRange([priceRange[0], Number(e.target.value)])}
-                        className="w-full pr-7 pl-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:border-transparent outline-none"
+                        className="w-full pr-7 pl-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:border-transparent outline-none text-slate-900"
                         style={{ '--tw-ring-color': `${primaryColor}33`, borderRadius: `${borderRadius}px` }}
                       />
                     </div>
@@ -208,8 +212,8 @@ export default function Shop() {
               </div>
             </div>
 
-            <div className="mb-8 pb-8 border-b border-slate-200">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Category</h3>
+            <div className="mb-8 pb-8" style={{ borderBottom: `1px solid ${borderColor}` }}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: textColorSecondary }}>Category</h3>
               <div className="space-y-3">
                 {categories.map((cat) => (
                   <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
@@ -220,14 +224,14 @@ export default function Shop() {
                       className="w-4 h-4 rounded border-slate-300 focus:ring-transparent cursor-pointer"
                       style={{ color: primaryColor }}
                     />
-                    <span className="text-sm text-slate-700 transition-colors" style={{ color: selectedCategories.includes(cat.id) ? primaryColor : undefined }}>{cat.name}</span>
+                    <span className="text-sm transition-colors" style={{ color: selectedCategories.includes(cat.id) ? primaryColor : textColorSecondary }}>{cat.name}</span>
                   </label>
                 ))}
               </div>
             </div>
 
-            <div>
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Size / Specification</h3>
+             <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: textColorSecondary }}>Size / Specification</h3>
               <div className="grid grid-cols-3 gap-2">
                 {allSizes.map((size) => {
                   const isSelected = selectedSizes.includes(size);
@@ -252,14 +256,14 @@ export default function Shop() {
         </aside>
 
         <div className="flex-1" ref={gridTopRef}>
-          <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+          <div className="flex items-center justify-between mb-8 pb-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
             <div className="flex flex-col gap-1">
-              <p className="text-sm text-slate-500">
-                Showing <span className="text-slate-900 font-bold">{filteredProducts.length}</span> products
+              <p className="text-sm" style={{ color: textColorSecondary }}>
+                Showing <span className="font-bold" style={{ color: textColor }}>{filteredProducts.length}</span> products
               </p>
               {searchQuery && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500">Search:</span>
+                  <span className="text-xs" style={{ color: textColorSecondary }}>Search:</span>
                   <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
                     <Search className="w-3 h-3" />
                     {searchQuery}
@@ -271,7 +275,7 @@ export default function Shop() {
               )}
             </div>
             <div className="flex items-center gap-3 relative" ref={sortDropdownRef}>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:block">Sort By</label>
+              <label className="text-xs font-bold uppercase tracking-widest hidden sm:block" style={{ color: textColorSecondary }}>Sort By</label>
               <div className="relative">
                 <button
                   onClick={() => setShowSortDropdown(!showSortDropdown)}
@@ -315,11 +319,11 @@ export default function Shop() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" style={{ borderBottomColor: 'transparent' }}></div>
               </div>
             ) : productsError ? (
-              <div className="col-span-full py-12 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="col-span-full py-12 text-center border" style={{ color: textColorSecondary, borderColor: borderColor, borderRadius: `${borderRadius}px` }}>
                 Failed to load products. Please try again later.
               </div>
             ) : currentProducts.length === 0 ? (
-              <div className="col-span-full py-12 text-center text-slate-500">
+              <div className="col-span-full py-12 text-center" style={{ color: textColorSecondary }}>
                 <p>No products found matching your active filters.</p>
               </div>
             ) : (

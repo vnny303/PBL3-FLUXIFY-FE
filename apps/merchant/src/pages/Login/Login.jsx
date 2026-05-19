@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../../entities/auth/AuthContext';
 import { merchantLogin } from '../../share/api/authApi';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, LogIn, Loader2 } from 'lucide-react';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -66,7 +67,7 @@ export default function Login() {
                 role: response.role,
                 tenants: response.tenants 
             });
-            alert("Đăng nhập đã thành công")
+            toast.success("Đăng nhập thành công!");
             navigate('/home', { replace: true });
 
         } catch (err) {
@@ -161,9 +162,19 @@ export default function Login() {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-slate-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                        className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-slate-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6 flex items-center justify-center gap-2"
                     >
-                        {isLoading ? '🔄 Đang xử lý...' : '🔓 Đăng Nhập'}
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Đang xử lý...
+                            </>
+                        ) : (
+                            <>
+                                <LogIn className="w-5 h-5" />
+                                Đăng Nhập
+                            </>
+                        )}
                     </button>
                 </form>
 

@@ -16,7 +16,7 @@ export default function PasswordChangeForm({
   const [showConfirm, setShowConfirm] = useState(false);
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden bg-white dark:bg-slate-900">
+    <div className="rounded-xl border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 overflow-hidden bg-white dark:bg-slate-900">
       <div className="p-6 border-b border-slate-100 dark:border-slate-800">
         <h2 className="text-lg font-bold">Change Password</h2>
       </div>

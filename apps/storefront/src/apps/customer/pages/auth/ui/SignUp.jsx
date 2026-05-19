@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useSignUp } from '../../../../../features/auth/model/useSignUp';
+import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 import Input from '../../../../../shared/ui/Input';
 import PasswordInput from '../../../../../shared/ui/PasswordInput';
 import Checkbox from '../../../../../shared/ui/Checkbox';
@@ -7,6 +8,8 @@ import Button from '../../../../../shared/ui/Button';
 
 export default function SignUp() {
   const { formData, isLoading, error, isSuccess, handleChange, handleSubmit } = useSignUp();
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
 
   return (
     <div className="flex h-screen w-full font-display bg-[#f6f6f8] text-slate-900 antialiased overflow-hidden">
@@ -44,7 +47,7 @@ export default function SignUp() {
             <h1 className="text-white text-5xl font-bold leading-tight mb-4">
               Discover the extraordinary in the everyday.
             </h1>
-            <div className="h-1.5 w-20 bg-[#1754cf] rounded-full"></div>
+            <div className="h-1.5 w-20 rounded-full" style={{ backgroundColor: primaryColor }}></div>
           </div>
           <div className="text-white/60 text-sm">
             © 2024 Fluxify Inc. All rights reserved.
@@ -56,7 +59,7 @@ export default function SignUp() {
       <div className="w-full lg:w-1/2 h-full bg-white flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto">
         <div className="w-full max-w-[420px] flex flex-col gap-8">
           {/* Mobile Logo */}
-          <div className="flex lg:hidden items-center gap-2 text-[#1754cf] mb-4">
+          <div className="flex lg:hidden items-center gap-2 mb-4" style={{ color: primaryColor }}>
             <div className="size-8">
               <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -115,15 +118,6 @@ export default function SignUp() {
             </div>
 
             <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-              {/* <Input
-                label="Subdomain"
-                id="subdomain"
-                name="subdomain"
-                value={formData.subdomain}
-                onChange={handleChange}
-                placeholder="pbl3-shop"
-              /> */}
-              
               <Input
                 label="Email Address"
                 id="email"
@@ -152,11 +146,11 @@ export default function SignUp() {
                 >
                   <span className="text-sm text-slate-500 ml-2">
                     I agree to the{' '}
-                    <a className="text-[#1754cf] font-medium hover:underline" href="#">
+                    <a className="font-medium hover:underline" style={{ color: primaryColor }} href="#">
                       Terms of Service
                     </a>{' '}
                     and{' '}
-                    <a className="text-[#1754cf] font-medium hover:underline" href="#">
+                    <a className="font-medium hover:underline" style={{ color: primaryColor }} href="#">
                       Privacy Policy
                     </a>
                     .
@@ -178,7 +172,7 @@ export default function SignUp() {
           <div className="text-center pt-2">
             <p className="text-slate-600">
               Already have an account?{' '}
-              <Link className="text-[#1754cf] font-bold hover:underline ml-1" to="/login">
+              <Link className="font-bold hover:underline ml-1" style={{ color: primaryColor }} to="/login">
                 Log in
               </Link>
             </p>

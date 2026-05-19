@@ -34,13 +34,13 @@ const parseAttributes = (value) => {
 };
 
 const buildVariantLabel = (sku) => {
-  if (!sku) return 'Không rõ';
+  if (!sku) return 'Unknown';
   const attributes = parseAttributes(sku.attributes);
   const values = Object.values(attributes).filter((item) => typeof item === 'string' && item.trim());
 
   if (values.length > 0) return values.join(' / ');
   if (sku.skuCode) return sku.skuCode;
-  return 'Không rõ';
+  return 'Unknown';
 };
 
 // ─── Rating Stars Input ────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ function StarInput({ value, onChange, disabled }) {
 function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
   const isOwner = review.customerId === currentUserId;
   const formattedDate = review.createdAt
-    ? new Date(review.createdAt).toLocaleDateString('vi-VN', {
+    ? new Date(review.createdAt).toLocaleDateString('en-US', {
         year: 'numeric', month: 'short', day: 'numeric',
       })
     : 'Recently';
@@ -99,135 +99,30 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-slate-400">{formattedDate}</span>
-          {isOwner && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => onEdit(review)}
-                className="text-slate-400 hover:text-primary transition-colors"
-                title="Edit"
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => onDelete(review.id)}
-                className="text-slate-400 hover:text-red-500 transition-colors"
-                title="Delete"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          )}
         </div>
       </div>
       {review.comment && (
         <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
       )}
       <p className="text-xs text-slate-500 mt-2">
-        Phân loại đã mua: {review.purchasedVariantLabel || 'Không rõ'}
+        Purchased Variant: {review.purchasedVariantLabel || 'Unknown'}
       </p>
     </div>
   );
 }
 
 // ─── Write Review Form ─────────────────────────────────────────────────────────
-function ReviewForm({ productSkuId, productId, editingReview, onDone }) {
-  const queryClient = useQueryClient();
-  const [rating, setRating] = useState(editingReview?.rating || 0);
-  const [comment, setComment] = useState(editingReview?.comment || '');
+// ReviewForm removed from here as per requirements.
 
-  const createMutation = useMutation({
-    mutationFn: () => reviewService.createReview({ productSkuId, rating, comment }),
-    onSuccess: () => {
-      toast.success('Message sent successfully! We will get back to you soon.');
-      queryClient.invalidateQueries({ queryKey: ['product-reviews', productId] });
-      onDone();
-    },
-    onError: (err) => {
-      if (err?.response?.status === 409) {
-        toast.error('You have already reviewed this product.');
-      } else {
-        toast.error(err?.response?.data?.message || 'Failed to submit review');
-      }
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: () => reviewService.updateReview(editingReview.id, { rating, comment }),
-    onSuccess: () => {
-      toast.success('Review updated successfully!');
-      queryClient.invalidateQueries({ queryKey: ['product-reviews', productId] });
-      onDone();
-    },
-    onError: (err) => {
-      toast.error(err?.response?.data?.message || 'Failed to update review');
-    },
-  });
-
-  const isPending = createMutation.isPending || updateMutation.isPending;
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!productSkuId) {
-      toast.error('Không xác định được biến thể SKU để gửi đánh giá.');
-      return;
-    }
-    if (rating === 0) {
-      toast.error('Please select a rating star.');
-      return;
-    }
-    if (editingReview) {
-      updateMutation.mutate();
-    } else {
-      createMutation.mutate();
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="bg-slate-50 rounded-xl p-5 mb-8 border border-slate-200">
-      <h4 className="font-bold text-slate-900 mb-4">
-        {editingReview ? 'Edit Review' : 'Write a Review'}
-      </h4>
-      <div className="mb-4">
-        <label className="text-sm text-slate-600 mb-2 block">Rating *</label>
-        <StarInput value={rating} onChange={setRating} disabled={isPending} />
-      </div>
-      <div className="mb-4">
-        <label className="text-sm text-slate-600 mb-2 block">Comment (optional)</label>
-        <textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          maxLength={2000}
-          rows={3}
-          disabled={isPending}
-          placeholder="Share your experience here..."
-          className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-lg resize-none outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50"
-        />
-        <p className="text-xs text-slate-400 text-right mt-1">{comment.length}/2000</p>
-      </div>
-      <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-lg hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-60"
-        >
-          {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          {editingReview ? 'Update' : 'Submit Review'}
-        </button>
-        <button
-          type="button"
-          onClick={onDone}
-          disabled={isPending}
-          className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-}
 
 // ─── Main ReviewList Component ────────────────────────────────────────────────
-export default function ReviewList({ product, selectedSkuId }) {
+export default function ReviewList({ 
+  product, 
+  selectedSkuId, 
+  reviews = [], 
+  isLoadingReviews = false, 
+  onRefresh 
+}) {
   const { tenantId } = useStorefrontTenant();
   const { isLoggedIn, user } = useAppContext();
   const queryClient = useQueryClient();
@@ -259,25 +154,9 @@ export default function ReviewList({ product, selectedSkuId }) {
   }, [productSkus]);
 
   const activeWriteSkuId = selectedSkuId || skuIds[0] || null;
-  const skuIdsKey = useMemo(() => skuIds.join('|'), [skuIds]);
 
-  // ── Fetch review list ──────────────────────────────────────────────────────
-  const {
-    data: reviews = [],
-    isLoading: isLoadingReviews,
-  } = useQuery({
-    queryKey: ['product-reviews', product?.id, skuIdsKey],
-    queryFn: () => reviewService.getProductReviews({
-      tenantId,
-      productId: product?.id,
-      skuIds,
-      filters: {
-        pageSize: 200,
-      },
-    }),
-    enabled: !!tenantId && skuIds.length > 0,
-    staleTime: 30_000,
-  });
+  // ── Data is now provided via props ──
+  // Removed local useQuery to comply with "fetch once in ProductDetail" requirement
 
   const enrichedReviews = useMemo(
     () =>
@@ -309,19 +188,8 @@ export default function ReviewList({ product, selectedSkuId }) {
     return next;
   }, [enrichedReviews, sortOption]);
 
-  // ── Delete review ──────────────────────────────────────────────────────────
-  const deleteMutation = useMutation({
-    mutationFn: (reviewId) => reviewService.deleteReview(reviewId),
-    onSuccess: () => {
-      toast.success('Review deleted successfully!');
-      queryClient.invalidateQueries({ queryKey: ['product-reviews', product?.id] });
-      setReviewIdToDelete(null);
-    },
-    onError: () => {
-      toast.error('Failed to delete review');
-      setReviewIdToDelete(null);
-    },
-  });
+  // Mutation removed from here
+
 
   // ── Close sort dropdown on outside click ─────────────────────────────────
   useEffect(() => {
@@ -358,21 +226,9 @@ export default function ReviewList({ product, selectedSkuId }) {
     { stars: 1, count: ratingBuckets[1] },
   ];
 
-  const handleEdit = (review) => {
-    setEditingReview(review);
-    setShowForm(true);
-  };
-
-  const handleFormDone = () => {
-    setShowForm(false);
-    setEditingReview(null);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (reviewIdToDelete) {
-      deleteMutation.mutate(reviewIdToDelete);
-    }
-  };
+  const handleEdit = (review) => {};
+  const handleFormDone = () => {};
+  const handleDeleteConfirm = () => {};
 
   if (skuIds.length === 0) {
     return (
@@ -418,33 +274,18 @@ export default function ReviewList({ product, selectedSkuId }) {
             </div>
           )}
 
-          {isLoggedIn ? (
-            <button
-              onClick={() => { setEditingReview(null); setShowForm(true); }}
-              className="w-full py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 text-sm"
-            >
-              <Pen className="w-4 h-4" />
-              WRITE A REVIEW
-            </button>
-          ) : (
-            <p className="text-sm text-slate-500 text-center italic">
-              Please login to write a review
+          <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+            <p className="text-sm text-blue-700 font-medium leading-relaxed">
+              Reviews can only be submitted after your order has been successfully delivered.
             </p>
-          )}
+          </div>
         </div>
       </div>
 
       {/* ── Right: Review list ─────────────────────────────────────────── */}
       <div className="w-full lg:w-2/3">
         {/* Write/Edit form */}
-        {showForm && (
-          <ReviewForm
-            productSkuId={activeWriteSkuId}
-            productId={product?.id}
-            editingReview={editingReview}
-            onDone={handleFormDone}
-          />
-        )}
+        {/* Write/Edit form removed */}
 
         {/* Sort bar */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
@@ -489,7 +330,6 @@ export default function ReviewList({ product, selectedSkuId }) {
           ) : sortedReviews.length === 0 ? (
             <div className="text-center py-12 border border-slate-100 rounded-xl bg-slate-50">
               <p className="text-slate-500">No reviews yet for this product.</p>
-              <p className="text-slate-900 font-bold mt-2">Be the first to share your thoughts!</p>
             </div>
           ) : (
             sortedReviews.map((review) => (

@@ -1,8 +1,16 @@
-import { useState, useEffect } from 'react'; // ← Thêm useEffect
-import { Plus, X, Loader2, Tag, Trash2, Undo2 } from 'lucide-react'; // ← Thêm icon Undo2
+import { useState, useEffect } from 'react';
+import { Plus, X, Loader2, Tag, Trash2, Undo2 } from 'lucide-react';
+import { Select } from '../../../share/ui/Select';
 import { parseAttr, fmtVnd, getAllPossibleCombos, isDuplicateSku } from '../utils/productHelpers';
 import { useEditProduct } from '../hooks/useProducts';
 import { ImageUploadPreview } from '../components/ImageUploadPreview';
+import {
+    DetailContentEditor,
+    normalizeDetailSections,
+    normalizeSpecifications,
+    cleanDetailSections,
+    cleanSpecifications,
+} from '../components/DetailContentEditor';
 
 // ─── EditBulkApplyBar ────────────────────────────────────────────────────────
 function EditBulkApplyBar({ onApply }) {
@@ -78,23 +86,23 @@ function EditGroupApplyBar({ productAttrs, visibleSkus, onApplyGroup }) {
             <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Apply by attribute group</p>
             
             <div className="flex flex-wrap gap-2 items-center">
-                <select
-                    value={selectedKey}
-                    onChange={e => handleKeyChange(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white outline-none focus:border-black transition-colors"
-                >
-                    <option value="">Select attribute...</option>
-                    {attrKeys.map(k => <option key={k} value={k}>{k}</option>)}
-                </select>
+                <div className="w-48">
+                    <Select
+                        value={selectedKey}
+                        onChange={e => handleKeyChange(e.target.value)}
+                        options={[{ value: '', label: 'Select attribute...' }, ...attrKeys]}
+                        placeholder="Select attribute..."
+                    />
+                </div>
                 {selectedKey && (
-                    <select
-                        value={selectedValue}
-                        onChange={e => setSelectedValue(e.target.value)}
-                        className="px-3 py-2 rounded-lg border border-[#e3e3e3] text-sm bg-white outline-none focus:border-black transition-colors"
-                    >
-                        <option value="">Select value...</option>
-                        {(productAttrs[selectedKey] || []).map(v => <option key={v} value={v}>{v}</option>)}
-                    </select>
+                    <div className="w-48">
+                        <Select
+                            value={selectedValue}
+                            onChange={e => setSelectedValue(e.target.value)}
+                            options={[{ value: '', label: 'Select value...' }, ...(productAttrs[selectedKey] || [])]}
+                            placeholder="Select value..."
+                        />
+                    </div>
                 )}
             </div>
             
@@ -158,6 +166,12 @@ export function EditProductModal({ tenantId, product, categories, onClose, onSuc
         Array.isArray(product.imgUrls) ? product.imgUrls.join('\n') : ''
     );
     const [fieldErrors, setFieldErrors] = useState({});
+    const [detailSections, setDetailSections] = useState(() =>
+        normalizeDetailSections(product.detailSections ?? product.DetailSections ?? [])
+    );
+    const [specifications, setSpecifications] = useState(() =>
+        normalizeSpecifications(product.specifications ?? product.Specifications ?? [])
+    );
 
     // ── SKU state ─────────────────────────────────────────────────────────
     const [skuList, setSkuList] = useState(product.productSkus || product.skus || []);
@@ -336,6 +350,8 @@ export function EditProductModal({ tenantId, product, categories, onClose, onSuc
             description: description.trim() || undefined,
             categoryId: categoryId || undefined,
             imgUrls: imgUrlsText.split('\n').map(u => u.trim()).filter(Boolean),
+            detailSections: cleanDetailSections(detailSections),
+            specifications: cleanSpecifications(specifications),
         });
     };
 
@@ -428,13 +444,12 @@ export function EditProductModal({ tenantId, product, categories, onClose, onSuc
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                                <select value={categoryId} onChange={e => setCategoryId(e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg border border-[#e3e3e3] focus:border-black text-sm outline-none bg-white transition-colors">
-                                    <option value="">No category</option>
-                                    {categories.map(cat => (
-                                        <option key={cat.categoryId || cat.id} value={cat.categoryId || cat.id}>{cat.name}</option>
-                                    ))}
-                                </select>
+                                <Select
+                                    value={categoryId}
+                                    onChange={e => setCategoryId(e.target.value)}
+                                    options={[{ value: '', label: 'No category' }, ...categories]}
+                                    placeholder="No category"
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -474,6 +489,18 @@ export function EditProductModal({ tenantId, product, categories, onClose, onSuc
                                 {isSavingProduct ? 'Saving...' : 'Save Product Info'}
                             </button>
                         </div>
+                    </div>
+
+                    {/* ── Detail Content section ── */}
+                    <div className="p-6 space-y-4">
+                        <h3 className="text-sm font-semibold text-slate-700">Product Detail Content</h3>
+                        <p className="text-xs text-slate-400 -mt-1">Sections and specs shown on the storefront product page. Save Product Info to persist changes.</p>
+                        <DetailContentEditor
+                            detailSections={detailSections}
+                            setDetailSections={setDetailSections}
+                            specifications={specifications}
+                            setSpecifications={setSpecifications}
+                        />
                     </div>
 
                     {/* ── SKU management ── */}
@@ -633,16 +660,12 @@ export function EditProductModal({ tenantId, product, categories, onClose, onSuc
                                         {attrKeys.map(k => (
                                             <div key={k}>
                                                 <label className="text-xs font-medium text-slate-600 mb-1 block capitalize">{k}</label>
-                                                <select
+                                                <Select
                                                     value={newSku[k] || ''}
                                                     onChange={e => { setNewSku(prev => ({ ...prev, [k]: e.target.value })); setAddError(''); }}
-                                                    className="w-full px-2 py-1.5 border border-[#e3e3e3] rounded-lg text-sm bg-white outline-none focus:border-black transition-colors"
-                                                >
-                                                    <option value="">Select...</option>
-                                                    {(productAttrs[k] || []).map(v => (
-                                                        <option key={v} value={v}>{v}</option>
-                                                    ))}
-                                                </select>
+                                                    options={[{ value: '', label: 'Select...' }, ...(productAttrs[k] || [])]}
+                                                    placeholder="Select..."
+                                                />
                                             </div>
                                         ))}
                                     </div>

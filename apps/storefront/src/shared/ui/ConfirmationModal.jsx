@@ -5,10 +5,10 @@ export default function ConfirmationModal({
   isOpen, 
   onClose, 
   onConfirm, 
-  title = 'Xác nhận xóa', 
-  message = 'Bạn có chắc chắn muốn thực hiện hành động này?',
-  confirmText = 'Xác nhận',
-  cancelText = 'Hủy',
+  title = 'Confirm action', 
+  message = 'Are you sure you want to perform this action?',
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
   type = 'danger' // 'danger' or 'info'
 }) {
   if (!isOpen) return null;
