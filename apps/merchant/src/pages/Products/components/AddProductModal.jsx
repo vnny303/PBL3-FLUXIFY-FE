@@ -4,6 +4,13 @@ import { Select } from '../../../share/ui/Select';
 import { cartesian, computeSkuRows, skuLabel } from '../utils/productHelpers';
 import { useAddProduct } from '../hooks/useProducts';
 import { ImageUploadPreview } from '../components/ImageUploadPreview';
+import {
+    DetailContentEditor,
+    DEFAULT_DETAIL_SECTIONS,
+    DEFAULT_SPECIFICATIONS,
+    cleanDetailSections,
+    cleanSpecifications,
+} from '../components/DetailContentEditor';
 
 
 const MAX_ATTR_GROUPS = 2;
@@ -183,6 +190,8 @@ export function AddProductModal({ tenantId, categories, onClose, onSuccess }) {
     const [newAttrKey, setNewAttrKey] = useState('');
     const [skuRows, setSkuRows] = useState([{ combination: {}, price: '', stock: '0', imgUrl: '' }]);
     const [errors, setErrors] = useState({});
+    const [detailSections, setDetailSections] = useState(DEFAULT_DETAIL_SECTIONS);
+    const [specifications, setSpecifications] = useState(DEFAULT_SPECIFICATIONS);
 
     const { isLoading, serverError, submit } = useAddProduct(tenantId, onSuccess, onClose);
 
@@ -281,6 +290,8 @@ export function AddProductModal({ tenantId, categories, onClose, onSuccess }) {
                 attributes: Object.keys(r.combination).length ? r.combination : undefined,
                 imgUrl: r.imgUrl.trim() || '',
             })),
+            detailSections: cleanDetailSections(detailSections),
+            specifications: cleanSpecifications(specifications),
         };
 
         await submit(payload);
@@ -424,10 +435,25 @@ export function AddProductModal({ tenantId, categories, onClose, onSuccess }) {
                         )}
                     </div>
 
-                    {/* ── Section 3: Variants & Pricing ── */}
+                    {/* ── Section 3: Detail Content ── */}
                     <div className="p-6 space-y-4">
                         <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                             <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-bold">3</span>
+                            Product Detail Content
+                            <span className="text-xs font-normal text-slate-400">(optional · shown on storefront product page)</span>
+                        </h3>
+                        <DetailContentEditor
+                            detailSections={detailSections}
+                            setDetailSections={setDetailSections}
+                            specifications={specifications}
+                            setSpecifications={setSpecifications}
+                        />
+                    </div>
+
+                    {/* ── Section 4: Variants & Pricing ── */}
+                    <div className="p-6 space-y-4">
+                        <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-bold">4</span>
                             Variants &amp; Pricing
                             <span className="text-xs font-normal text-slate-400">({skuRows.length} variant{skuRows.length !== 1 ? 's' : ''})</span>
                         </h3>

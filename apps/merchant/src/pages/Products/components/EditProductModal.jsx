@@ -1,9 +1,16 @@
-import { useState, useEffect } from 'react'; // ← Thêm useEffect
-import { Plus, X, Loader2, Tag, Trash2, Undo2 } from 'lucide-react'; // ← Thêm icon Undo2
+import { useState, useEffect } from 'react';
+import { Plus, X, Loader2, Tag, Trash2, Undo2 } from 'lucide-react';
 import { Select } from '../../../share/ui/Select';
 import { parseAttr, fmtVnd, getAllPossibleCombos, isDuplicateSku } from '../utils/productHelpers';
 import { useEditProduct } from '../hooks/useProducts';
 import { ImageUploadPreview } from '../components/ImageUploadPreview';
+import {
+    DetailContentEditor,
+    normalizeDetailSections,
+    normalizeSpecifications,
+    cleanDetailSections,
+    cleanSpecifications,
+} from '../components/DetailContentEditor';
 
 // ─── EditBulkApplyBar ────────────────────────────────────────────────────────
 function EditBulkApplyBar({ onApply }) {
@@ -159,6 +166,12 @@ export function EditProductModal({ tenantId, product, categories, onClose, onSuc
         Array.isArray(product.imgUrls) ? product.imgUrls.join('\n') : ''
     );
     const [fieldErrors, setFieldErrors] = useState({});
+    const [detailSections, setDetailSections] = useState(() =>
+        normalizeDetailSections(product.detailSections ?? product.DetailSections ?? [])
+    );
+    const [specifications, setSpecifications] = useState(() =>
+        normalizeSpecifications(product.specifications ?? product.Specifications ?? [])
+    );
 
     // ── SKU state ─────────────────────────────────────────────────────────
     const [skuList, setSkuList] = useState(product.productSkus || product.skus || []);
@@ -337,6 +350,8 @@ export function EditProductModal({ tenantId, product, categories, onClose, onSuc
             description: description.trim() || undefined,
             categoryId: categoryId || undefined,
             imgUrls: imgUrlsText.split('\n').map(u => u.trim()).filter(Boolean),
+            detailSections: cleanDetailSections(detailSections),
+            specifications: cleanSpecifications(specifications),
         });
     };
 
@@ -474,6 +489,18 @@ export function EditProductModal({ tenantId, product, categories, onClose, onSuc
                                 {isSavingProduct ? 'Saving...' : 'Save Product Info'}
                             </button>
                         </div>
+                    </div>
+
+                    {/* ── Detail Content section ── */}
+                    <div className="p-6 space-y-4">
+                        <h3 className="text-sm font-semibold text-slate-700">Product Detail Content</h3>
+                        <p className="text-xs text-slate-400 -mt-1">Sections and specs shown on the storefront product page. Save Product Info to persist changes.</p>
+                        <DetailContentEditor
+                            detailSections={detailSections}
+                            setDetailSections={setDetailSections}
+                            specifications={specifications}
+                            setSpecifications={setSpecifications}
+                        />
                     </div>
 
                     {/* ── SKU management ── */}
