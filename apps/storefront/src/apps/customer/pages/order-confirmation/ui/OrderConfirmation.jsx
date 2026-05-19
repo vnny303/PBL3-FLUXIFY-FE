@@ -168,7 +168,7 @@ export default function OrderConfirmation() {
           
           {/* Bank Transfer Instructions */}
           {syncedBankInfo && (
-            <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+            <section className="bg-white dark:bg-slate-900 rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-slate-800 overflow-hidden">
               <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
                   <CreditCard className="text-primary w-5 h-5" />
@@ -240,7 +240,7 @@ export default function OrderConfirmation() {
           )}
 
           {/* Shipping & Payment Summary */}
-          <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
+          <section className="bg-white dark:bg-slate-900 rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
             <div className="p-6">
               <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
                 <MapPin className="w-4 h-4" style={{ color: primaryColor }} />
@@ -267,7 +267,7 @@ export default function OrderConfirmation() {
           </section>
 
           {/* Order Items */}
-          <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+          <section className="bg-white dark:bg-slate-900 rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-slate-800 overflow-hidden">
             <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-sm font-semibold flex items-center gap-2">
                 <Package className="w-4 h-4" style={{ color: primaryColor }} />
@@ -296,7 +296,7 @@ export default function OrderConfirmation() {
         </div>
 
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 sticky top-24">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-slate-800 p-6 sticky top-24">
             <h2 className="text-lg font-semibold mb-6">Order Summary</h2>
             <div className="space-y-4 mb-6">
               <div className="flex justify-between text-sm">

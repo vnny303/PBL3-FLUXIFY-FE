@@ -72,7 +72,7 @@ export default function Notifications() {
       </div>
 
       {/* List */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden divide-y divide-slate-100">
+      <div className="bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden divide-y divide-slate-100">
         {filtered.length === 0 ? (
           <div className="p-10 flex flex-col items-center text-center gap-4">
             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">

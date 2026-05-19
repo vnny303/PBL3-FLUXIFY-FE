@@ -44,7 +44,7 @@ export default function OrderSummaryCard({ order }) {
   return (
     <div className="space-y-6">
       {/* Shipping Details */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-xl shadow-slate-200/50">
         <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2 mb-4">
           <MapPin className="w-4 h-4" style={{ color: primaryColor }} />
           Shipping Address
@@ -69,7 +69,7 @@ export default function OrderSummaryCard({ order }) {
       </div>
 
       {/* Payment & Status */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm space-y-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-xl shadow-slate-200/50 space-y-6">
         <div>
           <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2 mb-4">
             <CreditCard className="w-4 h-4" style={{ color: primaryColor }} />
@@ -116,7 +116,7 @@ export default function OrderSummaryCard({ order }) {
       </div>
 
       {/* Order Summary */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-xl shadow-slate-200/50">
         <h2 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white mb-6">Order Summary</h2>
         <div className="space-y-4 text-sm">
           <div className="flex justify-between text-slate-500">

@@ -93,7 +93,7 @@ export default function ProfileSettings() {
         
         <div className="flex flex-col gap-8">
           <div 
-            className="rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-6"
+            className="rounded-xl border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 overflow-hidden p-6"
             style={{ backgroundColor: bgColor === '#ffffff' ? '#ffffff' : `${bgColor}E6`, color: textColor }}
           >
             <AvatarSection 

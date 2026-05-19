@@ -16,7 +16,7 @@ export default function OrderSummary({ cartItems = [], cartSubtotal = 0, shippin
     <div className="lg:w-[40%]">
       <div className="sticky top-24 space-y-6">
         <div 
-          className="shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden"
+          className="shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-slate-800 overflow-hidden"
           style={{ borderRadius: `${borderRadius}px`, backgroundColor: cardBg, color: textColor }}
         >
           <div className="p-6">
