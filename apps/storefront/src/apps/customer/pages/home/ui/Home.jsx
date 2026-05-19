@@ -86,7 +86,7 @@ export default function Home() {
           <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
             {content.home.title}
           </h1>
-          <p className="text-base md:text-lg text-slate-300 mb-8 leading-relaxed">
+          <p className="text-base md:text-lg text-slate-300 mb-8 leading-relaxed whitespace-pre-line">
             {content.home.subtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4">

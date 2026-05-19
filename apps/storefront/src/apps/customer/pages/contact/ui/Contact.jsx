@@ -111,6 +111,9 @@ export default function Contact() {
     toast.info('Your email client has been opened. Please send the pre-filled email to complete your inquiry.');
   };
 
+  const textColor = theme?.colors?.text || '#111827';
+  const textColorSecondary = theme?.colors?.text ? `${theme.colors.text}b3` : '#64748b'; // 70% opacity for secondary text
+
   const inputClass = (error) =>
     `w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm ${
       error
@@ -126,8 +129,8 @@ export default function Contact() {
     <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-10">
       {/* Page heading */}
       <div className="mb-10">
-        <h1 className="text-3xl font-black text-slate-900 mb-2">Contact Us</h1>
-        <p className="text-slate-500">
+        <h1 className="text-3xl font-black mb-2" style={{ color: textColor }}>Contact Us</h1>
+        <p style={{ color: textColorSecondary }}>
           Have a question or need help? Reach out — we typically respond within one business day.
         </p>
       </div>
@@ -137,7 +140,7 @@ export default function Contact() {
         <div className="lg:col-span-2 space-y-8">
           {/* Contact details */}
           <div>
-            <h2 className="text-lg font-bold text-slate-900 mb-5">Get in touch</h2>
+            <h2 className="text-lg font-bold mb-5" style={{ color: textColor }}>Get in touch</h2>
             <div className="space-y-4">
               {[
                 {
@@ -173,17 +176,17 @@ export default function Contact() {
                     <Icon className="w-5 h-5" style={{ color: primaryColor }} />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">{label}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: textColorSecondary }}>{label}</p>
                     {href ? (
                       <a
                         href={href}
-                        className="text-sm font-medium text-slate-800 hover:underline whitespace-pre-line"
+                        className="text-sm font-medium hover:underline whitespace-pre-line"
                         style={{ color: primaryColor }}
                       >
                         {value}
                       </a>
                     ) : (
-                      <p className="text-sm font-medium text-slate-800 whitespace-pre-line">{value}</p>
+                      <p className="text-sm font-medium whitespace-pre-line" style={{ color: textColor }}>{value}</p>
                     )}
                   </div>
                 </div>
@@ -193,7 +196,7 @@ export default function Contact() {
 
           {/* FAQ */}
           <div>
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Frequently Asked Questions</h2>
+            <h2 className="text-lg font-bold mb-4" style={{ color: textColor }}>Frequently Asked Questions</h2>
             <div className="space-y-2">
               {FAQ_ITEMS.map((item, i) => (
                 <div

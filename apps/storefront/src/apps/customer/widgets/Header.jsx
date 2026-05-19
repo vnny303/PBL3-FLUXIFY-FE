@@ -34,6 +34,7 @@ export default function Header() {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const searchRef = useRef(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [hoveredLink, setHoveredLink] = useState(null);
   const { content, theme } = useStorefrontConfig();
 
   const headerTheme = theme?.components?.header || {
@@ -43,9 +44,9 @@ export default function Header() {
 
   const primaryColor = theme?.colors?.primary || '#1754cf';
 
-  const navLinkStyle = (isActive) => ({
-    color: isActive ? theme?.colors?.primary || '#1754cf' : headerTheme.text,
-    borderBottomColor: isActive ? theme?.colors?.primary || '#1754cf' : 'transparent',
+  const navLinkStyle = (isActive, isHovered) => ({
+    color: (isActive || isHovered) ? theme?.colors?.primary || '#1754cf' : headerTheme.text,
+    borderBottomColor: isActive ? theme?.colors?.primary || '#1754cf' : isHovered ? `${primaryColor}40` : 'transparent',
   });
 
   const [localSearch, setLocalSearch] = useState(searchQuery);
@@ -117,20 +118,23 @@ export default function Header() {
             </Link>
           </div>
           <nav className="hidden lg:flex items-center gap-8">
-            {content?.header?.navLinks?.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className="text-sm font-semibold transition-colors border-b-2 pb-0.5"
-                style={navLinkStyle(
-                  link.path === '/'
-                    ? location.pathname === '/'
-                    : location.pathname.includes(link.path)
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {content?.header?.navLinks?.map((link) => {
+              const isActive = link.path === '/'
+                ? location.pathname === '/'
+                : location.pathname.includes(link.path);
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className="text-sm font-semibold transition-colors border-b-2 pb-0.5"
+                  onMouseEnter={() => setHoveredLink(link.path)}
+                  onMouseLeave={() => setHoveredLink(null)}
+                  style={navLinkStyle(isActive, hoveredLink === link.path)}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
           <div className="hidden md:flex flex-1 max-w-sm justify-end" ref={searchRef}>
             <div className="relative w-full max-w-xs">

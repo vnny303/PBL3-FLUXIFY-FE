@@ -1,11 +1,15 @@
 import React from 'react';
+import { useStorefrontConfig } from '../../features/theme/useStorefrontConfig';
 
 export default function Button({ children, type = 'button', onClick, isLoading = false, loadingText = 'Please wait...', className = '', fullWidth = true }) {
-  const baseClasses = "bg-[#1754cf] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-[#1754cf]/20 transition-all duration-200";
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+
+  const baseClasses = "text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all duration-200";
   const widthClass = fullWidth ? "w-full" : "";
   const stateClasses = isLoading 
     ? "opacity-70 cursor-not-allowed" 
-    : "hover:bg-[#1754cf]/90 hover:shadow-[#1754cf]/30 transform active:scale-[0.98]";
+    : "hover:opacity-95 transform active:scale-[0.98]";
 
   return (
     <button
@@ -13,6 +17,10 @@ export default function Button({ children, type = 'button', onClick, isLoading =
       type={type}
       onClick={onClick}
       disabled={isLoading}
+      style={{
+        backgroundColor: primaryColor,
+        boxShadow: `0 10px 15px -3px ${primaryColor}40`,
+      }}
     >
       {isLoading ? (
         <span className="flex items-center justify-center gap-2">

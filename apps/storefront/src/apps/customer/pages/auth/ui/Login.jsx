@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useLogin } from '../../../../../features/auth/model/useLogin';
+import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
 import Input from '../../../../../shared/ui/Input';
 import PasswordInput from '../../../../../shared/ui/PasswordInput';
 import Button from '../../../../../shared/ui/Button';
 
 export default function Login() {
   const { formData, isLoading, error, isSuccess, handleChange, handleSubmit } = useLogin();
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
 
   return (
     <div className="flex h-screen w-full font-display bg-[#f6f6f8] text-slate-900 antialiased overflow-hidden">
@@ -32,7 +35,7 @@ export default function Login() {
         <div className="w-full max-w-md space-y-8">
           {/* Logo & Header */}
           <div className="flex flex-col items-start gap-6">
-            <div className="flex items-center gap-2 text-[#1754cf]">
+            <div className="flex items-center gap-2" style={{ color: primaryColor }}>
               <svg className="size-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                 <path
                   clipRule="evenodd"
@@ -93,15 +96,6 @@ export default function Login() {
 
           {/* Form Section */}
           <form className="space-y-5" onSubmit={handleSubmit}>
-            {/* <Input
-              label="Subdomain"
-              id="subdomain"
-              name="subdomain"
-              value={formData.subdomain}
-              onChange={handleChange}
-              placeholder="pbl3-shop"
-            /> */}
-
             <Input
               label="Email"
               id="email"
@@ -122,7 +116,7 @@ export default function Login() {
             />
 
             <div className="flex justify-end py-1">
-              <a className="font-medium text-[#1754cf] hover:underline text-sm" href="#">
+              <a className="font-medium hover:underline text-sm" style={{ color: primaryColor }} href="#">
                 Forgot password?
               </a>
             </div>
@@ -140,7 +134,7 @@ export default function Login() {
           {/* Footer */}
           <p className="text-center text-sm text-slate-600">
             Don't have an account?{' '}
-            <Link className="font-bold text-[#1754cf] hover:underline ml-1" to="/signup">
+            <Link className="font-bold hover:underline ml-1" style={{ color: primaryColor }} to="/signup">
               Sign up
             </Link>
           </p>

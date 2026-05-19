@@ -75,7 +75,7 @@ export default function LivePreview({ themeData, pageData, activePage, storeData
               </span>
               <button
                 className={`flex items-center justify-center text-white transition-opacity hover:opacity-90 ${compact ? 'h-8 w-8' : 'h-9 w-9'}`}
-                style={{ backgroundColor: '#0f172a', borderRadius: `${Math.min(themeData.layout.borderRadius, 7)}px` }}
+                style={{ backgroundColor: themeData.colors.primary, borderRadius: `${Math.min(themeData.layout.borderRadius, 7)}px` }}
               >
                 <ShoppingCart className="h-4 w-4" />
               </button>
@@ -107,12 +107,12 @@ export default function LivePreview({ themeData, pageData, activePage, storeData
                     <Package className="h-3.5 w-3.5" />
                   </div>
                 )}
-                <span className="text-sm font-bold tracking-tight uppercase">{storeData.storeName}</span>
+                <span className="text-sm font-bold tracking-tight uppercase" style={{ color: themeData.header.textColor }}>{storeData.storeName}</span>
               </div>
 
               <nav className="flex items-center gap-7 text-xs font-semibold">
                 <span className={`cursor-default border-b pb-1 transition-opacity ${activePage === 'home' ? '' : 'border-transparent opacity-70'}`} style={{ borderColor: activePage === 'home' ? themeData.colors.primary : 'transparent', color: activePage === 'home' ? themeData.colors.primary : themeData.header.textColor }}>Home</span>
-                <span className={`cursor-default border-b pb-1 transition-opacity ${activePage === 'products' ? '' : 'border-transparent opacity-70'}`} style={{ borderColor: activePage === 'products' ? themeData.colors.primary : 'transparent', color: activePage === 'products' ? themeData.colors.primary : themeData.header.textColor }}>Shop / Products</span>
+                <span className={`cursor-default border-b pb-1 transition-opacity ${activePage === 'products' ? '' : 'border-transparent opacity-70'}`} style={{ borderColor: activePage === 'products' ? themeData.colors.primary : 'transparent', color: activePage === 'products' ? themeData.colors.primary : themeData.header.textColor }}>Products</span>
                 <span className={`cursor-default border-b pb-1 transition-opacity ${activePage === 'about' ? '' : 'border-transparent opacity-70'}`} style={{ borderColor: activePage === 'about' ? themeData.colors.primary : 'transparent', color: activePage === 'about' ? themeData.colors.primary : themeData.header.textColor }}>About Us</span>
                 <span className={`cursor-default border-b pb-1 transition-opacity ${activePage === 'contact' ? '' : 'border-transparent opacity-70'}`} style={{ borderColor: activePage === 'contact' ? themeData.colors.primary : 'transparent', color: activePage === 'contact' ? themeData.colors.primary : themeData.header.textColor }}>Contact</span>
               </nav>
@@ -137,7 +137,7 @@ export default function LivePreview({ themeData, pageData, activePage, storeData
                 <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${pageData.home.heroOverlayOpacity})` }} />
                 <div className="z-10 mx-auto max-w-3xl text-center text-white">
                   <h1 className="mb-4 text-[44px] font-extrabold leading-[1.08]">{pageData.home.title}</h1>
-                  <p className="mx-auto mb-6 max-w-[620px] text-base opacity-90">{pageData.home.subtitle}</p>
+                  <p className="mx-auto mb-6 max-w-[620px] text-base opacity-90" style={{ whiteSpace: 'pre-line' }}>{pageData.home.subtitle}</p>
                   <button className="rounded-xl px-7 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90" style={{ backgroundColor: themeData.colors.primary, borderRadius: `${themeData.layout.borderRadius}px` }}>
                     Shop Now
                   </button>
