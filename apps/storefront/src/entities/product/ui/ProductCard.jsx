@@ -93,15 +93,15 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
         />
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
           {isOutOfStock ? (
-            <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-slate-100/10 text-slate-400 rounded-full border border-slate-200/20 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider bg-slate-500 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
               Sold Out
             </span>
           ) : isLowStock ? (
-            <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-500 rounded-full border border-red-500/20 animate-pulse shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider bg-red-500 animate-pulse shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
               Only {totalStock} Left
             </span>
           ) : (
-            <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider bg-emerald-500 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
               In Stock
             </span>
           )}
