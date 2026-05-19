@@ -102,7 +102,7 @@ export default function Header() {
         fontFamily: theme?.typography?.fontFamily || 'Inter',
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10">
         <div className="flex h-16 items-center justify-between gap-8">
           <div className="flex items-center gap-2 shrink-0 cursor-pointer">
             <Link to="/" className="flex items-center gap-2" style={{ color: theme?.colors?.primary || '#1754cf' }}>

@@ -133,7 +133,7 @@ export default function Shop() {
   }, [sortDropdownRef]);
 
   return (
-    <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[600px]">
+    <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-10 min-h-[600px]">
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 min-h-[70vh]">
         <aside className="w-full lg:w-64 shrink-0 space-y-8">
           <div className="lg:sticky lg:top-24">

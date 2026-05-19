@@ -68,7 +68,7 @@ export default function Home() {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
       <section className="relative overflow-hidden rounded-xl bg-slate-900 mb-16">
         <div
           className="absolute inset-0 mix-blend-overlay"

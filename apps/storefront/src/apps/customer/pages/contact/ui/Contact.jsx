@@ -123,7 +123,7 @@ export default function Contact() {
   });
 
   return (
-    <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-10">
       {/* Page heading */}
       <div className="mb-10">
         <h1 className="text-3xl font-black text-slate-900 mb-2">Contact Us</h1>

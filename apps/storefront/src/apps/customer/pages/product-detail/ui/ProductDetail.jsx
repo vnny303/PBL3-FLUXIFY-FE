@@ -162,7 +162,7 @@ export default function ProductDetail() {
 
   if (isLoadingProduct && !product) {
     return (
-      <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-20 flex justify-center">
+      <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-20 flex justify-center">
         <div 
           className="animate-spin rounded-full h-12 w-12 border-b-2" 
           style={{ borderColor: primaryColor, borderBottomColor: 'transparent' }} 
@@ -174,7 +174,7 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+      <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-20 text-center">
         <h1 className="text-2xl font-bold text-slate-800 mb-4">
           {productError || 'Product not found'}
         </h1>
@@ -186,7 +186,7 @@ export default function ProductDetail() {
   }
 
   return (
-    <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
       {/* Breadcrumbs */}
       <nav className="flex text-sm text-slate-500 mb-8">
         <button onClick={() => navigate('/shop')} className="hover:text-slate-900">Store</button>
