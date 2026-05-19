@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../entities/auth/AuthContext';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Package, BarChart2, ShoppingCart } from 'lucide-react';
 import { useEffect } from 'react';
 
 export default function Start() {
@@ -39,7 +39,7 @@ export default function Start() {
                 <div className="space-y-4 mb-12">
                     <button
                         onClick={() => navigate('/register')}
-                        className="w-full max-w-sm mx-auto block px-8 py-4 bg-white text-black text-lg font-bold rounded-xl hover:bg-slate-100 transition-all transform hover:scale-105 shadow-2xl flex items-center justify-center gap-3"
+                        className="w-full max-w-sm mx-auto block px-8 py-4 bg-white text-black text-lg font-bold rounded-xl hover:bg-slate-100 transition-all transform hover:scale-105 shadow-2xl flex items-center justify-center gap-3 animate-pulse"
                     >
                         Bắt Đầu Kinh Doanh
                         <ArrowRight className="w-5 h-5" />
@@ -58,21 +58,27 @@ export default function Start() {
                 </div>
 
                 {/* Features */}
-                <div className="grid grid-cols-3 gap-6 text-left mt-16">
-                    <div>
-                        <div className="text-3xl font-bold text-white mb-2">📦</div>
-                        <p className="text-sm text-slate-400">Quản lý sản phẩm</p>
+                <div className="grid grid-cols-3 gap-6 text-left mt-16 max-w-lg mx-auto">
+                    <div className="flex flex-col items-center text-center">
+                        <div className="p-3 bg-slate-800/40 rounded-xl w-12 h-12 flex items-center justify-center mb-3 border border-slate-700/30 backdrop-blur-sm">
+                            <Package className="w-6 h-6 text-white" />
+                        </div>
+                        <p className="text-xs font-semibold text-slate-300">Quản lý sản phẩm</p>
                     </div>
-                    <div>
-                        <div className="text-3xl font-bold text-white mb-2">📊</div>
-                        <p className="text-sm text-slate-400">Thống kê chi tiết</p>
+                    <div className="flex flex-col items-center text-center">
+                        <div className="p-3 bg-slate-800/40 rounded-xl w-12 h-12 flex items-center justify-center mb-3 border border-slate-700/30 backdrop-blur-sm">
+                            <BarChart2 className="w-6 h-6 text-white" />
+                        </div>
+                        <p className="text-xs font-semibold text-slate-300">Thống kê chi tiết</p>
                     </div>
-                    <div>
-                        <div className="text-3xl font-bold text-white mb-2">🛒</div>
-                        <p className="text-sm text-slate-400">Quản lý đơn hàng</p>
+                    <div className="flex flex-col items-center text-center">
+                        <div className="p-3 bg-slate-800/40 rounded-xl w-12 h-12 flex items-center justify-center mb-3 border border-slate-700/30 backdrop-blur-sm">
+                            <ShoppingCart className="w-6 h-6 text-white" />
+                        </div>
+                        <p className="text-xs font-semibold text-slate-300">Quản lý đơn hàng</p>
                     </div>
                 </div>
             </div>
         </div>
     );
-}
+}
