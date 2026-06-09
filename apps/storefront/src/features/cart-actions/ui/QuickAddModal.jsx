@@ -1,19 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Minus, Plus, ShoppingCart, X } from 'lucide-react';
 import { useAppContext } from '../../../app/providers/useAppContext';
 import { formatVnd } from '../../../shared/lib/formatters';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
-
-const COLOR_MAP = {
-  red: '#EF4444', blue: '#3B82F6', white: '#F8FAFC', black: '#1A1C29',
-  gray: '#6B7280', grey: '#6B7280', navy: '#1E3A5F', green: '#22C55E',
-  brown: '#92400E', tan: '#D2B48C', charcoal: '#374151', burgundy: '#800020',
-  camel: '#C19A6B', silver: '#CBD5E1', gold: '#F59E0B',
-};
-
-function getColorSwatch(colorName) {
-  return COLOR_MAP[colorName?.toLowerCase()] || null;
-}
+import { getColorSwatch, isColorAttribute } from '../../../shared/lib/colorSwatches';
 
 export default function QuickAddModal() {
   const { theme } = useStorefrontConfig();
@@ -21,8 +11,9 @@ export default function QuickAddModal() {
   const borderRadius = theme?.layout?.borderRadius || 12;
 
   const { quickAddProduct, setQuickAddProduct, addToCart } = useAppContext();
-  const [selectedOptions, setSelectedOptions] = useState({});
-  const [quantity, setQuantity] = useState(1);
+  const productKey = quickAddProduct?.id || quickAddProduct?.productId || null;
+  const [selectedOptionState, setSelectedOptionState] = useState({ productKey: null, options: {} });
+  const [quantityState, setQuantityState] = useState({ productKey: null, quantity: 1 });
 
   const skus = useMemo(() => {
     if (!quickAddProduct) return [];
@@ -30,12 +21,6 @@ export default function QuickAddModal() {
     return Array.isArray(raw) ? raw.filter(Boolean) : [];
   }, [quickAddProduct]);
 
-  useEffect(() => {
-    // Reset selected options when product changes or modal closes.
-    setSelectedOptions({});
-    setQuantity(1);
-  }, [quickAddProduct?.id]);
-  
   // 1. Derive dynamic option groups from SKUs
   const optionGroups = useMemo(() => {
     const groups = {};
@@ -52,9 +37,22 @@ export default function QuickAddModal() {
     }));
   }, [skus]);
 
+  const defaultSelectedOptions = useMemo(() => {
+    if (!quickAddProduct || !skus.length) return {};
+    const firstAvailableSku = skus.find((sku) => (sku?.stockQuantity ?? sku?.stock ?? 0) > 0) || skus[0];
+    return firstAvailableSku?.attributes ? { ...firstAvailableSku.attributes } : {};
+  }, [quickAddProduct, skus]);
+
+  const selectedOptions = useMemo(() => {
+    if (selectedOptionState.productKey === productKey && Object.keys(selectedOptionState.options).length > 0) {
+      return selectedOptionState.options;
+    }
+    return defaultSelectedOptions;
+  }, [defaultSelectedOptions, productKey, selectedOptionState]);
+
   // 2. Resolve selectedSku
   const selectedSku = useMemo(() => {
-    if (!quickAddProduct || !skus.length) return null;
+    if (!skus.length) return null;
     if (optionGroups.length === 0) return skus[0];
     
     const isComplete = optionGroups.every(group => !!selectedOptions[group.key]);
@@ -65,33 +63,16 @@ export default function QuickAddModal() {
     );
   }, [skus, selectedOptions, optionGroups]);
 
-  useEffect(() => {
-    if (!quickAddProduct || !skus.length || Object.keys(selectedOptions).length > 0) return;
-
-    const firstAvailableSku = skus.find((sku) => (sku?.stockQuantity ?? sku?.stock ?? 0) > 0) || skus[0];
-    if (!firstAvailableSku?.attributes) return;
-
-    setSelectedOptions({ ...firstAvailableSku.attributes });
-  }, [quickAddProduct, skus, selectedOptions]);
-
   const isOutOfStock = useMemo(() => {
     const totalStock = skus.reduce((sum, s) => sum + (s.stockQuantity ?? s.stock ?? 0), 0);
     return totalStock === 0;
   }, [skus]);
 
   const selectedSkuStock = selectedSku?.stockQuantity ?? selectedSku?.stock ?? 0;
+  const quantity = quantityState.productKey === productKey
+    ? Math.max(1, Math.min(quantityState.quantity, selectedSkuStock > 0 ? selectedSkuStock : 1))
+    : 1;
   const isAddDisabled = !selectedSku || selectedSkuStock <= 0 || quantity < 1;
-
-  useEffect(() => {
-    if (!selectedSku) return;
-    if (selectedSkuStock <= 0) {
-      setQuantity(1);
-      return;
-    }
-    if (quantity > selectedSkuStock) {
-      setQuantity(selectedSkuStock);
-    }
-  }, [selectedSku, selectedSkuStock, quantity]);
 
   const handleAdd = () => {
     if (selectedSku && selectedSkuStock > 0 && quickAddProduct) {
@@ -101,21 +82,25 @@ export default function QuickAddModal() {
   };
 
   const handleClose = () => {
-    setSelectedOptions({});
+    setSelectedOptionState({ productKey: null, options: {} });
+    setQuantityState({ productKey: null, quantity: 1 });
     setQuickAddProduct(null);
   };
 
   const handleSelect = (key, value) => {
-    setSelectedOptions(prev => ({ ...prev, [key]: value }));
+    setSelectedOptionState({
+      productKey,
+      options: { ...selectedOptions, [key]: value },
+    });
   };
 
   const handleDecreaseQty = () => {
-    setQuantity((prev) => Math.max(1, prev - 1));
+    setQuantityState({ productKey, quantity: Math.max(1, quantity - 1) });
   };
 
   const handleIncreaseQty = () => {
     if (!selectedSku) return;
-    setQuantity((prev) => Math.min(selectedSkuStock, prev + 1));
+    setQuantityState({ productKey, quantity: Math.min(selectedSkuStock, quantity + 1) });
   };
 
   const imageSrc = selectedSku?.imgUrl 
@@ -197,7 +182,7 @@ export default function QuickAddModal() {
               {optionGroups.map((group) => {
                 const { key, label, values } = group;
                 const selected = selectedOptions[key];
-                const isColorAttr = key.toLowerCase() === 'color';
+                const isColorAttr = isColorAttribute(key);
 
                 return (
                   <div key={key}>
@@ -227,11 +212,11 @@ export default function QuickAddModal() {
                               title={val}
                               disabled={isOptionDisabled}
                               onClick={() => handleSelect(key, val)}
-                              className={`w-9 h-9 rounded-full border-2 transition-all relative ${
+                              className={`w-10 h-10 rounded-lg border-2 transition-all relative overflow-hidden ${
                                 isSelected ? '' : 'border-slate-200 hover:border-slate-300'
                               } ${isOptionDisabled ? 'opacity-25 cursor-not-allowed grayscale' : ''}`}
                               style={{ 
-                                backgroundColor: swatch,
+                                background: swatch,
                                 borderColor: isSelected ? primaryColor : undefined,
                                 boxShadow: isSelected ? `0 0 0 2px ${primaryColor}33` : undefined
                               }}

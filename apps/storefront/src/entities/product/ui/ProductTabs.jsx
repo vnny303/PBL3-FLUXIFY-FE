@@ -1,9 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Sliders, ChevronDown, List, Info, Database } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { CheckCircle2, ClipboardList, Info, Database, PackageCheck, Target } from 'lucide-react';
 import ReviewList from './ReviewList';
-import { reviewService } from '../../../shared/api/reviewService';
-import { useStorefrontTenant } from '../../../features/theme/useStorefrontTenant';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 const parseMaybeJson = (value, fallback) => {
   if (value === null || value === undefined) return fallback;
@@ -62,8 +60,9 @@ export default function ProductTabs({
   onRefreshReviews
 }) {
   const [activeTab, setActiveTab] = useState('DETAILS');
-  const [openSections, setOpenSections] = useState({ 'Product details': true });
-  const { tenantId } = useStorefrontTenant();
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
 
   // 1. Data Merging / Fallbacks
   const details = useMemo(() => {
@@ -107,19 +106,17 @@ export default function ProductTabs({
     return {
       description,
       detailSections,
-      specifications: specs
+      specifications: specs,
+      highlights: Array.isArray(source.highlights) ? source.highlights : [],
+      includedItems: Array.isArray(source.includedItems) ? source.includedItems : [],
+      bestFor: Array.isArray(source.bestFor) ? source.bestFor : [],
     };
   }, [product]);
 
-  // 2. Review Summary
-  const reviewCount = reviews.length;
+  const reviewCount = reviewSummary?.totalReviews ?? reviews.length;
   const selectedSkuId = selectedSku?.id || selectedSku?.productSkuId || selectedSku?.skuId || null;
 
-  const toggleSection = (title) => {
-    setOpenSections(prev => ({ ...prev, [title]: !prev[title] }));
-  };
-
-  const hasContent = details.description || details.detailSections.length > 0 || details.specifications.length > 0;
+  const hasContent = details.description || details.detailSections.length > 0 || details.specifications.length > 0 || details.highlights.length > 0 || details.includedItems.length > 0;
 
   return (
     <div className="mt-12">
@@ -127,23 +124,25 @@ export default function ProductTabs({
         <button 
           onClick={() => setActiveTab('DETAILS')}
           className={`pb-4 px-8 text-xs font-bold tracking-widest transition-all relative shrink-0 ${
-            activeTab === 'DETAILS' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
+            activeTab === 'DETAILS' ? '' : 'text-slate-400 hover:text-slate-600'
           }`}
+          style={{ color: activeTab === 'DETAILS' ? primaryColor : undefined }}
         >
           DETAILS
           {activeTab === 'DETAILS' && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 animate-in fade-in slide-in-from-bottom-1" />
+            <div className="absolute bottom-0 left-0 w-full h-0.5 animate-in fade-in slide-in-from-bottom-1" style={{ backgroundColor: primaryColor }} />
           )}
         </button>
         <button 
           onClick={() => setActiveTab('REVIEWS')}
           className={`pb-4 px-8 text-xs font-bold tracking-widest transition-all relative shrink-0 ${
-            activeTab === 'REVIEWS' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
+            activeTab === 'REVIEWS' ? '' : 'text-slate-400 hover:text-slate-600'
           }`}
+          style={{ color: activeTab === 'REVIEWS' ? primaryColor : undefined }}
         >
           REVIEWS ({reviewCount})
           {activeTab === 'REVIEWS' && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 animate-in fade-in slide-in-from-bottom-1" />
+            <div className="absolute bottom-0 left-0 w-full h-0.5 animate-in fade-in slide-in-from-bottom-1" style={{ backgroundColor: primaryColor }} />
           )}
         </button>
       </div>
@@ -151,56 +150,59 @@ export default function ProductTabs({
       {activeTab === 'DETAILS' && (
         <div className="animate-in fade-in duration-500">
           {!hasContent ? (
-            <div className="py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+            <div className="py-20 text-center bg-slate-50 border-2 border-dashed border-slate-200" style={{ borderRadius: `${borderRadius}px` }}>
               <Info className="w-10 h-10 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500 italic">No detailed information available for this product.</p>
             </div>
           ) : (
-            <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
-              {/* Left Column: Overview + More Info */}
-              <div className="flex-1 space-y-12">
-                {/* 1. Overview / Description */}
+            <div className="grid grid-cols-1 xl:grid-cols-[1.25fr_0.75fr] gap-8 xl:gap-12">
+              <div className="space-y-8">
                 {details.description && (
                   <section>
                     <h3 className="flex items-center gap-2.5 text-slate-900 font-bold mb-6 text-xl tracking-tight">
-                      <Info className="w-5 h-5 text-blue-600" />
+                      <Info className="w-5 h-5" style={{ color: primaryColor }} />
                       Overview
                     </h3>
-                    <div className="prose prose-slate max-w-none">
-                      <p className="text-slate-600 leading-relaxed text-base whitespace-pre-line bg-slate-50/50 p-6 rounded-2xl border border-slate-100 italic">
-                        "{details.description}"
+                    <div className="border border-slate-100 bg-white p-6 shadow-sm" style={{ borderRadius: `${borderRadius}px` }}>
+                      <p className="text-slate-600 leading-relaxed text-base whitespace-pre-line">
+                        {details.description}
                       </p>
                     </div>
                   </section>
                 )}
 
-                {/* 2. More Information (Sections) */}
+                {details.highlights.length > 0 && (
+                  <section>
+                    <h3 className="flex items-center gap-2.5 text-slate-900 font-bold mb-5 text-lg tracking-tight">
+                      <CheckCircle2 className="w-5 h-5" style={{ color: primaryColor }} />
+                      Why students choose it
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {details.highlights.map((item) => (
+                        <div key={item} className="flex items-start gap-3 border border-slate-100 bg-white p-4 shadow-sm" style={{ borderRadius: `${borderRadius}px` }}>
+                          <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
+                          <p className="text-sm text-slate-600 leading-relaxed">{item}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
                 {details.detailSections && details.detailSections.length > 0 && (
                   <section>
                     <h3 className="flex items-center gap-2.5 text-slate-900 font-bold mb-6 text-lg tracking-tight">
-                      <List className="w-5 h-5 text-blue-600" />
-                      More Information
+                      <ClipboardList className="w-5 h-5" style={{ color: primaryColor }} />
+                      Product guide
                     </h3>
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {details.detailSections.map((section, i) => (
                         <div 
                           key={i} 
-                          className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm transition-all"
+                          className="border border-slate-100 bg-white p-5 shadow-sm"
+                          style={{ borderRadius: `${borderRadius}px` }}
                         >
-                          <button 
-                            onClick={() => toggleSection(section.title)}
-                            className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-slate-50 transition-colors"
-                          >
-                            <span className="font-bold text-slate-800 text-sm">{section.title}</span>
-                            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${openSections[section.title] ? 'rotate-180' : ''}`} />
-                          </button>
-                          {openSections[section.title] && (
-                            <div className="px-6 py-4 border-t border-slate-100 animate-in slide-in-from-top-2 duration-300">
-                              <p className="text-sm text-slate-600 leading-relaxed">
-                                {section.content}
-                              </p>
-                            </div>
-                          )}
+                          <h4 className="font-bold text-slate-900 text-sm mb-2">{section.title}</h4>
+                          <p className="text-sm text-slate-600 leading-relaxed">{section.content}</p>
                         </div>
                       ))}
                     </div>
@@ -208,15 +210,49 @@ export default function ProductTabs({
                 )}
               </div>
 
-              {/* Right Column: Specifications */}
-              <div className="w-full lg:w-1/3 shrink-0">
+              <div className="space-y-6">
+                {details.includedItems.length > 0 && (
+                  <section>
+                    <h3 className="flex items-center gap-2.5 text-slate-900 font-bold mb-5 text-lg tracking-tight">
+                      <PackageCheck className="w-5 h-5" style={{ color: primaryColor }} />
+                      What's included
+                    </h3>
+                    <div className="bg-white border border-slate-100 shadow-sm p-5" style={{ borderRadius: `${borderRadius}px` }}>
+                      <div className="grid grid-cols-1 gap-3">
+                        {details.includedItems.map((item) => (
+                          <div key={item} className="flex items-center gap-3">
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: primaryColor }} />
+                            <span className="text-sm font-medium text-slate-700">{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                )}
+
+                {details.bestFor.length > 0 && (
+                  <section>
+                    <h3 className="flex items-center gap-2.5 text-slate-900 font-bold mb-5 text-lg tracking-tight">
+                      <Target className="w-5 h-5" style={{ color: primaryColor }} />
+                      Best for
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {details.bestFor.map((item) => (
+                        <span key={item} className="px-3 py-2 text-sm font-semibold" style={{ borderRadius: `${borderRadius}px`, backgroundColor: `${primaryColor}1A`, color: primaryColor }}>
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
                 {details.specifications && details.specifications.length > 0 && (
                   <section>
                     <h3 className="flex items-center gap-2.5 text-slate-900 font-bold mb-6 text-lg tracking-tight">
-                      <Database className="w-5 h-5 text-blue-600" />
+                      <Database className="w-5 h-5" style={{ color: primaryColor }} />
                       Specifications
                     </h3>
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="bg-white border border-slate-100 shadow-sm overflow-hidden" style={{ borderRadius: `${borderRadius}px` }}>
                       <table className="w-full text-sm text-left">
                         <tbody className="divide-y divide-slate-50">
                           {details.specifications.map((spec, i) => (

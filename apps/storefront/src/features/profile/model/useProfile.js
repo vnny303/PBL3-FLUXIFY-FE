@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { authService } from '../../../shared/api/authService';
 import { useAppContext } from '../../../app/providers/useAppContext';
 import { setUser as setUserAction } from '../../../app/store/slices/authSlice';
+import { getAuthSession, setAuthSession } from '@fluxify/shared/lib';
 
 export function useProfile() {
   const { user } = useAppContext();
@@ -38,7 +39,9 @@ export function useProfile() {
     onSuccess: (data) => {
       toast.success('Avatar updated successfully!');
       if (data?.avatarUrl) {
-        dispatch(setUserAction({ ...user, avatarUrl: data.avatarUrl }));
+        const nextUser = { ...user, avatarUrl: data.avatarUrl };
+        dispatch(setUserAction(nextUser));
+        setAuthSession({ ...getAuthSession(), ...nextUser });
       }
     },
     onError: (error) => {

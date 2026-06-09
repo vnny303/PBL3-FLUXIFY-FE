@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Search, Star, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAppContext } from '../../../../../app/providers/useAppContext';
@@ -23,21 +23,14 @@ export default function Shop() {
   const {
     sortBy, setSortBy,
     priceRange, setPriceRange,
+    ratingFrom, setRatingFrom,
     selectedCategories, toggleCategory,
-    selectedSizes, toggleSize,
     clearFilters,
     currentPage, totalPages, handlePageChange,
-    filteredProducts, currentProducts,
+    currentProducts, totalCount,
     isLoadingProducts, productsError,
     gridTopRef,
   } = useShopFilters();
-
-  const allSizes = useMemo(() => {
-    return [...new Set(filteredProducts.flatMap(p => {
-      const sizes = p.attributes?.sizes || p.attributes?.size || [];
-      return Array.isArray(sizes) ? sizes : [sizes];
-    }))];
-  }, [filteredProducts]);
 
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef(null);
@@ -230,23 +223,32 @@ export default function Shop() {
               </div>
             </div>
 
-             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: textColorSecondary }}>Size / Specification</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {allSizes.map((size) => {
-                  const isSelected = selectedSizes.includes(size);
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: textColorSecondary }}>Rating</h3>
+              <div className="space-y-2">
+                {[5, 4, 3, 2, 1].map((rating) => {
+                  const isSelected = ratingFrom === rating;
                   return (
                     <button
-                      key={size}
-                      onClick={() => toggleSize(size)}
-                      className={`py-2 text-xs font-medium border transition-colors ${isSelected ? 'text-white' : 'border-slate-200 hover:border-slate-400'}`}
-                      style={{ 
-                        backgroundColor: isSelected ? primaryColor : undefined,
-                        borderColor: isSelected ? primaryColor : undefined,
-                        borderRadius: `${borderRadius}px`
+                      key={rating}
+                      onClick={() => setRatingFrom(rating)}
+                      className="w-full flex items-center justify-between border px-3 py-2 text-sm font-semibold transition-colors"
+                      style={{
+                        borderColor: isSelected ? primaryColor : borderColor,
+                        backgroundColor: isSelected ? `${primaryColor}12` : '#ffffff',
+                        color: isSelected ? primaryColor : textColorSecondary,
+                        borderRadius: `${borderRadius}px`,
                       }}
                     >
-                      {size}
+                      <span className="flex items-center gap-1.5">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <Star
+                            key={index}
+                            className={`w-3.5 h-3.5 ${index < rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
+                          />
+                        ))}
+                      </span>
+                      <span>{rating === 5 ? '5' : `${rating}+`}</span>
                     </button>
                   );
                 })}
@@ -259,7 +261,7 @@ export default function Shop() {
           <div className="flex items-center justify-between mb-8 pb-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
             <div className="flex flex-col gap-1">
               <p className="text-sm" style={{ color: textColorSecondary }}>
-                Showing <span className="font-bold" style={{ color: textColor }}>{filteredProducts.length}</span> products
+                Showing <span className="font-bold" style={{ color: textColor }}>{currentProducts.length}</span> of <span className="font-bold" style={{ color: textColor }}>{totalCount}</span> products
               </p>
               {searchQuery && (
                 <div className="flex items-center gap-2">

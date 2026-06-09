@@ -34,6 +34,7 @@ const FAQ_ITEMS = [
 export default function Contact() {
   const { theme } = useStorefrontConfig();
   const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -115,7 +116,7 @@ export default function Contact() {
   const textColorSecondary = theme?.colors?.text ? `${theme.colors.text}b3` : '#64748b'; // 70% opacity for secondary text
 
   const inputClass = (error) =>
-    `w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm ${
+    `w-full px-4 py-3 border outline-none transition-all text-sm ${
       error
         ? 'border-red-400 bg-red-50 focus:ring-2 focus:ring-red-100'
         : 'border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:border-transparent'
@@ -123,13 +124,14 @@ export default function Contact() {
 
   const inputStyle = (id) => ({
     '--tw-ring-color': errors[id] ? undefined : `${primaryColor}33`,
+    borderRadius: `${borderRadius}px`,
   });
 
   return (
     <main className="grow w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-10">
       {/* Page heading */}
       <div className="mb-10">
-        <h1 className="text-3xl font-black mb-2" style={{ color: textColor }}>Contact Us</h1>
+        <h1 className="text-3xl font-bold mb-2" style={{ color: textColor }}>Contact Us</h1>
         <p style={{ color: textColorSecondary }}>
           Have a question or need help? Reach out — we typically respond within one business day.
         </p>
@@ -201,7 +203,8 @@ export default function Contact() {
               {FAQ_ITEMS.map((item, i) => (
                 <div
                   key={i}
-                  className="border border-slate-100 rounded-xl overflow-hidden bg-white shadow-sm"
+                  className="border border-slate-100 overflow-hidden bg-white shadow-sm"
+                  style={{ borderRadius: `${borderRadius}px` }}
                 >
                   <button
                     type="button"
@@ -228,7 +231,7 @@ export default function Contact() {
 
         {/* ── Right: Contact Form ────────────────────────── */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 sm:p-10">
+          <div className="bg-white shadow-xl shadow-slate-200/50 border border-slate-100 p-6 sm:p-10" style={{ borderRadius: `${borderRadius}px` }}>
             <h2 className="text-lg font-bold text-slate-900 mb-1">Send us a message</h2>
             <p className="text-sm text-slate-500 mb-6">
               Fill in the form below and click{' '}
@@ -298,7 +301,7 @@ export default function Contact() {
                   <button
                     type="button"
                     onClick={() => setShowSubjectDropdown(!showSubjectDropdown)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left text-sm ${
+                    className={`w-full flex items-center justify-between px-4 py-3 border transition-all text-left text-sm ${
                       showSubjectDropdown
                         ? 'bg-white ring-2 border-transparent'
                         : 'bg-slate-50 border-slate-200'
@@ -306,6 +309,7 @@ export default function Contact() {
                     style={{
                       '--tw-ring-color': `${primaryColor}33`,
                       borderColor: showSubjectDropdown ? primaryColor : undefined,
+                      borderRadius: `${borderRadius}px`,
                     }}
                   >
                     <span className="text-slate-700">{formData.subject}</span>
@@ -317,7 +321,7 @@ export default function Contact() {
                   </button>
 
                   {showSubjectDropdown && (
-                    <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 py-1.5 z-20 overflow-hidden">
+                    <div className="absolute top-full mt-2 w-full bg-white shadow-xl shadow-slate-200/50 border border-slate-100 py-1.5 z-20 overflow-hidden" style={{ borderRadius: `${borderRadius}px` }}>
                       {SUBJECT_OPTIONS.map((option) => (
                         <button
                           key={option}
@@ -359,10 +363,11 @@ export default function Contact() {
 
               <button
                 type="submit"
-                className="w-full text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
+                className="w-full text-white font-bold py-3.5 px-6 transition-all shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
                 style={{
                   backgroundColor: primaryColor,
                   boxShadow: `0 10px 15px -3px ${primaryColor}4D`,
+                  borderRadius: `${borderRadius}px`,
                 }}
               >
                 Send via Email

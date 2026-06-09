@@ -1,6 +1,5 @@
 import React from 'react';
 import { Minus, Plus, ShoppingBag, Truck, ShieldCheck } from 'lucide-react';
-import { formatVnd } from '../../../shared/lib/formatters';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 export default function ProductActions({ product, selectedSku, quantity, setQuantity, selectedOptions, addToCart, optionGroups = [] }) {
@@ -9,11 +8,8 @@ export default function ProductActions({ product, selectedSku, quantity, setQuan
   const borderRadius = theme?.layout?.borderRadius || 8;
 
   const currentProduct = product || { id: 999, name: 'Product', price: 0 };
-
-  const skuPrice = selectedSku?.price ?? currentProduct.price ?? 0;
-  const displayPrice = formatVnd(skuPrice);
   
-  const allAttributesSelected = optionGroups.length === Object.keys(selectedOptions).length;
+  const allAttributesSelected = optionGroups.every((group) => Boolean(selectedOptions[group.key]));
   
   // A product is available if it has a selected SKU with stock, OR if it has no SKUs and the base product is in stock
   const isAvailable = selectedSku ? selectedSku.stock > 0 : (product?.skus?.length === 0 && product?.isInStock !== false);
@@ -22,7 +18,7 @@ export default function ProductActions({ product, selectedSku, quantity, setQuan
   const totalStock = productSkus.reduce((acc, s) => acc + (s.stock ?? s.stockQuantity ?? 0), 0);
   const isTrulyOutOfStock = (productSkus.length > 0 && totalStock === 0) || (productSkus.length === 0 && product?.isInStock === false);
 
-  const isCtaDisabled = isTrulyOutOfStock || (allAttributesSelected && !isAvailable);
+  const isCtaDisabled = isTrulyOutOfStock || !allAttributesSelected || !isAvailable;
 
   const handleAddToCart = () => {
     if (!allAttributesSelected) return;

@@ -40,14 +40,29 @@ export const updateCustomer = async (customerId, data) => {
 };
 
 export const uploadAvatar = async (customerId, file) => {
+  const readLocalAvatar = () =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ avatarUrl: reader.result });
+      reader.onerror = () => reject(reader.error || new Error('Failed to read avatar file'));
+      reader.readAsDataURL(file);
+    });
+
   const formData = new FormData();
   formData.append('file', file);
   
-  const response = await axiosClient.post(`/api/auth/customer/${customerId}/avatar`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  
-  return response?.data ?? response;
+  try {
+    const response = await axiosClient.post(`/api/auth/customer/${customerId}/avatar`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    
+    return response?.data ?? response;
+  } catch (error) {
+    if (error?.response?.status === 404) {
+      return readLocalAvatar();
+    }
+    throw error;
+  }
 };
 
 export const authService = {

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useAppContext } from '../../../../../app/providers/useAppContext';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
 import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
@@ -14,10 +14,9 @@ import ProductActions from '../../../../../entities/product/ui/ProductActions';
 import ProductTabs from '../../../../../entities/product/ui/ProductTabs';
 
 export default function ProductDetail() {
-  const { addToCart, products, isLoggedIn } = useAppContext();
+  const { addToCart, products } = useAppContext();
   const { tenantId } = useStorefrontTenant();
   const navigate = useNavigate();
-  const location = useLocation();
   const { id } = useParams();
 
   const [quantity, setQuantity] = useState(1);
@@ -151,11 +150,7 @@ export default function ProductDetail() {
     if (!product?.categoryId || !categories.length) return 'Products';
     const found = categories.find(c => c.id === product.categoryId);
     return found ? found.name : 'Products';
-  }, [product?.categoryId, categories]);
-
-  const handleLoginRedirect = () => {
-    navigate('/login', { state: { from: location } });
-  };
+  }, [product, categories]);
 
   const { theme } = useStorefrontConfig();
   const primaryColor = theme?.colors?.primary || '#1754cf';

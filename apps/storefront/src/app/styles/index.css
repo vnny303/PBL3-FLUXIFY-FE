@@ -13,4 +13,5 @@ body {
   font-family: var(--font-sans);
   background-color: var(--color-background-light);
   color: var(--color-text, #0f172a);
+  color-scheme: light;
 }

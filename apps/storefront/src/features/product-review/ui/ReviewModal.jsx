@@ -4,8 +4,8 @@ import { X, Star, Camera, Loader2, AlertCircle } from 'lucide-react';
 const createInitialReviewState = (initialReview) => ({
   rating: initialReview?.rating || 0,
   hoverRating: 0,
-  reviewText: initialReview?.text || '',
-  photos: initialReview?.photos || [],
+  reviewText: initialReview?.comment || initialReview?.text || '',
+  photos: initialReview?.photos || initialReview?.imageUrls || initialReview?.images || [],
 });
 
 const getReviewModalKey = ({ product, initialReview }) => {
@@ -25,9 +25,20 @@ function ReviewModalContent({ onClose, product, initialReview, onSubmitReview })
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
-      const newPhotos = files.map(file => URL.createObjectURL(file));
-      setPhotos(prev => [...prev, ...newPhotos]);
+      Promise.all(
+        files.map((file) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error || new Error('Failed to read review photo'));
+            reader.readAsDataURL(file);
+          })
+        )
+      )
+        .then((newPhotos) => setPhotos((prev) => [...prev, ...newPhotos]))
+        .catch(() => setError('Failed to read one or more selected photos.'));
     }
+    e.target.value = '';
   };
 
   const handleRemovePhoto = (indexToRemove) => {
@@ -49,7 +60,7 @@ function ReviewModalContent({ onClose, product, initialReview, onSubmitReview })
 
     try {
       if (onSubmitReview) {
-        await onSubmitReview({ rating, comment: reviewText });
+        await onSubmitReview({ rating, comment: reviewText, photos });
       }
       onClose();
     } catch (err) {
@@ -101,9 +112,6 @@ function ReviewModalContent({ onClose, product, initialReview, onSubmitReview })
                 {product.variant}
               </p>
             )}
-            <p className="text-xs text-red-500 mt-1">
-              DEBUG SkuId: {product?.productSkuId || product?.id || 'MISSING'}
-            </p>
           </div>
         </div>
 

@@ -11,23 +11,29 @@ export default function About() {
   const textColor = theme?.colors?.text || '#111827';
   const textColorSecondary = theme?.colors?.text ? `${theme.colors.text}b3` : '#64748b'; // 70% opacity for secondary text
   const borderColor = theme?.colors?.text ? `${theme.colors.text}20` : '#e2e8f0';
+  const borderRadius = theme?.layout?.borderRadius || 12;
 
-  // Resolve About cover image dynamically from products or contentConfig
+  const getProductImages = () => {
+    if (!products || products.length === 0) return [];
+    return products
+      .flatMap((prod) => [
+        ...(Array.isArray(prod.imgUrls) ? prod.imgUrls : []),
+        ...(Array.isArray(prod.images) ? prod.images : []),
+        prod.imageUrl,
+        prod.thumbnail,
+        prod.productImage,
+      ])
+      .filter(Boolean);
+  };
+
+  // Resolve About cover image without reusing the Home hero image.
   const getAboutImage = () => {
     if (content?.about?.imageUrl) return content.about.imageUrl;
+
+    const homeHeroImage = content?.home?.heroImageUrl;
+    const productImage = getProductImages().find((imageUrl) => imageUrl !== homeHeroImage);
+    if (productImage) return productImage;
     
-    // Fallback to first available product image in the store
-    if (products && products.length > 0) {
-      for (const prod of products) {
-        if (prod.imgUrls && prod.imgUrls.length > 0) return prod.imgUrls[0];
-        if (prod.images && prod.images.length > 0) return prod.images[0];
-        if (prod.imageUrl) return prod.imageUrl;
-        if (prod.thumbnail) return prod.thumbnail;
-        if (prod.productImage) return prod.productImage;
-      }
-    }
-    
-    // Default safe fallback if no products are created yet
     return 'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?auto=format&fit=crop&w=1200&q=80';
   };
 
@@ -36,11 +42,11 @@ export default function About() {
   return (
     <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16" style={{ color: textColor }}>
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-black mb-4" style={{ color: textColor }}>About {siteName}</h1>
+        <h1 className="text-4xl font-bold mb-4" style={{ color: textColor }}>About {siteName}</h1>
         <p className="text-lg" style={{ color: textColorSecondary }}>{content?.home?.subtitle || 'Curating the best modern essentials for your lifestyle.'}</p>
       </div>
       
-      <div className="rounded-2xl overflow-hidden mb-12 h-64 sm:h-96 bg-slate-200" style={{ borderRadius: `${theme?.layout?.borderRadius}px` }}>
+      <div className="overflow-hidden mb-12 h-64 sm:h-96 bg-slate-200 border border-slate-100 shadow-sm" style={{ borderRadius: `${borderRadius}px` }}>
         <img 
           src={aboutImage} 
           alt="Our Store" 

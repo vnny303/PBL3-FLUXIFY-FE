@@ -46,9 +46,8 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
   const { theme } = useStorefrontConfig();
   const primaryColor = theme?.colors?.primary || '#1754cf';
   const borderRadius = theme?.layout?.borderRadius || 12;
-  const bgColor = theme?.colors?.background || '#ffffff';
   const textColor = theme?.colors?.text || '#111827';
-  const cardBg = bgColor === '#ffffff' ? '#ffffff' : `${bgColor}CC`;
+  const cardBg = '#ffffff';
 
   const [showAll, setShowAll] = useState(true);
 
@@ -91,7 +90,7 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
           <p className="text-slate-500 dark:text-slate-400 mt-1">View and track your recent purchases.</p>
         </div>
         <div 
-          className="rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-slate-800 p-10 flex flex-col items-center text-center"
+          className="rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 p-10 flex flex-col items-center text-center"
           style={{ backgroundColor: cardBg, color: textColor }}
         >
           <div className="h-20 w-20 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-6">
@@ -120,7 +119,7 @@ export default function MyOrders({ setCurrentScreen, setSelectedOrderId, orders 
       {displayedOrders.map((order) => (
         <div 
           key={order.id} 
-          className="rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-slate-800 overflow-hidden"
+          className="rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden"
           style={{ backgroundColor: cardBg, color: textColor }}
         >
           <div className="p-6">

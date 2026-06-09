@@ -9,7 +9,10 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
   const { addToCart } = useAppContext();
 
   // 1. Data Normalization & SKU Mapping
-  const productSkus = product.productSkus || product.skus || [];
+  const productSkus = useMemo(
+    () => product.productSkus || product.skus || [],
+    [product.productSkus, product.skus]
+  );
   const totalStock = productSkus.reduce((acc, s) => acc + (s.stockQuantity ?? s.stock ?? 0), 0);
   const inStockSkus = productSkus.filter(s => (s.stockQuantity ?? s.stock ?? 0) > 0);
   
@@ -64,10 +67,11 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
   };
 
   const cardRadius = theme?.layout?.borderRadius ? `${theme.layout.borderRadius}px` : '8px';
+  const badgeRadius = `${Math.max((theme?.layout?.borderRadius || 12) - 4, 6)}px`;
   const productCardTheme = theme?.components?.productCard || {
     background: '#ffffff',
     text: '#1e293b',
-    badge: '#f1f5f9',
+    badge: '#ef4444',
     price: '#2563eb'
   };
 
@@ -93,15 +97,15 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
         />
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
           {isOutOfStock ? (
-            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider bg-slate-500 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider shadow-sm" style={{ borderRadius: badgeRadius, backgroundColor: '#64748b' }}>
               Sold Out
             </span>
           ) : isLowStock ? (
-            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider bg-red-500 animate-pulse shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider animate-pulse shadow-sm" style={{ borderRadius: badgeRadius, backgroundColor: productCardTheme.badge || '#ef4444' }}>
               Only {totalStock} Left
             </span>
           ) : (
-            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider bg-emerald-500 shadow-sm" style={{ borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px` }}>
+            <span className="px-2.5 py-1 text-[10px] font-bold text-white uppercase tracking-wider shadow-sm" style={{ borderRadius: badgeRadius, backgroundColor: productCardTheme.badge || '#10b981' }}>
               In Stock
             </span>
           )}
@@ -109,7 +113,7 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
              <span 
                className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm" 
                style={{ 
-                 borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
+                 borderRadius: badgeRadius,
                  backgroundColor: productCardTheme.badge || '#ef4444' 
                }}
              >
@@ -120,8 +124,8 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
              <span 
                className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm" 
                style={{ 
-                 borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
-                 backgroundColor: theme.colors.primary 
+                 borderRadius: badgeRadius,
+                 backgroundColor: productCardTheme.badge || theme.colors.primary 
                }}
              >
                New
@@ -131,8 +135,8 @@ export default function ProductCard({ product, onQuickAdd, onCardClick, reviewSu
             <span 
               className="px-2.5 py-1 text-[10px] font-bold text-white rounded uppercase tracking-wider shadow-sm" 
               style={{ 
-                borderRadius: `${Math.max(theme.layout.borderRadius - 4, 6)}px`,
-                backgroundColor: '#f59e0b'
+                borderRadius: badgeRadius,
+                backgroundColor: productCardTheme.badge || '#f59e0b'
               }}
             >
               Best Seller

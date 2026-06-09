@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, ShoppingCart, Package, Users, BarChart2, Settings, ChevronDown, ChevronRight, Palette } from 'lucide-react';
+import { Home, ShoppingCart, Package, Users, BarChart2, Settings, ChevronDown, ChevronRight, Palette, BookOpen } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../entities/auth/AuthContext';
 
@@ -24,14 +24,16 @@ export default function Sidebar() {
     ];
     return (<aside className="w-64 h-screen fixed left-0 top-0 bg-slate-50 flex flex-col p-4 z-50 border-r border-outline-variant/30">
       <div className="flex items-center gap-3 mb-8 px-2 mt-2">
-        <div className="w-8 h-8 rounded bg-primary flex items-center justify-center overflow-hidden shrink-0">
-          <div className="w-4 h-4 border-2 border-white rounded-sm transform rotate-45"></div>
+        <div className="w-9 h-9 rounded-xl bg-teal-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm ring-1 ring-teal-900/10">
+          <div className="w-6 h-6 rounded-lg bg-white/15 flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-white" strokeWidth={2.5} />
+          </div>
         </div>
         <div className="flex flex-col overflow-hidden">
           <span className="text-lg font-bold tracking-tighter text-slate-900 leading-none truncate">
-            {currentTenant?.storename || currentTenant?.subdomain || 'Fluxify Store'}
+            {currentTenant?.storeName || currentTenant?.subdomain || 'StudyHub Supplies'}
           </span>
-          <span className="text-[11px] font-medium tracking-tight text-on-surface-variant truncate mt-0.5">Fluxify Admin</span>
+          <span className="text-[11px] font-medium tracking-tight text-on-surface-variant truncate mt-0.5">StudyHub Admin</span>
         </div>
       </div>
         {/*NavLink: Component link (tự động highlight nếu active) */}

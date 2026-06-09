@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   SUBDOMAIN: "tenant_subdomain",
   ROLE: "auth_role",
   EMAIL: "auth_email",
+  AVATAR_URL: "auth_avatar_url",
 };
 
 //Kiểm tra xem code hiện tại có đang chạy ở môi trường có window.localStorage hay không.
@@ -79,6 +80,7 @@ export const setAuthSession = (authResponse) => {
   write(STORAGE_KEYS.USER_ID, authResponse.userId);
   write(STORAGE_KEYS.ROLE, authResponse.role);
   write(STORAGE_KEYS.EMAIL, authResponse.email);
+  write(STORAGE_KEYS.AVATAR_URL, authResponse.avatarUrl);
   write(STORAGE_KEYS.TENANT_ID, tenantMeta.tenantId);
   write(STORAGE_KEYS.SUBDOMAIN, tenantMeta.subdomain);
 };
@@ -90,6 +92,7 @@ export const getAuthSession = () => ({
   subdomain: read(STORAGE_KEYS.SUBDOMAIN),
   role: read(STORAGE_KEYS.ROLE),
   email: read(STORAGE_KEYS.EMAIL),
+  avatarUrl: read(STORAGE_KEYS.AVATAR_URL),
 });
 
 export const isAuthenticated = () => Boolean(getToken());

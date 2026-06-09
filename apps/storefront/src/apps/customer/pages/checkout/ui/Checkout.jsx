@@ -45,19 +45,20 @@ export default function Checkout() {
     enabled: !!user?.userId,
   });
 
-  const addresses = addressResponse?.data || [];
+  const addresses = useMemo(
+    () => addressResponse?.data || [],
+    [addressResponse]
+  );
 
-  // Auto-select default address
-  useEffect(() => {
-    if (addresses.length > 0 && !selectedAddressId) {
-      const defaultAddr = addresses.find(a => a.isDefault) || addresses[0];
-      setSelectedAddressId(defaultAddr.id);
-    }
+  const effectiveSelectedAddressId = useMemo(() => {
+    if (selectedAddressId) return selectedAddressId;
+    const defaultAddr = addresses.find(a => a.isDefault) || addresses[0];
+    return defaultAddr?.id || null;
   }, [addresses, selectedAddressId]);
 
-  const selectedAddress = useMemo(() => 
-    addresses.find(a => a.id === selectedAddressId), 
-    [addresses, selectedAddressId]
+  const selectedAddress = useMemo(() =>
+    addresses.find(a => a.id === effectiveSelectedAddressId),
+    [addresses, effectiveSelectedAddressId]
   );
 
   // Mutation for adding new address
@@ -172,12 +173,12 @@ export default function Checkout() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-10 w-full grow">
+    <main className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 py-10 grow">
       <div className="flex flex-col lg:flex-row gap-8">
         <CheckoutForm
           userEmail={user?.email}
           addresses={addresses}
-          selectedAddressId={selectedAddressId}
+          selectedAddressId={effectiveSelectedAddressId}
           onSelectAddress={setSelectedAddressId}
           onOpenAddressModal={() => setIsAddressModalOpen(true)}
           isAddressModalOpen={isAddressModalOpen}

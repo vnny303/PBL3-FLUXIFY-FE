@@ -2,9 +2,6 @@ import axiosClient from './axiosClient';
 import { getTenantId, getUserId } from '@fluxify/shared/lib';
 import { normalizePaymentMethod } from '../lib/paymentMethod';
 
-const LAST_CHECKOUT_ORDER_KEY = 'fluxify_last_checkout_order';
-const DEMO_ORDERS_KEY_PREFIX = 'fluxify_demo_orders_';
-
 const extractItems = (response) => {
     if (!response) {
         return [];
@@ -30,6 +27,16 @@ const extractItems = (response) => {
     return [];
 };
 
+const safeParseJson = (value, fallback = {}) => {
+    if (!value) return fallback;
+    if (typeof value !== 'string') return value;
+    try {
+        return JSON.parse(value);
+    } catch {
+        return fallback;
+    }
+};
+
 const normalizeOrder = (order) => {
     if (!order || typeof order !== 'object') return null;
 
@@ -40,22 +47,39 @@ const normalizeOrder = (order) => {
             : Array.isArray(order.items)
                 ? order.items
                 : [];
+    const normalizedOrderItems = orderItems.map(item => ({
+        ...item,
+        image: item.imageUrl || item.image || item.imgUrl || item.thumbnail || item.productImage || item.productImgUrl || null,
+        productName: item.productName || item.name || item.product_name,
+        productId: item.productId || item.ProductId || item.product_id,
+        productSkuId: item.productSkuId || item.ProductSkuId || item.product_sku_id,
+        skuAttributes: item.skuAttributes || item.attributes || safeParseJson(item.selectedOptions || item.SelectedOptions || item.selected_options, {}),
+    }));
 
     return {
         ...order,
         id: order.id || order.orderId || order.order_id || null,
+        orderCode: order.orderCode || order.order_code || null,
+        addressId: order.addressId || order.AddressId || order.address_id || null,
         status: order.status || order.orderStatus || order.order_status || null,
         paymentMethod: normalizePaymentMethod(order.paymentMethod || order.payment_method || null),
         paymentStatus: order.paymentStatus || order.payment_status || null,
+        paymentReference: order.paymentReference || order.payment_reference || null,
+        bankName: order.bankName || order.bank_name || null,
+        bankCode: order.bankCode || order.bank_code || null,
+        bankAccountNumber: order.bankAccountNumber || order.bank_account_number || null,
+        bankAccountName: order.bankAccountName || order.bank_account_name || null,
+        transferContent: order.transferContent || order.transfer_content || null,
         totalAmount: order.totalAmount ?? order.total_amount ?? order.total ?? 0,
         total: order.total ?? order.totalAmount ?? order.total_amount ?? 0,
+        subtotal: order.subtotal ?? order.subTotal ?? order.sub_total ?? 0,
+        shippingFee: order.shippingFee ?? order.shipping_fee ?? 0,
+        shippingMethod: order.shippingMethod || order.shipping_method || null,
+        shippingAddress: order.shippingAddress || order.shipping_address || order.address || null,
+        orderNote: order.orderNote || order.order_note || null,
         createdAt: order.createdAt || order.created_at || null,
-        orderItems: orderItems.map(item => ({
-            ...item,
-            image: item.imageUrl || item.image || item.imgUrl || item.thumbnail || item.productImage || item.productImgUrl || null,
-            productName: item.productName || item.name || item.product_name,
-        })),
-        items: orderItems,
+        orderItems: normalizedOrderItems,
+        items: normalizedOrderItems,
     };
 };
 
@@ -71,34 +95,6 @@ const dedupeOrders = (orders = []) => {
         const right = Date.parse(b?.createdAt || '') || 0;
         return right - left;
     });
-};
-
-const persistDemoOrder = (order, customerId) => {
-    if (!order || typeof order !== 'object') return;
-
-    try {
-        sessionStorage.setItem(LAST_CHECKOUT_ORDER_KEY, JSON.stringify(order));
-    } catch {
-        // Ignore storage write failures.
-    }
-
-    if (!customerId) return;
-
-    try {
-        const storageKey = `${DEMO_ORDERS_KEY_PREFIX}${customerId}`;
-        const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        const safeExisting = Array.isArray(existing) ? existing : [];
-        const merged = [order, ...safeExisting]
-            .filter((item, index, array) => {
-                const id = String(item?.id || '');
-                if (!id) return false;
-                return array.findIndex((candidate) => String(candidate?.id || '') === id) === index;
-            })
-            .slice(0, 20);
-        localStorage.setItem(storageKey, JSON.stringify(merged));
-    } catch {
-        // Ignore storage write failures.
-    }
 };
 
 export const orderService = {
@@ -165,12 +161,6 @@ export const orderService = {
         paymentMethod,
         orderNote,
         shippingMethod,
-        cartItems = [],
-        cartTotal = 0,
-        shippingFee = 0,
-        user = null,
-        finalAddress = null,
-        selectedAddress = null,
     }) => {
         if (!addressId) {
             throw new Error("Missing addressId. Please select a saved address before checkout.");

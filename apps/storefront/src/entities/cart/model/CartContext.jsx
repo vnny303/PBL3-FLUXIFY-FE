@@ -88,6 +88,35 @@ export function CartProvider({ children }) {
     
     const skuId = selectedSku?.id || product.skus?.[0]?.id || product.productSkuId || product.id;
 
+    const selectedImage =
+      selectedSku?.imgUrl ||
+      selectedSku?.image ||
+      selectedSku?.imageUrl ||
+      selectedSku?.skuImageUrl ||
+      product.skuImageUrl ||
+      product.image ||
+      product.images?.[0] ||
+      product.imgUrls?.[0] ||
+      product.imgUrl ||
+      'https://images.unsplash.com/photo-1560393464-5c69a73c5770?auto=format&fit=crop&q=80&w=800';
+    const selectedName = product.name || product.productName || 'Product';
+    const selectedPrice = selectedSku?.price ?? product.price ?? 0;
+    const parsedSelectedPrice = typeof selectedPrice === 'number'
+      ? selectedPrice
+      : parseFloat(String(selectedPrice).replace('$', '')) || 0;
+    const popupItem = {
+      id: product.id,
+      productId: product.productId || product.id,
+      productSkuId: skuId,
+      productName: selectedName,
+      name: selectedName,
+      price: parsedSelectedPrice,
+      quantity,
+      skuAttributes: selectedAttributes,
+      attributes: selectedAttributes,
+      image: selectedImage,
+    };
+
     // Optimistic Update
     const existing = cartItems.find((item) => item.productSkuId === skuId);
     let optimisticItems = cartItems;
@@ -98,26 +127,23 @@ export function CartProvider({ children }) {
           : item
       );
     } else {
-      const price = selectedSku?.price ?? product.price ?? 0;
-      const parsedPrice = typeof price === 'number' ? price : parseFloat(price.replace('$', '')) || 0;
-
       const cartItem = {
         cartId: `temp-${Date.now()}`,
         id: product.id,
         productSkuId: skuId,
         productId: product.productId || product.id,
-        productName: product.name || product.productName,
-        price: parsedPrice,
+        productName: selectedName,
+        price: parsedSelectedPrice,
         quantity,
         skuAttributes: selectedAttributes,
-        image: selectedSku?.imgUrl || selectedSku?.image || product.image || product.images?.[0] || product.imgUrls?.[0],
+        image: selectedImage,
       };
       optimisticItems = [cartItem, ...cartItems];
     }
 
     dispatch(setCartItemsAction(optimisticItems));
 
-    dispatch(setLastAddedItemAction({ ...product, quantity, attributes: selectedAttributes }));
+    dispatch(setLastAddedItemAction(popupItem));
     if (showPopup) {
       dispatch(setShowAddToCartPopupAction(true));
     } else {

@@ -10,6 +10,60 @@ const toTimestamp = (value) => {
   return Number.isFinite(timestamp) ? timestamp : 0;
 };
 
+const compactName = (...parts) => parts.filter(Boolean).join(' ').trim();
+
+const REVIEW_PHOTO_STORAGE_KEY = 'fluxify_review_photos';
+
+const canUseStorage = () => typeof window !== 'undefined' && !!window.localStorage;
+
+const loadReviewPhotoMap = () => {
+  if (!canUseStorage()) return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(REVIEW_PHOTO_STORAGE_KEY) || '{}') || {};
+  } catch {
+    return {};
+  }
+};
+
+const saveReviewPhotoMap = (value) => {
+  if (!canUseStorage()) return;
+  try {
+    window.localStorage.setItem(REVIEW_PHOTO_STORAGE_KEY, JSON.stringify(value));
+  } catch {
+    // Ignore quota errors; review text should still submit.
+  }
+};
+
+const buildLocalPhotoKeys = (review) => [
+  review?.id && `review:${review.id}`,
+  review?.reviewId && `review:${review.reviewId}`,
+  review?.review_id && `review:${review.review_id}`,
+  review?.productSkuId && review?.customerId && `sku:${review.productSkuId}:customer:${review.customerId}`,
+  review?.productSkuId && `sku:${review.productSkuId}`,
+].filter(Boolean);
+
+const getLocalReviewPhotos = (review) => {
+  const photoMap = loadReviewPhotoMap();
+  for (const key of buildLocalPhotoKeys(review)) {
+    if (Array.isArray(photoMap[key]) && photoMap[key].length > 0) {
+      return photoMap[key];
+    }
+  }
+  return [];
+};
+
+const persistLocalReviewPhotos = ({ review, productSkuId, photos = [] }) => {
+  const safePhotos = Array.isArray(photos) ? photos.filter(Boolean) : [];
+  if (safePhotos.length === 0) return;
+
+  const photoMap = loadReviewPhotoMap();
+  const keys = buildLocalPhotoKeys({ ...review, productSkuId });
+  keys.forEach((key) => {
+    photoMap[key] = safePhotos;
+  });
+  saveReviewPhotoMap(photoMap);
+};
+
 const normalizeReview = (review) => {
   if (!review || typeof review !== 'object') return null;
 
@@ -20,6 +74,22 @@ const normalizeReview = (review) => {
     review.sku_id ||
     null;
 
+  const customerName = (
+    review.customerName ??
+    review.userName ??
+    review.customerFullName ??
+    review.fullName ??
+    compactName(review.firstName, review.lastName)
+  ) || null;
+
+  const localPhotos = getLocalReviewPhotos({ ...review, productSkuId });
+  const imageUrls =
+    review.imageUrls ||
+    review.images ||
+    review.photoUrls ||
+    review.photos ||
+    localPhotos;
+
   return {
     ...review,
     id: review.id || review.reviewId || review.review_id || null,
@@ -27,7 +97,9 @@ const normalizeReview = (review) => {
     rating: toNumber(review.rating, 0),
     comment: review.comment ?? review.text ?? '',
     customerEmail: review.customerEmail ?? review.email ?? null,
-    customerName: review.customerName ?? review.userName ?? review.customerFullName ?? null,
+    customerName,
+    avatarUrl: review.avatarUrl ?? review.customerAvatarUrl ?? review.userAvatarUrl ?? null,
+    imageUrls: Array.isArray(imageUrls) ? imageUrls : [],
     createdAt: review.createdAt || review.created_at || null,
   };
 };
@@ -148,7 +220,7 @@ export const reviewService = {
         if (list.length > 0) {
           return list;
         }
-      } catch (error) {
+      } catch {
         console.warn(`Product-level reviews not found for ${productId}, trying SKUs...`);
       }
     }
@@ -246,12 +318,14 @@ export const reviewService = {
    * Body: { productSkuId, rating (1-5), comment (optional, max 2000) }
    * 409 nếu đã review SKU này rồi
    */
-  createReview: async ({ productSkuId, rating, comment }) => {
-    return axiosClient.post('/api/customer/reviews', {
+  createReview: async ({ productSkuId, rating, comment, photos = [] }) => {
+    const response = await axiosClient.post('/api/customer/reviews', {
       productSkuId,
       rating,
       comment,
     });
+    persistLocalReviewPhotos({ review: response, productSkuId, photos });
+    return normalizeReview({ ...response, productSkuId });
   },
 
   /**
@@ -259,11 +333,13 @@ export const reviewService = {
    * [Authorize customer] — Customer sửa review của mình
    * Body: { rating (1-5), comment (optional) }
    */
-  updateReview: async (reviewId, { rating, comment }) => {
-    return axiosClient.put(`/api/customer/reviews/${reviewId}`, {
+  updateReview: async (reviewId, { rating, comment, photos = [] }) => {
+    const response = await axiosClient.put(`/api/customer/reviews/${reviewId}`, {
       rating,
       comment,
     });
+    persistLocalReviewPhotos({ review: { ...response, id: reviewId }, photos });
+    return normalizeReview({ ...response, id: reviewId });
   },
 
   /**

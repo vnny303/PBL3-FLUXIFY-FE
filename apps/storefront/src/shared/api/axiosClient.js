@@ -1,7 +1,12 @@
-import { createApiClient } from '@fluxify/shared/api';
+import { createApiClient, createMockAdapter, seedMockBrowserSession } from '@fluxify/shared/api';
 import { clearAuthSession, getToken } from '@fluxify/shared/lib';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5119';
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+
+if (USE_MOCK_DATA) {
+    seedMockBrowserSession();
+}
 
 const handleUnauthorized = () => {
     clearAuthSession();
@@ -16,6 +21,7 @@ const axiosClient = createApiClient({
     getToken,
     onUnauthorized: handleUnauthorized,
     returnData: true,
+    adapter: USE_MOCK_DATA ? createMockAdapter() : undefined,
 });
 
 export default axiosClient;

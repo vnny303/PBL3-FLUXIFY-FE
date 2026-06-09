@@ -9,8 +9,6 @@ const initialNotifications = [
     desc: 'Welcome to our store. We hope you have an amazing shopping experience with us!', 
     time: 'Just now', 
     icon: Info, 
-    iconBg: 'bg-blue-100', 
-    iconColor: 'text-blue-600', 
     isRead: false 
   }
 ];
@@ -92,8 +90,8 @@ export default function Notifications() {
                 className={`p-5 flex gap-4 items-start transition-colors ${!notif.isRead ? '' : 'hover:bg-slate-50'}`}
                 style={!notif.isRead ? { backgroundColor: `${primaryColor}0D` } : {}}
               >
-                <div className={`shrink-0 w-11 h-11 rounded-full flex items-center justify-center ${notif.iconBg}`}>
-                  <Icon className={`w-5 h-5 ${notif.iconColor}`} />
+                <div className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: `${primaryColor}1A` }}>
+                  <Icon className="w-5 h-5" style={{ color: primaryColor }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">

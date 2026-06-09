@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { ArrowRight, ChevronDown, Package, Search, ShoppingCart, User } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { ArrowRight, ChevronDown, ChevronRight, Clock, Mail, MapPin, Package, Phone, Search, ShoppingCart, Star, User, X } from 'lucide-react';
 
 const featuredProducts = [
   { id: 1, name: 'Classic Cotton T-Shirt', price: '$29.99', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&q=80', badge: 'In Stock', desc: 'A timeless wardrobe essential crafted from premium cotton for all-day comfort and a relaxed fit.' },
@@ -176,52 +176,89 @@ export default function LivePreview({ themeData, pageData, activePage, storeData
           )}
 
           {activePage === 'products' && (
-            <main className="mx-auto flex min-h-[600px] w-full max-w-[1060px] gap-8 px-4 py-6">
-              <aside className="w-[170px] shrink-0">
+            <main className="mx-auto flex min-h-[600px] w-full max-w-[1060px] gap-8 px-4 py-8">
+              <aside className="w-[190px] shrink-0 space-y-7">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-[22px] font-bold leading-none">Filters</h3>
-                  <span className="text-[10px] font-bold uppercase" style={{ color: themeData.colors.primary }}>Clear all</span>
+                  <h2 className="text-lg font-bold" style={{ color: themeData.colors.textPrimary }}>Filters</h2>
+                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: themeData.colors.primary }}>Clear All</span>
                 </div>
 
-                <div className="mt-6 border-t pt-4" style={{ borderColor: `${themeData.colors.textPrimary}18` }}>
-                  <p className="mb-3 text-[10px] font-bold uppercase tracking-wider opacity-70">Price range</p>
-                  <input type="range" className="w-full" style={{ accentColor: themeData.colors.primary }} />
-                  <div className="mt-3 flex items-center justify-between gap-2 text-[11px]">
-                    <span className="rounded border px-3 py-1.5 opacity-80" style={{ borderColor: `${themeData.colors.textPrimary}18` }}>$ 0</span>
-                    <span className="opacity-50">-</span>
-                    <span className="rounded border px-3 py-1.5 opacity-80" style={{ borderColor: `${themeData.colors.textPrimary}18` }}>$ 500</span>
+                <div className="border-b pb-7" style={{ borderColor: `${themeData.colors.textPrimary}20` }}>
+                  <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-wider opacity-70">Price Range</h3>
+                  <div className="px-1">
+                    <div className="relative mb-5 h-1 rounded-full bg-slate-200">
+                      <div className="absolute left-[8%] right-[22%] top-0 h-full rounded-full" style={{ backgroundColor: themeData.colors.primary }} />
+                      <div className="absolute left-[8%] top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 bg-white shadow-sm" style={{ borderColor: themeData.colors.primary }} />
+                      <div className="absolute right-[22%] top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 bg-white shadow-sm" style={{ borderColor: themeData.colors.primary }} />
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <span className="flex-1 rounded border bg-white px-2 py-1.5 text-right" style={{ borderColor: `${themeData.colors.textPrimary}18` }}>0 d</span>
+                      <span className="opacity-50">-</span>
+                      <span className="flex-1 rounded border bg-white px-2 py-1.5 text-right" style={{ borderColor: `${themeData.colors.textPrimary}18` }}>500 d</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-5 border-t pt-4" style={{ borderColor: `${themeData.colors.textPrimary}18` }}>
-                  <p className="mb-3 text-[10px] font-bold uppercase tracking-wider opacity-70">Category</p>
-                  <div className="space-y-2 text-xs opacity-80">
-                    <label className="flex items-center gap-2"><input type="checkbox" /> Tops</label>
-                    <label className="flex items-center gap-2"><input type="checkbox" /> Bottoms</label>
-                    <label className="flex items-center gap-2"><input type="checkbox" /> Footwear</label>
-                    <label className="flex items-center gap-2"><input type="checkbox" /> Accessories</label>
-                  </div>
-                </div>
-
-                <div className="mt-5 border-t pt-4" style={{ borderColor: `${themeData.colors.textPrimary}18` }}>
-                  <p className="mb-3 text-[10px] font-bold uppercase tracking-wider opacity-70">Size / Specification</p>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {['S', 'M', 'L', 'XL', '30', '32', '34', '36', 'XXL', '39', '40', '41'].map((size) => (
-                      <span key={size} className="rounded border px-1 py-1 text-center text-[10px] opacity-70" style={{ borderColor: `${themeData.colors.textPrimary}18` }}>
-                        {size}
-                      </span>
+                <div className="border-b pb-7" style={{ borderColor: `${themeData.colors.textPrimary}20` }}>
+                  <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-wider opacity-70">Category</h3>
+                  <div className="space-y-3">
+                    {categoryCards.map((cat, index) => (
+                      <label key={cat.name} className="flex items-center gap-3 text-xs">
+                        <input type="checkbox" defaultChecked={index === 0} className="h-4 w-4 rounded border-slate-300" style={{ accentColor: themeData.colors.primary }} />
+                        <span style={{ color: index === 0 ? themeData.colors.primary : themeData.colors.textPrimary, opacity: index === 0 ? 1 : 0.7 }}>{cat.name}</span>
+                      </label>
                     ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-wider opacity-70">Rating</h3>
+                  <div className="space-y-2">
+                    {[5, 4, 3, 2, 1].map((rating) => {
+                      const selected = rating === 4;
+                      return (
+                        <button
+                          key={rating}
+                          className="flex w-full items-center justify-between border px-2.5 py-2 text-[11px] font-semibold"
+                          style={{
+                            borderColor: selected ? themeData.colors.primary : `${themeData.colors.textPrimary}20`,
+                            backgroundColor: selected ? `${themeData.colors.primary}12` : '#ffffff',
+                            color: selected ? themeData.colors.primary : themeData.colors.textPrimary,
+                            borderRadius: `${themeData.layout.borderRadius}px`,
+                          }}
+                        >
+                          <span className="flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, index) => (
+                              <Star key={index} className={`h-3 w-3 ${index < rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} />
+                            ))}
+                          </span>
+                          <span>{rating === 5 ? '5' : `${rating}+`}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </aside>
 
               <section className="flex-1">
-                <div className="mb-4 flex items-center justify-between">
-                  <p className="text-xs opacity-70">Showing 12 products</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase opacity-60">Sort by</span>
-                    <button className="flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs" style={{ borderColor: `${themeData.colors.textPrimary}18` }}>
-                      Newest Arrivals <ChevronDown className="h-3.5 w-3.5" />
+                <div className="mb-6 flex items-center justify-between border-b pb-4" style={{ borderColor: `${themeData.colors.textPrimary}20` }}>
+                  <div className="space-y-1">
+                    <p className="text-xs opacity-70">
+                      Showing <span className="font-bold opacity-100">12</span> of <span className="font-bold opacity-100">12</span> products
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] opacity-60">Search:</span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold" style={{ backgroundColor: `${themeData.colors.primary}1A`, color: themeData.colors.primary }}>
+                        <Search className="h-3 w-3" />
+                        essentials
+                        <X className="h-3 w-3" />
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Sort By</span>
+                    <button className="flex w-[170px] items-center justify-between border bg-white px-3 py-2 text-xs font-semibold" style={{ borderColor: `${themeData.colors.textPrimary}18`, borderRadius: `${themeData.layout.borderRadius}px` }}>
+                      Newest Arrivals <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
                     </button>
                   </div>
                 </div>
@@ -266,104 +303,170 @@ export default function LivePreview({ themeData, pageData, activePage, storeData
 
           {activePage === 'contact' && (
             <main className="mx-auto w-full max-w-[1060px] px-4 py-9">
-              <div className="mb-7 text-center">
-                <h1 className="mb-2 text-[42px] font-bold leading-none">Contact Us</h1>
-                <p className="mx-auto max-w-[520px] text-sm opacity-65">We would love to hear from you. Send us a message and we will respond as soon as possible.</p>
+              <div className="mb-10">
+                <h1 className="mb-2 text-3xl font-bold" style={{ color: themeData.colors.textPrimary }}>Contact Us</h1>
+                <p className="text-sm" style={{ color: `${themeData.colors.textPrimary}b3` }}>Have a question or need help? Reach out - we typically respond within one business day.</p>
               </div>
 
-              <div className="mx-auto max-w-[560px] rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                <div className="mb-4 grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-5">
+                <div className="space-y-8 lg:col-span-2">
                   <div>
-                    <label className="mb-2 block text-[11px] font-semibold text-gray-700">First Name</label>
-                    <input type="text" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black" placeholder="Jane" />
+                    <h2 className="mb-5 text-lg font-bold" style={{ color: themeData.colors.textPrimary }}>Get in touch</h2>
+                    <div className="space-y-4">
+                      {[
+                        { Icon: Mail, label: 'Support Email', value: 'support@fluxify.store' },
+                        { Icon: Phone, label: 'Hotline', value: '+1 (800) 123-4567' },
+                        { Icon: MapPin, label: 'Address', value: '123 Commerce Ave, Suite 400\\nSan Francisco, CA 94105' },
+                        { Icon: Clock, label: 'Support Hours', value: 'Mon - Fri, 9 AM - 6 PM (PST)' },
+                      ].map((item) => (
+                        <div key={item.label} className="flex items-start gap-4">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${themeData.colors.primary}1A` }}>
+                            {React.createElement(item.Icon, { className: 'h-5 w-5', style: { color: themeData.colors.primary } })}
+                          </div>
+                          <div>
+                            <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider opacity-70">{item.label}</p>
+                            <p className="whitespace-pre-line text-sm font-medium" style={{ color: item.label === 'Support Email' ? themeData.colors.primary : themeData.colors.textPrimary }}>{item.value}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <div>
-                    <label className="mb-2 block text-[11px] font-semibold text-gray-700">Last Name</label>
-                    <input type="text" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black" placeholder="Doe" />
+                    <h2 className="mb-4 text-lg font-bold" style={{ color: themeData.colors.textPrimary }}>Frequently Asked Questions</h2>
+                    <div className="space-y-2">
+                      {[
+                        ['How do I track my order?', 'After your order is confirmed, you can view real-time status from My Account.'],
+                        ['What is your return policy?', 'We accept returns within 30 days of delivery for unused items in original condition.'],
+                        ['How long does shipping take?', 'Standard shipping takes 3-5 business days.'],
+                      ].map(([question, answer], index) => (
+                        <div key={question} className="overflow-hidden border border-slate-100 bg-white shadow-sm" style={{ borderRadius: `${themeData.layout.borderRadius}px` }}>
+                          <div className="flex items-center justify-between px-4 py-3.5 text-left">
+                            <span className="pr-4 text-xs font-semibold text-slate-800">{question}</span>
+                            <ChevronRight className={`h-4 w-4 shrink-0 text-slate-400 ${index === 0 ? 'rotate-90' : ''}`} />
+                          </div>
+                          {index === 0 && (
+                            <div className="border-t border-slate-50 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-600">{answer}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <label className="mb-2 block text-[11px] font-semibold text-gray-700">Email Address</label>
-                  <input type="email" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black" placeholder="jane@example.com" />
-                </div>
+                <div className="lg:col-span-3">
+                  <div className="border border-slate-100 bg-white p-6 shadow-xl shadow-slate-200/50" style={{ borderRadius: `${themeData.layout.borderRadius}px` }}>
+                    <h2 className="mb-1 text-lg font-bold text-slate-900">Send us a message</h2>
+                    <p className="mb-6 text-sm text-slate-500">
+                      Fill in the form below and click <span className="font-semibold text-slate-700">Send via Email</span> - this will open your email app with the details pre-filled.
+                    </p>
 
-                <div className="mb-4">
-                  <label className="mb-2 block text-[11px] font-semibold text-gray-700">Subject</label>
-                  <select className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black">
-                    <option>General Inquiry</option>
-                    <option>Order Support</option>
-                    <option>Returns & Exchanges</option>
-                  </select>
-                </div>
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-2 gap-5">
+                        <div>
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">First Name</label>
+                          <input type="text" className="w-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" style={{ borderRadius: `${themeData.layout.borderRadius}px` }} placeholder="Jane" />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">Last Name</label>
+                          <input type="text" className="w-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" style={{ borderRadius: `${themeData.layout.borderRadius}px` }} placeholder="Doe" />
+                        </div>
+                      </div>
 
-                <div className="mb-5">
-                  <label className="mb-2 block text-[11px] font-semibold text-gray-700">Message</label>
-                  <textarea rows={5} className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black" placeholder="How can we help you?" />
-                </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-semibold text-slate-700">Your Email Address</label>
+                        <input type="email" className="w-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" style={{ borderRadius: `${themeData.layout.borderRadius}px` }} placeholder="jane@example.com" />
+                      </div>
 
-                <button className="w-full py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90" style={{ backgroundColor: themeData.colors.primary, borderRadius: `${themeData.layout.borderRadius}px` }}>
-                  Send Message
-                </button>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-semibold text-slate-700">Subject</label>
+                        <button className="flex w-full items-center justify-between border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm text-slate-700" style={{ borderRadius: `${themeData.layout.borderRadius}px` }}>
+                          General Inquiry
+                          <ChevronDown className="h-4 w-4 text-slate-400" />
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="mb-1.5 block text-sm font-semibold text-slate-700">Message</label>
+                        <textarea rows={5} className="w-full resize-none border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none" style={{ borderRadius: `${themeData.layout.borderRadius}px` }} placeholder="Describe your issue or question..." />
+                      </div>
+
+                      <button className="w-full px-6 py-3.5 font-bold text-white shadow-lg" style={{ backgroundColor: themeData.colors.primary, boxShadow: `0 10px 15px -3px ${themeData.colors.primary}4D`, borderRadius: `${themeData.layout.borderRadius}px` }}>
+                        Send via Email
+                      </button>
+                      <p className="text-center text-xs leading-relaxed text-slate-400">Clicking the button above opens your default email app with the details pre-filled. No data is sent through this website.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </main>
           )}
 
-          <footer className="mt-auto border-t" style={{ backgroundColor: themeData.footer.backgroundColor, color: themeData.footer.textColor, borderColor: `${themeData.footer.textColor}20` }}>
-            <div className="mx-auto grid w-full max-w-[1060px] grid-cols-5 gap-10 px-4 py-10">
-              <div className="col-span-2">
-                <div className="mb-4 flex items-center gap-2.5">
-                  {storeData.logoUrl ? (
-                    <img src={storeData.logoUrl} alt="Store logo" className="h-6 w-6 rounded object-cover" />
-                  ) : (
-                    <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-tight">
+          <footer
+            className="mt-auto border-t py-8"
+            style={{
+              backgroundColor: themeData.footer.backgroundColor,
+              color: themeData.footer.textColor,
+              borderTopColor: `${themeData.colors.primary}20`,
+            }}
+          >
+            <div className="mx-auto w-full max-w-[1060px] px-4">
+              <div className="mb-6 grid grid-cols-1 items-start gap-10 md:grid-cols-[1.5fr_1fr_1fr]">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    {storeData.logoUrl ? (
+                      <img src={storeData.logoUrl} alt="Store logo" className="h-6 w-6 rounded object-cover" />
+                    ) : (
                       <div className="flex h-6 w-6 items-center justify-center rounded text-white" style={{ backgroundColor: themeData.colors.primary }}>
                         <Package className="h-3.5 w-3.5" />
                       </div>
+                    )}
+                    <span className="text-lg font-bold uppercase tracking-tight" style={{ color: themeData.footer.textColor }}>
                       {storeData.storeName}
-                    </div>
-                  )}
+                    </span>
+                  </div>
+                  <p className="max-w-sm text-sm leading-relaxed" style={{ color: themeData.footer.textColor, opacity: 0.7 }}>
+                    {pageData.about.story || 'Reliable products for everyday use.'}
+                  </p>
                 </div>
-                <p className="max-w-sm text-sm leading-6 opacity-70">Premium digital solutions for the modern creator. Join over 50,000+ customers building the future.</p>
+
+                <div className="space-y-2">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wider" style={{ color: themeData.footer.textColor, opacity: 0.5 }}>
+                    Contact
+                  </h4>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 shrink-0" style={{ color: themeData.footer.textColor, opacity: 0.5 }} />
+                    <span style={{ color: themeData.footer.textColor, opacity: 0.85 }}>support@computer-store.com</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 shrink-0" style={{ color: themeData.footer.textColor, opacity: 0.5 }} />
+                    <span style={{ color: themeData.footer.textColor, opacity: 0.85 }}>0123 456 789</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wider" style={{ color: themeData.footer.textColor, opacity: 0.5 }}>
+                    Store info
+                  </h4>
+                  <div className="flex items-center gap-2 text-sm" style={{ color: themeData.footer.textColor, opacity: 0.85 }}>
+                    <MapPin className="h-4 w-4 shrink-0" style={{ color: themeData.footer.textColor, opacity: 0.5 }} />
+                    <span>Da Nang, Viet Nam</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm" style={{ color: themeData.footer.textColor, opacity: 0.85 }}>
+                    <Clock className="h-4 w-4 shrink-0" style={{ color: themeData.footer.textColor, opacity: 0.5 }} />
+                    <span>Mon - Sat, 8:00 - 18:00</span>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider opacity-90">About Us</h4>
-                <ul className="space-y-2 text-sm opacity-70">
-                  <li>Our Story</li>
-                  <li>Careers</li>
-                  <li>Sustainability</li>
-                  <li>Newsroom</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider opacity-90">Customer Support</h4>
-                <ul className="space-y-2 text-sm opacity-70">
-                  <li>Help Center</li>
-                  <li>Track Order</li>
-                  <li>Returns & Exchanges</li>
-                  <li>Contact Us</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider opacity-90">Quick Links</h4>
-                <ul className="space-y-2 text-sm opacity-70">
-                  <li>Sale</li>
-                  <li>Size Guide</li>
-                  <li>Gift Cards</li>
-                  <li>Store Locator</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="border-t" style={{ borderColor: `${themeData.footer.textColor}20` }}>
-              <div className="mx-auto flex w-full max-w-[1060px] items-center justify-between px-4 py-3 text-xs opacity-60">
-                <p>© {new Date().getFullYear()} {storeData.storeName}. All rights reserved.</p>
-                <div className="flex gap-6">
-                  <span>Privacy Policy</span>
-                  <span>Terms of Service</span>
+              <div
+                className="flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs md:flex-row"
+                style={{ borderTopColor: `${themeData.colors.primary}15` }}
+              >
+                <p style={{ color: themeData.footer.textColor, opacity: 0.5 }}>
+                  &copy; {new Date().getFullYear()} {storeData.storeName}. All rights reserved.
+                </p>
+                <div className="flex gap-4">
+                  <span style={{ color: themeData.footer.textColor, opacity: 0.4 }}>Fluxify Ecommerce Platform</span>
                 </div>
               </div>
             </div>
