@@ -9,6 +9,10 @@ const COLOR_MAP = {
   gray: '#6B7280', grey: '#6B7280', navy: '#1E3A5F', green: '#22C55E',
   brown: '#92400E', tan: '#D2B48C', charcoal: '#374151', burgundy: '#800020',
   camel: '#C19A6B', silver: '#CBD5E1', gold: '#F59E0B',
+  sage: '#9CAF88', mint: '#98FF98', cream: '#FFFDD0', pastel: '#F9A8D4',
+  vivid: '#F97316', assorted: 'linear-gradient(135deg, #ef4444 0%, #f59e0b 33%, #22c55e 66%, #3b82f6 100%)',
+  graphite: '#374151', clear: '#E0F2FE', smoke: '#64748B', natural: '#D6B88D',
+  walnut: '#7C4A2D', oak: '#C8A46B', primary: '#2563EB', college: '#0F766E',
 };
 
 function getColorSwatch(colorName) {
@@ -231,7 +235,7 @@ export default function QuickAddModal() {
                                 isSelected ? '' : 'border-slate-200 hover:border-slate-300'
                               } ${isOptionDisabled ? 'opacity-25 cursor-not-allowed grayscale' : ''}`}
                               style={{ 
-                                backgroundColor: swatch,
+                                background: swatch,
                                 borderColor: isSelected ? primaryColor : undefined,
                                 boxShadow: isSelected ? `0 0 0 2px ${primaryColor}33` : undefined
                               }}

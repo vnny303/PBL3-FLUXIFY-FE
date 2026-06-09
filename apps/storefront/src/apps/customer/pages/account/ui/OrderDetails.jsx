@@ -107,9 +107,10 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     name: item.productName || item.name,
     variant: item.variant || (item.skuAttributes ? `${item.skuAttributes.color || ''} • ${item.skuAttributes.size || ''}` : ''),
     image: item.imageUrl || item.image || item.imgUrl || item.productImage || `https://picsum.photos/seed/${item.productName || 'product'}/200/300`,
+    unitPrice: parsePrice(item.unitPrice ?? item.price),
     price: item.unitPrice != null ? formatVnd(item.unitPrice) : formatVnd(parsePrice(item.price)),
     quantity: item.quantity || 1,
-    productSkuId: item.productSkuId,
+    productSkuId: item.productSkuId || item.ProductSkuId || item.product_sku_id,
     skuAttributes: item.skuAttributes,
   }));
 
@@ -117,7 +118,9 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     ...orderData,
     items: normalizedItems,
     date: orderData.date || (orderData.createdAt ? new Date(orderData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : ''),
-    total: formatVnd(parsePrice(orderData.total || orderData.totalAmount)),
+    total: parsePrice(orderData.totalAmount ?? orderData.total),
+    totalAmount: parsePrice(orderData.totalAmount ?? orderData.total),
+    shippingFee: parsePrice(orderData.shippingFee ?? orderData.shipping_fee ?? 0),
   };
 
   const cancellationReasons = [
@@ -216,6 +219,11 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   const statusList = ['Pending', 'Processing', 'Shipped', 'Delivered'];
   const currentIndex = Math.max(0, statusList.indexOf(orderStatus));
   const progressWidth = `${(currentIndex / (statusList.length - 1)) * 100}%`;
+  const statusBadgeStyle = orderStatus === 'Cancelled'
+    ? undefined
+    : orderStatus === 'Pending' || orderStatus === 'Processing'
+      ? undefined
+      : { backgroundColor: `${primaryColor}1A`, color: primaryColor };
 
   return (
     <section className="flex-1 relative">
@@ -239,8 +247,8 @@ export default function OrderDetails({ setCurrentScreen, order }) {
               <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                 orderStatus === 'Cancelled' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
                 orderStatus === 'Pending' || orderStatus === 'Processing' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-              }`}>
+                ''
+              }`} style={statusBadgeStyle}>
                 {orderStatus}
               </span>
             </div>

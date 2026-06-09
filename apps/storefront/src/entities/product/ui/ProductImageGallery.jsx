@@ -1,7 +1,12 @@
 import React, { useMemo, useState } from 'react';
+import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
 
 export default function ProductImageGallery({ product, selectedSku }) {
+  const { theme } = useStorefrontConfig();
+  const primaryColor = theme?.colors?.primary || '#1754cf';
+  const borderRadius = theme?.layout?.borderRadius || 12;
+
   // Collect all images: product images + any extra per-sku imgUrls not already in the list
   const allImages = useMemo(() => {
     const productImgs = (product?.images?.length > 0) ? product.images : (product?.image ? [product.image] : []);
@@ -25,7 +30,7 @@ export default function ProductImageGallery({ product, selectedSku }) {
 
   return (
     <div className="w-full">
-      <div className="relative aspect-[4/3] max-h-[520px] w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 mb-4 flex items-center justify-center">
+      <div className="relative aspect-[4/3] max-h-[520px] w-full overflow-hidden border border-slate-200 bg-slate-50 mb-4 flex items-center justify-center" style={{ borderRadius: `${borderRadius}px` }}>
         <img
           src={mainImage}
           alt={product?.name || 'Product image'}
@@ -39,11 +44,16 @@ export default function ProductImageGallery({ product, selectedSku }) {
             <button
               key={i}
               onClick={() => setActiveIdx(i)}
-              className={`w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] shrink-0 rounded-xl overflow-hidden border-2 transition-all ${
+              className={`w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] shrink-0 overflow-hidden border-2 transition-all ${
                 activeImageIdx === i
-                  ? 'border-blue-600 ring-2 ring-blue-100'
+                  ? 'ring-2'
                   : 'border-slate-200 hover:border-slate-300'
               }`}
+              style={{
+                borderRadius: `${borderRadius}px`,
+                borderColor: activeImageIdx === i ? primaryColor : undefined,
+                '--tw-ring-color': activeImageIdx === i ? `${primaryColor}26` : undefined,
+              }}
             >
               <img src={url} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
             </button>

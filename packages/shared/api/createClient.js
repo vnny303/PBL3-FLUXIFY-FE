@@ -5,9 +5,11 @@ export const createApiClient = ({
   getToken,
   onUnauthorized,
   returnData = true,
+  adapter,
 }) => {
   const instance = axios.create({
     baseURL,
+    adapter,
     headers: {
     "Content-Type": "application/json",
     },

@@ -138,6 +138,9 @@ const normalizeProduct = (product) => {
         reviewCount: toNumber(product.reviewCount || product.numReviews, 0),
         soldCount: toNumber(product.soldCount, 0),
         attributes: normalizedAttributes,
+        highlights: Array.isArray(product.highlights) ? product.highlights : safeParseJson(product.highlights, []),
+        includedItems: Array.isArray(product.includedItems) ? product.includedItems : safeParseJson(product.includedItems, []),
+        bestFor: Array.isArray(product.bestFor) ? product.bestFor : safeParseJson(product.bestFor, []),
         detailSections: normalizeDetailSections(
             product.detailSections ||
             product.DetailSections ||

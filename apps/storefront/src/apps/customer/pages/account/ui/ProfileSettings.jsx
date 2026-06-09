@@ -12,9 +12,8 @@ export default function ProfileSettings() {
   const { theme } = useStorefrontConfig();
   const primaryColor = theme?.colors?.primary || '#1754cf';
   const borderRadius = theme?.layout?.borderRadius || 12;
-  const bgColor = theme?.colors?.background || '#ffffff';
   const textColor = theme?.colors?.text || '#111827';
-  const sectionBg = bgColor === '#ffffff' ? '#f8fafc' : `${bgColor}80`;
+  const sectionBg = '#f8fafc';
 
   const { user } = useAppContext();
   const { updateProfile, isUpdatingProfile, updatePassword, isUpdatingPassword, uploadAvatar, isUploadingAvatar } = useProfile();
@@ -94,7 +93,7 @@ export default function ProfileSettings() {
         <div className="flex flex-col gap-8">
           <div 
             className="rounded-xl border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 overflow-hidden p-6"
-            style={{ backgroundColor: bgColor === '#ffffff' ? '#ffffff' : `${bgColor}E6`, color: textColor }}
+            style={{ backgroundColor: '#ffffff', color: textColor }}
           >
             <AvatarSection 
               photoUrl={getUserAvatarUrl(normalizedUser)} 
@@ -133,7 +132,7 @@ export default function ProfileSettings() {
 
       {confirmAction && (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-sm shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200" style={{ borderRadius: `${borderRadius}px` }}>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
               {confirmAction === 'save-profile' ? 'Save Changes' : 'Update Password'}
             </h3>

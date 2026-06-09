@@ -31,7 +31,7 @@ export default function Header() {
     }, []);
 
     const handleAccountSettings = () => {
-        navigate('/settings');
+        navigate('/home/settings');
         setIsProfileOpen(false);
     };
     const handleHelpCenter = () => {

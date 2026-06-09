@@ -20,6 +20,11 @@ export const createTenant = async (data) => {
     return res.data;
 };
 
+export const updateTenant = async (id, data) => {
+    const res = await axiosClient.put(`/tenants/${id}`, data);
+    return res.data;
+};
+
 export const deleteTenant = async (id) => {
     const res = await axiosClient.delete(`/tenants/${id}`);
     return res.data;

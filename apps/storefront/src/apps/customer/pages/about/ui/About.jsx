@@ -11,6 +11,7 @@ export default function About() {
   const textColor = theme?.colors?.text || '#111827';
   const textColorSecondary = theme?.colors?.text ? `${theme.colors.text}b3` : '#64748b'; // 70% opacity for secondary text
   const borderColor = theme?.colors?.text ? `${theme.colors.text}20` : '#e2e8f0';
+  const borderRadius = theme?.layout?.borderRadius || 12;
 
   // Resolve About cover image dynamically from products or contentConfig
   const getAboutImage = () => {
@@ -36,11 +37,11 @@ export default function About() {
   return (
     <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16" style={{ color: textColor }}>
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-black mb-4" style={{ color: textColor }}>About {siteName}</h1>
+        <h1 className="text-4xl font-bold mb-4" style={{ color: textColor }}>About {siteName}</h1>
         <p className="text-lg" style={{ color: textColorSecondary }}>{content?.home?.subtitle || 'Curating the best modern essentials for your lifestyle.'}</p>
       </div>
       
-      <div className="rounded-2xl overflow-hidden mb-12 h-64 sm:h-96 bg-slate-200" style={{ borderRadius: `${theme?.layout?.borderRadius}px` }}>
+      <div className="overflow-hidden mb-12 h-64 sm:h-96 bg-slate-200 border border-slate-100 shadow-sm" style={{ borderRadius: `${borderRadius}px` }}>
         <img 
           src={aboutImage} 
           alt="Our Store" 

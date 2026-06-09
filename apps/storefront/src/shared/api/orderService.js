@@ -4,6 +4,9 @@ import { normalizePaymentMethod } from '../lib/paymentMethod';
 
 const LAST_CHECKOUT_ORDER_KEY = 'fluxify_last_checkout_order';
 const DEMO_ORDERS_KEY_PREFIX = 'fluxify_demo_orders_';
+const TEMP_PENDING_CANCEL_ORDER_ID = 'mock-pending-cancel-order';
+const TEMP_PENDING_CANCEL_ORDER_KEY_PREFIX = 'fluxify_temp_pending_cancel_order_';
+const USE_TEMP_PENDING_CANCEL_ORDER = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 
 const extractItems = (response) => {
     if (!response) {
@@ -54,6 +57,7 @@ const normalizeOrder = (order) => {
             ...item,
             image: item.imageUrl || item.image || item.imgUrl || item.thumbnail || item.productImage || item.productImgUrl || null,
             productName: item.productName || item.name || item.product_name,
+            productSkuId: item.productSkuId || item.ProductSkuId || item.product_sku_id,
         })),
         items: orderItems,
     };
@@ -71,6 +75,96 @@ const dedupeOrders = (orders = []) => {
         const right = Date.parse(b?.createdAt || '') || 0;
         return right - left;
     });
+};
+
+const buildTempPendingCancelOrder = (customerId, tenantId) => ({
+    id: TEMP_PENDING_CANCEL_ORDER_ID,
+    tenantId: tenantId || 'tenant-studyhub-demo',
+    customerId,
+    addressId: 'addr-001',
+    orderCode: 'MOCK-CANCEL-001',
+    paymentReference: 'MOCK-CANCEL-001',
+    paymentMethod: 'COD',
+    paymentStatus: 'Pending',
+    bankName: null,
+    bankCode: null,
+    bankAccountNumber: null,
+    bankAccountName: null,
+    transferContent: null,
+    status: 'Pending',
+    subtotal: 218000,
+    shippingFee: 25000,
+    taxAmount: 0,
+    totalAmount: 243000,
+    total: 243000,
+    paidAt: null,
+    shippingMethod: 'standard',
+    orderNote: 'Temporary storefront mock order for cancel testing.',
+    createdAt: new Date(Date.now() + 60000).toISOString(),
+    persisted: false,
+    orderItems: [
+        {
+            id: 'mock-pending-cancel-item-1',
+            orderId: TEMP_PENDING_CANCEL_ORDER_ID,
+            productSkuId: 'p-001-sku-1-1',
+            productName: 'Campus A5 Grid Notebook Set',
+            image: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=300&q=80',
+            quantity: 1,
+            unitPrice: 89000,
+            skuAttributes: { color: 'Sage', size: 'A5' },
+        },
+        {
+            id: 'mock-pending-cancel-item-2',
+            orderId: TEMP_PENDING_CANCEL_ORDER_ID,
+            productSkuId: 'p-003-sku-1-1',
+            productName: 'Premium Gel Pen Pack',
+            image: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=300&q=80',
+            quantity: 1,
+            unitPrice: 129000,
+            skuAttributes: { color: 'Black', size: '0.5mm' },
+        },
+    ],
+});
+
+const getTempPendingCancelOrder = (customerId, tenantId) => {
+    if (!USE_TEMP_PENDING_CANCEL_ORDER || !customerId) return null;
+
+    const storageKey = `${TEMP_PENDING_CANCEL_ORDER_KEY_PREFIX}${customerId}`;
+    try {
+        const stored = JSON.parse(localStorage.getItem(storageKey) || 'null');
+        if (stored?.id === TEMP_PENDING_CANCEL_ORDER_ID) {
+            return normalizeOrder(stored);
+        }
+    } catch {
+        // Ignore invalid temporary mock storage.
+    }
+
+    return normalizeOrder(buildTempPendingCancelOrder(customerId, tenantId));
+};
+
+const setTempPendingCancelOrderStatus = (orderId, status) => {
+    if (!USE_TEMP_PENDING_CANCEL_ORDER || orderId !== TEMP_PENDING_CANCEL_ORDER_ID) {
+        return false;
+    }
+
+    const customerId = getUserId();
+    if (!customerId) return false;
+
+    const storageKey = `${TEMP_PENDING_CANCEL_ORDER_KEY_PREFIX}${customerId}`;
+    const existing = getTempPendingCancelOrder(customerId, getTenantId());
+    const nextOrder = {
+        ...existing,
+        status,
+        paymentStatus: status === 'Cancelled' ? 'Failed' : existing?.paymentStatus || 'Pending',
+    };
+
+    try {
+        localStorage.setItem(storageKey, JSON.stringify(nextOrder));
+    } catch {
+        // Ignore storage write failures.
+    }
+
+    return true;
 };
 
 const persistDemoOrder = (order, customerId) => {
@@ -129,7 +223,10 @@ export const orderService = {
             for (const endpoint of tenantEndpoints) {
                 try {
                     const response = await axiosClient.get(endpoint);
-                    return dedupeOrders(extractItems(response));
+                    return dedupeOrders([
+                        getTempPendingCancelOrder(customerId, tenantId),
+                        ...extractItems(response),
+                    ].filter(Boolean));
                 } catch (error) {
                     lastError = error;
                     if (![400, 403, 404].includes(error?.response?.status)) {
@@ -148,7 +245,10 @@ export const orderService = {
         for (const endpoint of customerEndpoints) {
             try {
                 const response = await axiosClient.get(endpoint);
-                return dedupeOrders(extractItems(response));
+                return dedupeOrders([
+                    getTempPendingCancelOrder(customerId, tenantId),
+                    ...extractItems(response),
+                ].filter(Boolean));
             } catch (error) {
                 lastError = error;
                 if (![400, 403, 404].includes(error?.response?.status)) {
@@ -240,6 +340,10 @@ export const orderService = {
         });
     },
     cancelOrder: async (orderId, reason = '') => {
+        if (setTempPendingCancelOrderStatus(orderId, 'Cancelled')) {
+            return { ok: true, id: orderId, reason };
+        }
+
         return await axiosClient.put(`/api/customer/orders/${orderId}/cancel`, { reason });
     },
 };

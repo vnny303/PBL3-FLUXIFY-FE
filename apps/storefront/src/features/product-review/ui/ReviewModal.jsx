@@ -101,9 +101,6 @@ function ReviewModalContent({ onClose, product, initialReview, onSubmitReview })
                 {product.variant}
               </p>
             )}
-            <p className="text-xs text-red-500 mt-1">
-              DEBUG SkuId: {product?.productSkuId || product?.id || 'MISSING'}
-            </p>
           </div>
         </div>
 

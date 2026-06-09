@@ -35,8 +35,11 @@ export default function OrderSummaryCard({ order }) {
   };
 
   const subtotal = calculateSubtotal();
-  const totalNum = parsePrice(order.total || order.totalAmount);
-  const shippingFee = Math.max(0, totalNum - subtotal);
+  const explicitShippingFee = order.shippingFee ?? order.shipping_fee;
+  const shippingFee = explicitShippingFee != null
+    ? parsePrice(explicitShippingFee)
+    : Math.max(0, parsePrice(order.total ?? order.totalAmount) - subtotal);
+  const totalNum = parsePrice(order.totalAmount ?? order.total) || subtotal + shippingFee;
 
   const isBankTransfer = isBankTransferMethod(order.paymentMethod) || isBankTransferMethod(order.payment?.methodName);
   const isPending = (order.status || order.paymentStatus) === 'Pending';

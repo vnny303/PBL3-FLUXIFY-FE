@@ -10,6 +10,8 @@ const toTimestamp = (value) => {
   return Number.isFinite(timestamp) ? timestamp : 0;
 };
 
+const compactName = (...parts) => parts.filter(Boolean).join(' ').trim();
+
 const normalizeReview = (review) => {
   if (!review || typeof review !== 'object') return null;
 
@@ -20,6 +22,14 @@ const normalizeReview = (review) => {
     review.sku_id ||
     null;
 
+  const customerName = (
+    review.customerName ??
+    review.userName ??
+    review.customerFullName ??
+    review.fullName ??
+    compactName(review.firstName, review.lastName)
+  ) || null;
+
   return {
     ...review,
     id: review.id || review.reviewId || review.review_id || null,
@@ -27,7 +37,8 @@ const normalizeReview = (review) => {
     rating: toNumber(review.rating, 0),
     comment: review.comment ?? review.text ?? '',
     customerEmail: review.customerEmail ?? review.email ?? null,
-    customerName: review.customerName ?? review.userName ?? review.customerFullName ?? null,
+    customerName,
+    avatarUrl: review.avatarUrl ?? review.customerAvatarUrl ?? review.userAvatarUrl ?? null,
     createdAt: review.createdAt || review.created_at || null,
   };
 };

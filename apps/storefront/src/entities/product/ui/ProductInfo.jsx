@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, StarHalf } from 'lucide-react';
+import { CheckCircle2, Star, StarHalf } from 'lucide-react';
 import { formatVnd } from '../../../shared/lib/formatters';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
 
@@ -9,6 +9,10 @@ const COLOR_MAP = {
   gray: '#6B7280', grey: '#6B7280', navy: '#1E3A5F', green: '#22C55E',
   brown: '#92400E', tan: '#D2B48C', charcoal: '#374151', burgundy: '#800020',
   camel: '#C19A6B', silver: '#CBD5E1', gold: '#F59E0B',
+  sage: '#9CAF88', mint: '#98FF98', cream: '#FFFDD0', pastel: '#F9A8D4',
+  vivid: '#F97316', assorted: 'linear-gradient(135deg, #ef4444 0%, #f59e0b 33%, #22c55e 66%, #3b82f6 100%)',
+  graphite: '#374151', clear: '#E0F2FE', smoke: '#64748B', natural: '#D6B88D',
+  walnut: '#7C4A2D', oak: '#C8A46B', primary: '#2563EB', college: '#0F766E',
 };
 
 function getColorSwatch(colorName) {
@@ -103,7 +107,7 @@ export default function ProductInfo({
         </div>
       </div>
 
-      <h1 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight mb-2">{product.name}</h1>
+      <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 leading-tight mb-2">{product.name}</h1>
 
       <div className="flex items-end gap-4 mb-6">
         <span className="text-3xl font-extrabold" style={{ color: primaryColor }}>{displayPrice}</span>
@@ -118,6 +122,25 @@ export default function ProductInfo({
         <p className="text-base text-slate-600 leading-relaxed whitespace-pre-line">
           {product.description || "No description available."}
         </p>
+        {Array.isArray(product.highlights) && product.highlights.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-5">
+            {product.highlights.slice(0, 4).map((item) => (
+              <div key={item} className="flex items-start gap-2 rounded-xl border border-slate-100 bg-white/70 px-3 py-2.5">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                <span className="text-sm text-slate-600 leading-snug">{item}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {Array.isArray(product.bestFor) && product.bestFor.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {product.bestFor.slice(0, 5).map((item) => (
+              <span key={item} className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
+                {item}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Dynamic option groups derived from SKUs */}
@@ -161,7 +184,7 @@ export default function ProductInfo({
                         isSelected ? 'scale-110' : 'border-transparent hover:border-slate-300'
                       } ${isOptionDisabled ? 'opacity-20 cursor-not-allowed grayscale' : ''}`}
                       style={{ 
-                        backgroundColor: swatch,
+                        background: swatch,
                         borderColor: isSelected ? primaryColor : undefined,
                         boxShadow: isSelected ? `0 0 0 4px ${primaryColor}1A` : undefined
                       }}
