@@ -156,8 +156,7 @@ const normalizeProduct = (product) => {
 };
 
 export const productService = {
-    // GET /api/tenants/{tenantId}/products?categoryId=uuid&page=1&pageSize=20
-    getProducts: async (tenantId, filters = {}) => {
+    getProductPage: async (tenantId, filters = {}) => {
         let products = [];
 
         const query = new URLSearchParams(filters).toString();
@@ -169,17 +168,53 @@ export const productService = {
             products = response.map(normalizeProduct);
         }
 
-        // Sort: In-stock items first, Out-of-stock last
-        return products.sort((a, b) => {
+        const sortedProducts = products.sort((a, b) => {
             if (a.isInStock === b.isInStock) return 0;
             return a.isInStock ? -1 : 1;
         });
+
+        return {
+            items: sortedProducts,
+            total: response?.total ?? response?.totalCount ?? sortedProducts.length,
+            totalCount: response?.totalCount ?? response?.total ?? sortedProducts.length,
+            page: response?.page ?? Number(filters.page || 1),
+            pageSize: response?.pageSize ?? Number(filters.pageSize || sortedProducts.length || 20),
+        };
+    },
+
+    // GET /api/tenants/{tenantId}/products?categoryId=uuid&page=1&pageSize=20
+    getProducts: async (tenantId, filters = {}) => {
+        const page = await productService.getProductPage(tenantId, {
+            page: 1,
+            pageSize: 100,
+            ...filters,
+        });
+        return page.items;
     },
 
     // GET /api/tenants/{tenantId}/products/{id}
     getProductById: async (tenantId, productId) => {
         const response = await axiosClient.get(`/api/tenants/${tenantId}/products/${productId}`);
         return normalizeProduct(response);
+    },
+
+    getProductIdBySkuId: async (tenantId, skuId) => {
+        if (!tenantId || !skuId) return null;
+
+        const pageSize = 100;
+        for (let page = 1; page <= 20; page += 1) {
+            const productPage = await productService.getProductPage(tenantId, { page, pageSize });
+            const found = productPage.items.find((product) =>
+                (product.skus || product.productSkus || []).some((sku) => String(sku.id) === String(skuId)),
+            );
+
+            if (found?.id) return found.id;
+            if ((productPage.items || []).length < pageSize || page >= Math.ceil((productPage.totalCount || 0) / pageSize)) {
+                break;
+            }
+        }
+
+        return null;
     },
 
     // GET /api/tenants/{tenantId}/categories

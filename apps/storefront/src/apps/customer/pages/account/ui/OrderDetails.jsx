@@ -1,23 +1,33 @@
 import { useState } from 'react';
-import { Loader2, AlertCircle, ChevronDown, CheckCircle } from 'lucide-react';
+import { Loader2, AlertCircle, ChevronDown, CheckCircle, ReceiptText, CreditCard, Truck, CalendarDays, Hash, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import ReviewModal from '../../../../../features/product-review/ui/ReviewModal';
 import { orderService } from '../../../../../shared/api/orderService';
+import { productService } from '../../../../../shared/api/productService';
 import { reviewService } from '../../../../../shared/api/reviewService';
+import { addressService } from '../../../../../shared/api/addressService';
 import { useAppContext } from '../../../../../app/providers/useAppContext';
 import OrderItemList from '../../../../../entities/order/ui/OrderItemList';
 import OrderStatusTimeline from '../../../../../entities/order/ui/OrderStatusTimeline';
 import OrderSummaryCard from '../../../../../entities/order/ui/OrderSummaryCard';
 import { formatVnd, parsePrice, getDisplayOrderCode } from '../../../../../shared/lib/formatters';
 import { useStorefrontConfig } from '../../../../../features/theme/useStorefrontConfig';
+import { useStorefrontTenant } from '../../../../../features/theme/useStorefrontTenant';
 
 export default function OrderDetails({ setCurrentScreen, order }) {
   const { theme } = useStorefrontConfig();
   const primaryColor = theme?.colors?.primary || '#1754cf';
   const borderRadius = theme?.layout?.borderRadius || 12;
+  const textColor = theme?.colors?.text || '#111827';
+  const bgColor = theme?.colors?.background || '#ffffff';
+  const cardBg = bgColor === '#ffffff' ? '#ffffff' : `${bgColor}E6`;
+  const borderColor = `${primaryColor}1A`;
+  const navigate = useNavigate();
+  const { tenantId } = useStorefrontTenant();
 
-  const { addToCart, setShowCart } = useAppContext();
+  const { addToCart, setShowCart, user } = useAppContext();
   const queryClient = useQueryClient();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -27,13 +37,19 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   const [buyingItemIds, setBuyingItemIds] = useState({});
   const [isBuyingWholeOrder, setIsBuyingWholeOrder] = useState(false);
 
+  const { data: addressResponse } = useQuery({
+    queryKey: ['customer-addresses', user?.userId],
+    queryFn: () => addressService.getAddresses(user?.tenantId, user?.userId),
+    enabled: !!order?.addressId && !!user?.userId,
+  });
+
   const cancelOrderMutation = useMutation({
     mutationFn: () => orderService.cancelOrder(order?.id, cancelReason),
     onSuccess: () => {
       setOrderStatus('Cancelled');
       setIsCancelModalOpen(false);
       toast.success('Order cancelled successfully!');
-      queryClient.invalidateQueries(['customer-orders']);
+      queryClient.invalidateQueries({ queryKey: ['customer-orders'] });
     },
     onError: (error) => {
       toast.error(error?.response?.data?.message || 'Failed to cancel order');
@@ -47,12 +63,14 @@ export default function OrderDetails({ setCurrentScreen, order }) {
         return reviewService.updateReview(existing.id, {
           rating: data.rating,
           comment: data.comment,
+          photos: data.photos,
         });
       }
       return reviewService.createReview({
         productSkuId: selectedProduct?.productSkuId || selectedProduct?.id,
         rating: data.rating,
         comment: data.comment,
+        photos: data.photos,
       });
     },
     onSuccess: (response, variables) => {
@@ -63,6 +81,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
           id: reviewData?.id || prev[selectedProduct.productSkuId]?.id,
           rating: variables.rating,
           comment: variables.comment,
+          imageUrls: variables.photos || reviewData?.imageUrls || [],
         }
       }));
       setIsReviewModalOpen(false);
@@ -100,18 +119,74 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   }
 
   const orderData = order;
+  const addressList = addressResponse?.data || [];
+  const matchedAddress = addressList.find((addr) => String(addr.id) === String(orderData.addressId));
+
+  const formatAddressRecord = (addr) => {
+    if (!addr) return '';
+    return [
+      [addr.receiverName, addr.phone].filter(Boolean).join(' | '),
+      addr.streetAddress,
+      addr.ward,
+      addr.district,
+      addr.province,
+      addr.country,
+    ].filter(Boolean).join(', ');
+  };
+
+  const formatDateTime = (value) => {
+    if (!value) return 'Not available';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Not available';
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatShippingMethod = (value) => {
+    if (!value) return 'Standard';
+    return String(value).replace(/[_-]/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  const formatPaymentValue = (value, fallback = 'Not available') => {
+    if (!value) return fallback;
+    return String(value).replace(/[_-]/g, ' ').toUpperCase();
+  };
+
+  const parseSkuAttributes = (value) => {
+    if (!value) return {};
+    if (typeof value === 'object') return value;
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const buildVariantText = (item) => {
+    const attrs = parseSkuAttributes(item.skuAttributes || item.selectedOptions || item.SelectedOptions);
+    const values = Object.values(attrs).filter(Boolean);
+    return item.variant || (values.length > 0 ? values.join(' / ') : 'Standard');
+  };
 
   // Normalize order items: support both BE format (orderItems) and legacy format (items)
   const normalizedItems = (orderData.orderItems || orderData.items || []).map(item => ({
     id: item.id || item.name,
     name: item.productName || item.name,
-    variant: item.variant || (item.skuAttributes ? `${item.skuAttributes.color || ''} • ${item.skuAttributes.size || ''}` : ''),
+    variant: buildVariantText(item),
     image: item.imageUrl || item.image || item.imgUrl || item.productImage || `https://picsum.photos/seed/${item.productName || 'product'}/200/300`,
     unitPrice: parsePrice(item.unitPrice ?? item.price),
     price: item.unitPrice != null ? formatVnd(item.unitPrice) : formatVnd(parsePrice(item.price)),
+    lineTotal: parsePrice(item.unitPrice ?? item.price) * (item.quantity || 1),
     quantity: item.quantity || 1,
+    productId: item.productId || item.ProductId || item.product_id,
     productSkuId: item.productSkuId || item.ProductSkuId || item.product_sku_id,
-    skuAttributes: item.skuAttributes,
+    skuAttributes: parseSkuAttributes(item.skuAttributes || item.selectedOptions || item.SelectedOptions),
   }));
 
   const normalizedOrder = {
@@ -120,8 +195,22 @@ export default function OrderDetails({ setCurrentScreen, order }) {
     date: orderData.date || (orderData.createdAt ? new Date(orderData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : ''),
     total: parsePrice(orderData.totalAmount ?? orderData.total),
     totalAmount: parsePrice(orderData.totalAmount ?? orderData.total),
+    subtotal: parsePrice(orderData.subtotal ?? orderData.subTotal ?? orderData.sub_total ?? 0),
+    taxAmount: parsePrice(orderData.taxAmount ?? orderData.tax_amount ?? 0),
     shippingFee: parsePrice(orderData.shippingFee ?? orderData.shipping_fee ?? 0),
+    shippingMethod: orderData.shippingMethod || orderData.shipping_method || 'standard',
+    shippingAddress: orderData.shippingAddress || orderData.shipping_address || orderData.address || formatAddressRecord(matchedAddress),
+    orderNote: orderData.orderNote || orderData.order_note || '',
   };
+
+  const orderInfoItems = [
+    { label: 'Order Code', value: getDisplayOrderCode(normalizedOrder), icon: Hash },
+    { label: 'Placed At', value: formatDateTime(orderData.createdAt || orderData.created_at), icon: CalendarDays },
+    { label: 'Payment Method', value: formatPaymentValue(normalizedOrder.paymentMethod, 'COD'), icon: CreditCard },
+    { label: 'Payment Status', value: formatPaymentValue(normalizedOrder.paymentStatus || 'Pending'), icon: WalletCards },
+    { label: 'Shipping Method', value: formatShippingMethod(normalizedOrder.shippingMethod), icon: Truck },
+    { label: 'Payment Reference', value: normalizedOrder.paymentReference || normalizedOrder.payment_reference || 'Not available', icon: ReceiptText },
+  ];
 
   const cancellationReasons = [
     { id: 'changed_mind', label: 'Changed my mind' },
@@ -132,7 +221,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
   ];
 
   const getVariantDetails = (variant) => {
-    const parts = variant ? variant.split('•') : [];
+    const parts = variant ? variant.split(/[•/]/) : [];
     return { size: parts[0]?.trim() || 'Standard', color: parts[1]?.trim() || 'Default' };
   };
 
@@ -148,6 +237,29 @@ export default function OrderDetails({ setCurrentScreen, order }) {
 
   const handleConfirmCancel = () => {
     cancelOrderMutation.mutate();
+  };
+
+  const handleViewProduct = async (item) => {
+    if (item.productId) {
+      navigate(`/product/${item.productId}`);
+      return;
+    }
+
+    if (!item.productSkuId || !tenantId) {
+      toast.error('Cannot open this product because product data is missing.');
+      return;
+    }
+
+    try {
+      const productId = await productService.getProductIdBySkuId(tenantId, item.productSkuId);
+      if (!productId) {
+        toast.error('Cannot find this product.');
+        return;
+      }
+      navigate(`/product/${productId}`);
+    } catch {
+      toast.error('Failed to open product.');
+    }
   };
 
   const handleBuyItem = (item, idx) => {
@@ -238,12 +350,12 @@ export default function OrderDetails({ setCurrentScreen, order }) {
           Back to Orders
         </button>
         <div 
-          className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800 shadow-sm"
-          style={{ borderRadius: `${borderRadius}px` }}
+          className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 border shadow-xl shadow-slate-200/50"
+          style={{ borderRadius: `${borderRadius}px`, backgroundColor: cardBg, color: textColor, borderColor }}
         >
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Order {getDisplayOrderCode(normalizedOrder)}</h1>
+              <h1 className="text-2xl font-bold tracking-tight" style={{ color: textColor }}>Order {getDisplayOrderCode(normalizedOrder)}</h1>
               <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                 orderStatus === 'Cancelled' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
                 orderStatus === 'Pending' || orderStatus === 'Processing' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
@@ -252,7 +364,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
                 {orderStatus}
               </span>
             </div>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Placed on {normalizedOrder.date} • {normalizedOrder.items.length} Items</p>
+            <p className="text-slate-500 mt-1 text-sm">Placed on {normalizedOrder.date} · {normalizedOrder.items.length} Items</p>
           </div>
           <div className="flex gap-3">
 
@@ -285,6 +397,51 @@ export default function OrderDetails({ setCurrentScreen, order }) {
         </div>
       </div>
 
+      <div
+        className="mb-6 border shadow-xl shadow-slate-200/50 p-5"
+        style={{ borderRadius: `${borderRadius}px`, backgroundColor: cardBg, color: textColor, borderColor }}
+      >
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-base font-black tracking-tight" style={{ color: textColor }}>Order Information</h2>
+            <p className="text-xs text-slate-500 mt-1">
+              {normalizedOrder.items.length} item{normalizedOrder.items.length === 1 ? '' : 's'} in this order
+            </p>
+          </div>
+          {normalizedOrder.id && (
+            <span className="hidden sm:inline-flex text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              ID {normalizedOrder.id}
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          {orderInfoItems.map((item) => {
+            const InfoIcon = item.icon;
+            return (
+              <div
+                key={item.label}
+                className="flex gap-3 rounded-xl border p-3 min-w-0"
+                style={{ backgroundColor: `${primaryColor}08`, borderColor }}
+              >
+                <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${primaryColor}12` }}>
+                  <InfoIcon className="w-4 h-4" style={{ color: primaryColor }} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.label}</p>
+                  <p className="text-sm font-bold text-slate-900 truncate" title={String(item.value)}>{item.value}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {normalizedOrder.orderNote && (
+          <div className="mt-4 rounded-xl border p-4" style={{ borderColor, backgroundColor: `${primaryColor}08` }}>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Order Note</p>
+            <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">{normalizedOrder.orderNote}</p>
+          </div>
+        )}
+      </div>
+
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -293,6 +450,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
             reviewedItems={reviewedItems}
             buyingItemIds={buyingItemIds}
             onWriteReview={handleWriteReview}
+            onViewProduct={handleViewProduct}
             onBuyItem={handleBuyItem}
             orderStatus={orderStatus}
           />
@@ -305,7 +463,7 @@ export default function OrderDetails({ setCurrentScreen, order }) {
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
         product={selectedProduct}
-        initialReview={selectedProduct ? reviewedItems[selectedProduct.name] : null}
+        initialReview={selectedProduct ? reviewedItems[selectedProduct.productSkuId] : null}
         onSubmitReview={async (data) => {
           await submitReviewMutation.mutateAsync(data);
         }}

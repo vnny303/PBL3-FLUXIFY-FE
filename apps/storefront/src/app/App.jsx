@@ -29,9 +29,12 @@ const ThemeGlobalWrapper = ({ children }) => {
   const { theme } = useStorefrontConfig();
 
   useEffect(() => {
-    if (!theme) return;
-    
     const root = document.documentElement;
+    root.classList.remove('dark');
+    root.style.colorScheme = 'light';
+
+    if (!theme) return;
+
     if (theme.colors?.primary) {
       root.style.setProperty('--color-primary', theme.colors.primary);
     }

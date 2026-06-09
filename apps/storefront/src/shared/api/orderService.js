@@ -2,12 +2,6 @@ import axiosClient from './axiosClient';
 import { getTenantId, getUserId } from '@fluxify/shared/lib';
 import { normalizePaymentMethod } from '../lib/paymentMethod';
 
-const LAST_CHECKOUT_ORDER_KEY = 'fluxify_last_checkout_order';
-const DEMO_ORDERS_KEY_PREFIX = 'fluxify_demo_orders_';
-const TEMP_PENDING_CANCEL_ORDER_ID = 'mock-pending-cancel-order';
-const TEMP_PENDING_CANCEL_ORDER_KEY_PREFIX = 'fluxify_temp_pending_cancel_order_';
-const USE_TEMP_PENDING_CANCEL_ORDER = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-
 const extractItems = (response) => {
     if (!response) {
         return [];
@@ -33,6 +27,16 @@ const extractItems = (response) => {
     return [];
 };
 
+const safeParseJson = (value, fallback = {}) => {
+    if (!value) return fallback;
+    if (typeof value !== 'string') return value;
+    try {
+        return JSON.parse(value);
+    } catch {
+        return fallback;
+    }
+};
+
 const normalizeOrder = (order) => {
     if (!order || typeof order !== 'object') return null;
 
@@ -43,23 +47,39 @@ const normalizeOrder = (order) => {
             : Array.isArray(order.items)
                 ? order.items
                 : [];
+    const normalizedOrderItems = orderItems.map(item => ({
+        ...item,
+        image: item.imageUrl || item.image || item.imgUrl || item.thumbnail || item.productImage || item.productImgUrl || null,
+        productName: item.productName || item.name || item.product_name,
+        productId: item.productId || item.ProductId || item.product_id,
+        productSkuId: item.productSkuId || item.ProductSkuId || item.product_sku_id,
+        skuAttributes: item.skuAttributes || item.attributes || safeParseJson(item.selectedOptions || item.SelectedOptions || item.selected_options, {}),
+    }));
 
     return {
         ...order,
         id: order.id || order.orderId || order.order_id || null,
+        orderCode: order.orderCode || order.order_code || null,
+        addressId: order.addressId || order.AddressId || order.address_id || null,
         status: order.status || order.orderStatus || order.order_status || null,
         paymentMethod: normalizePaymentMethod(order.paymentMethod || order.payment_method || null),
         paymentStatus: order.paymentStatus || order.payment_status || null,
+        paymentReference: order.paymentReference || order.payment_reference || null,
+        bankName: order.bankName || order.bank_name || null,
+        bankCode: order.bankCode || order.bank_code || null,
+        bankAccountNumber: order.bankAccountNumber || order.bank_account_number || null,
+        bankAccountName: order.bankAccountName || order.bank_account_name || null,
+        transferContent: order.transferContent || order.transfer_content || null,
         totalAmount: order.totalAmount ?? order.total_amount ?? order.total ?? 0,
         total: order.total ?? order.totalAmount ?? order.total_amount ?? 0,
+        subtotal: order.subtotal ?? order.subTotal ?? order.sub_total ?? 0,
+        shippingFee: order.shippingFee ?? order.shipping_fee ?? 0,
+        shippingMethod: order.shippingMethod || order.shipping_method || null,
+        shippingAddress: order.shippingAddress || order.shipping_address || order.address || null,
+        orderNote: order.orderNote || order.order_note || null,
         createdAt: order.createdAt || order.created_at || null,
-        orderItems: orderItems.map(item => ({
-            ...item,
-            image: item.imageUrl || item.image || item.imgUrl || item.thumbnail || item.productImage || item.productImgUrl || null,
-            productName: item.productName || item.name || item.product_name,
-            productSkuId: item.productSkuId || item.ProductSkuId || item.product_sku_id,
-        })),
-        items: orderItems,
+        orderItems: normalizedOrderItems,
+        items: normalizedOrderItems,
     };
 };
 
@@ -75,124 +95,6 @@ const dedupeOrders = (orders = []) => {
         const right = Date.parse(b?.createdAt || '') || 0;
         return right - left;
     });
-};
-
-const buildTempPendingCancelOrder = (customerId, tenantId) => ({
-    id: TEMP_PENDING_CANCEL_ORDER_ID,
-    tenantId: tenantId || 'tenant-studyhub-demo',
-    customerId,
-    addressId: 'addr-001',
-    orderCode: 'MOCK-CANCEL-001',
-    paymentReference: 'MOCK-CANCEL-001',
-    paymentMethod: 'COD',
-    paymentStatus: 'Pending',
-    bankName: null,
-    bankCode: null,
-    bankAccountNumber: null,
-    bankAccountName: null,
-    transferContent: null,
-    status: 'Pending',
-    subtotal: 218000,
-    shippingFee: 25000,
-    taxAmount: 0,
-    totalAmount: 243000,
-    total: 243000,
-    paidAt: null,
-    shippingMethod: 'standard',
-    orderNote: 'Temporary storefront mock order for cancel testing.',
-    createdAt: new Date(Date.now() + 60000).toISOString(),
-    persisted: false,
-    orderItems: [
-        {
-            id: 'mock-pending-cancel-item-1',
-            orderId: TEMP_PENDING_CANCEL_ORDER_ID,
-            productSkuId: 'p-001-sku-1-1',
-            productName: 'Campus A5 Grid Notebook Set',
-            image: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=300&q=80',
-            quantity: 1,
-            unitPrice: 89000,
-            skuAttributes: { color: 'Sage', size: 'A5' },
-        },
-        {
-            id: 'mock-pending-cancel-item-2',
-            orderId: TEMP_PENDING_CANCEL_ORDER_ID,
-            productSkuId: 'p-003-sku-1-1',
-            productName: 'Premium Gel Pen Pack',
-            image: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=300&q=80',
-            quantity: 1,
-            unitPrice: 129000,
-            skuAttributes: { color: 'Black', size: '0.5mm' },
-        },
-    ],
-});
-
-const getTempPendingCancelOrder = (customerId, tenantId) => {
-    if (!USE_TEMP_PENDING_CANCEL_ORDER || !customerId) return null;
-
-    const storageKey = `${TEMP_PENDING_CANCEL_ORDER_KEY_PREFIX}${customerId}`;
-    try {
-        const stored = JSON.parse(localStorage.getItem(storageKey) || 'null');
-        if (stored?.id === TEMP_PENDING_CANCEL_ORDER_ID) {
-            return normalizeOrder(stored);
-        }
-    } catch {
-        // Ignore invalid temporary mock storage.
-    }
-
-    return normalizeOrder(buildTempPendingCancelOrder(customerId, tenantId));
-};
-
-const setTempPendingCancelOrderStatus = (orderId, status) => {
-    if (!USE_TEMP_PENDING_CANCEL_ORDER || orderId !== TEMP_PENDING_CANCEL_ORDER_ID) {
-        return false;
-    }
-
-    const customerId = getUserId();
-    if (!customerId) return false;
-
-    const storageKey = `${TEMP_PENDING_CANCEL_ORDER_KEY_PREFIX}${customerId}`;
-    const existing = getTempPendingCancelOrder(customerId, getTenantId());
-    const nextOrder = {
-        ...existing,
-        status,
-        paymentStatus: status === 'Cancelled' ? 'Failed' : existing?.paymentStatus || 'Pending',
-    };
-
-    try {
-        localStorage.setItem(storageKey, JSON.stringify(nextOrder));
-    } catch {
-        // Ignore storage write failures.
-    }
-
-    return true;
-};
-
-const persistDemoOrder = (order, customerId) => {
-    if (!order || typeof order !== 'object') return;
-
-    try {
-        sessionStorage.setItem(LAST_CHECKOUT_ORDER_KEY, JSON.stringify(order));
-    } catch {
-        // Ignore storage write failures.
-    }
-
-    if (!customerId) return;
-
-    try {
-        const storageKey = `${DEMO_ORDERS_KEY_PREFIX}${customerId}`;
-        const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        const safeExisting = Array.isArray(existing) ? existing : [];
-        const merged = [order, ...safeExisting]
-            .filter((item, index, array) => {
-                const id = String(item?.id || '');
-                if (!id) return false;
-                return array.findIndex((candidate) => String(candidate?.id || '') === id) === index;
-            })
-            .slice(0, 20);
-        localStorage.setItem(storageKey, JSON.stringify(merged));
-    } catch {
-        // Ignore storage write failures.
-    }
 };
 
 export const orderService = {
@@ -223,10 +125,7 @@ export const orderService = {
             for (const endpoint of tenantEndpoints) {
                 try {
                     const response = await axiosClient.get(endpoint);
-                    return dedupeOrders([
-                        getTempPendingCancelOrder(customerId, tenantId),
-                        ...extractItems(response),
-                    ].filter(Boolean));
+                    return dedupeOrders(extractItems(response));
                 } catch (error) {
                     lastError = error;
                     if (![400, 403, 404].includes(error?.response?.status)) {
@@ -245,10 +144,7 @@ export const orderService = {
         for (const endpoint of customerEndpoints) {
             try {
                 const response = await axiosClient.get(endpoint);
-                return dedupeOrders([
-                    getTempPendingCancelOrder(customerId, tenantId),
-                    ...extractItems(response),
-                ].filter(Boolean));
+                return dedupeOrders(extractItems(response));
             } catch (error) {
                 lastError = error;
                 if (![400, 403, 404].includes(error?.response?.status)) {
@@ -265,12 +161,6 @@ export const orderService = {
         paymentMethod,
         orderNote,
         shippingMethod,
-        cartItems = [],
-        cartTotal = 0,
-        shippingFee = 0,
-        user = null,
-        finalAddress = null,
-        selectedAddress = null,
     }) => {
         if (!addressId) {
             throw new Error("Missing addressId. Please select a saved address before checkout.");
@@ -340,10 +230,6 @@ export const orderService = {
         });
     },
     cancelOrder: async (orderId, reason = '') => {
-        if (setTempPendingCancelOrderStatus(orderId, 'Cancelled')) {
-            return { ok: true, id: orderId, reason };
-        }
-
         return await axiosClient.put(`/api/customer/orders/${orderId}/cancel`, { reason });
     },
 };

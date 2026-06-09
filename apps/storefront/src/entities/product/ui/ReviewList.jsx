@@ -4,6 +4,7 @@ import { useAppContext } from '../../../app/providers/useAppContext';
 import ConfirmationModal from '../../../shared/ui/ConfirmationModal';
 import ReviewModal from '../../../features/product-review/ui/ReviewModal';
 import { useStorefrontConfig } from '../../../features/theme/useStorefrontConfig';
+import { reviewService } from '../../../shared/api/reviewService';
 
 const SORT_OPTIONS = [
   { label: 'Newest', sortBy: 'createdAt', sortDir: 'desc' },
@@ -110,6 +111,24 @@ function ReviewCard({ review, currentUserId, onEdit, onDelete }) {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-slate-400">{formattedDate}</span>
+          {isOwner && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onEdit(review)}
+                className="text-xs font-semibold text-slate-500 hover:text-slate-900"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(review.id)}
+                className="text-xs font-semibold text-red-500 hover:text-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          )}
         </div>
       </div>
       {review.comment && (
@@ -194,7 +213,7 @@ export default function ReviewList({
   const reviewProduct = useMemo(
     () => ({
       name: product?.name,
-      imageUrl: activeWriteSku?.image || activeWriteSku?.imageUrl || product?.image || product?.imageUrl,
+      imageUrl: activeWriteSku?.imgUrl || activeWriteSku?.image || activeWriteSku?.imageUrl || product?.image || product?.imageUrl || product?.imgUrls?.[0],
       variant: buildVariantLabel(activeWriteSku),
     }),
     [product, activeWriteSku]
@@ -276,6 +295,22 @@ export default function ReviewList({
     setShowForm(true);
   };
   const handleDeleteConfirm = () => {};
+  const handleSubmitReview = async (data) => {
+    if (!activeWriteSkuId) return;
+
+    if (editingReview?.id) {
+      await reviewService.updateReview(editingReview.id, data);
+    } else {
+      await reviewService.createReview({
+        productSkuId: activeWriteSkuId,
+        ...data,
+      });
+    }
+
+    setShowForm(false);
+    setEditingReview(null);
+    await onRefresh?.();
+  };
 
   if (skuIds.length === 0) {
     return (
@@ -420,10 +455,13 @@ export default function ReviewList({
 
       <ReviewModal
         isOpen={showForm}
-        onClose={() => setShowForm(false)}
+        onClose={() => {
+          setShowForm(false);
+          setEditingReview(null);
+        }}
         product={reviewProduct}
         initialReview={editingReview}
-        onSubmitReview={async () => Promise.resolve()}
+        onSubmitReview={handleSubmitReview}
       />
     </div>
   );

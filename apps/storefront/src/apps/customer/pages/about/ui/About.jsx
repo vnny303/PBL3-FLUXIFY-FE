@@ -13,22 +13,27 @@ export default function About() {
   const borderColor = theme?.colors?.text ? `${theme.colors.text}20` : '#e2e8f0';
   const borderRadius = theme?.layout?.borderRadius || 12;
 
-  // Resolve About cover image dynamically from products or contentConfig
+  const getProductImages = () => {
+    if (!products || products.length === 0) return [];
+    return products
+      .flatMap((prod) => [
+        ...(Array.isArray(prod.imgUrls) ? prod.imgUrls : []),
+        ...(Array.isArray(prod.images) ? prod.images : []),
+        prod.imageUrl,
+        prod.thumbnail,
+        prod.productImage,
+      ])
+      .filter(Boolean);
+  };
+
+  // Resolve About cover image without reusing the Home hero image.
   const getAboutImage = () => {
     if (content?.about?.imageUrl) return content.about.imageUrl;
+
+    const homeHeroImage = content?.home?.heroImageUrl;
+    const productImage = getProductImages().find((imageUrl) => imageUrl !== homeHeroImage);
+    if (productImage) return productImage;
     
-    // Fallback to first available product image in the store
-    if (products && products.length > 0) {
-      for (const prod of products) {
-        if (prod.imgUrls && prod.imgUrls.length > 0) return prod.imgUrls[0];
-        if (prod.images && prod.images.length > 0) return prod.images[0];
-        if (prod.imageUrl) return prod.imageUrl;
-        if (prod.thumbnail) return prod.thumbnail;
-        if (prod.productImage) return prod.productImage;
-      }
-    }
-    
-    // Default safe fallback if no products are created yet
     return 'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?auto=format&fit=crop&w=1200&q=80';
   };
 

@@ -113,8 +113,7 @@ export default function ProductTabs({
     };
   }, [product]);
 
-  // 2. Review Summary
-  const reviewCount = reviews.length;
+  const reviewCount = reviewSummary?.totalReviews ?? reviews.length;
   const selectedSkuId = selectedSku?.id || selectedSku?.productSkuId || selectedSku?.skuId || null;
 
   const hasContent = details.description || details.detailSections.length > 0 || details.specifications.length > 0 || details.highlights.length > 0 || details.includedItems.length > 0;
